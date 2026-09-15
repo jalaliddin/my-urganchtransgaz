@@ -17,6 +17,9 @@ const colorMap: Record<string, string> = {
   terminated: 'error',
   central: 'primary',
   subordinate: 'secondary',
+  pending: 'warning',
+  approved: 'success',
+  rejected: 'error',
 }
 
 const color = computed(() => colorMap[props.status] ?? 'default')

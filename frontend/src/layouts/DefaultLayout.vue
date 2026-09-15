@@ -40,6 +40,17 @@ const navItems = computed<NavItem[]>(() =>
       to: '/employees',
       permission: 'employees.view',
     },
+    {
+      title: 'nav.documents',
+      icon: 'mdi-file-document-outline',
+      to: '/documents',
+    },
+    {
+      title: 'nav.changeRequests',
+      icon: 'mdi-file-document-edit-outline',
+      to: '/change-requests',
+      permission: 'employees.update',
+    },
   ].filter((item) => !item.permission || auth.can(item.permission)),
 )
 
@@ -102,18 +113,19 @@ async function handleLogout() {
         @click="mobile ? (drawer = !drawer) : (rail = !rail)"
       />
       <v-spacer />
-      <v-btn icon="mdi-bell-outline" variant="text" />
+      <NotificationBell />
       <v-menu>
         <template #activator="{ props: menuProps }">
           <v-btn v-bind="menuProps" variant="text" class="ml-2">
-            <v-avatar color="primary" size="32" class="mr-2">
-              <span class="text-caption text-white">{{ auth.user?.name?.[0] ?? '?' }}</span>
-            </v-avatar>
+            <AppAvatar :photo-url="auth.user?.employee?.photo_url" :name="auth.user?.name" :size="32" class="mr-2" />
             <span class="text-body-2 d-none d-sm-inline">{{ auth.user?.name }}</span>
           </v-btn>
         </template>
-        <v-list density="comfortable" min-width="200">
+        <v-list density="comfortable" min-width="220">
           <v-list-item :title="auth.user?.name" :subtitle="auth.user?.email" />
+          <v-divider />
+          <v-list-item :to="'/profile'" :title="$t('nav.myProfile')" prepend-icon="mdi-account-outline" />
+          <v-list-item :to="'/documents'" :title="$t('nav.myDocuments')" prepend-icon="mdi-file-document-outline" />
           <v-divider />
           <v-list-item :title="$t('nav.logout')" prepend-icon="mdi-logout" @click="handleLogout" />
         </v-list>

@@ -1,7 +1,17 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
+
+import { profileService, type ProfileCompletion } from '@/services/profileService'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
+const completion = ref<ProfileCompletion | null>(null)
+
+onMounted(async () => {
+  if (auth.user?.employee) {
+    completion.value = await profileService.completion()
+  }
+})
 </script>
 
 <template>
@@ -12,9 +22,7 @@ const auth = useAuthStore()
       <v-card>
         <v-card-item>
           <div class="d-flex align-center ga-4">
-            <v-avatar color="primary" size="56">
-              <span class="text-h6 text-white">{{ auth.user?.name?.[0] ?? '?' }}</span>
-            </v-avatar>
+            <AppAvatar :photo-url="auth.user?.employee?.photo_url" :name="auth.user?.name" :size="56" />
             <div>
               <div class="text-subtitle-1 font-weight-bold">
                 {{ $t('dashboard.welcome') }}, {{ auth.user?.name }}
@@ -46,6 +54,21 @@ const auth = useAuthStore()
             prepend-icon="mdi-card-account-details-outline"
           />
         </v-list>
+      </v-card>
+    </v-col>
+
+    <v-col v-if="completion" cols="12" md="6" lg="4">
+      <v-card>
+        <v-card-text>
+          <div class="d-flex justify-space-between mb-2">
+            <span class="text-subtitle-2">{{ $t('dashboard.profileCompletion') }}</span>
+            <span class="text-subtitle-2 font-weight-bold">{{ completion.percentage }}%</span>
+          </div>
+          <v-progress-linear :model-value="completion.percentage" color="primary" height="10" rounded class="mb-3" />
+          <router-link v-if="completion.percentage < 100" :to="{ name: 'profile' }" class="text-body-2">
+            {{ $t('profile.title') }} →
+          </router-link>
+        </v-card-text>
       </v-card>
     </v-col>
   </v-row>

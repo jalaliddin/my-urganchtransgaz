@@ -47,6 +47,26 @@ const router = createRouter({
           name: 'employees',
           component: () => import('@/views/employees/EmployeesView.vue'),
         },
+        {
+          path: 'profile',
+          name: 'profile',
+          component: () => import('@/views/profile/ProfileView.vue'),
+        },
+        {
+          path: 'documents',
+          name: 'documents',
+          component: () => import('@/views/documents/DocumentsView.vue'),
+        },
+        {
+          path: 'change-requests',
+          name: 'change-requests',
+          component: () => import('@/views/change-requests/ChangeRequestsView.vue'),
+        },
+        {
+          path: 'notifications',
+          name: 'notifications',
+          component: () => import('@/views/notifications/NotificationsView.vue'),
+        },
       ],
     },
   ],

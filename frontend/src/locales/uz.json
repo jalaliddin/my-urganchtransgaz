@@ -13,7 +13,11 @@
     "exams": "Xavfsizlik imtihonlari",
     "announcements": "E'lonlar",
     "documents": "Hujjatlar",
+    "changeRequests": "So'rovlar",
+    "notifications": "Bildirishnomalar",
     "settings": "Sozlamalar",
+    "myProfile": "Mening profilim",
+    "myDocuments": "Mening hujjatlarim",
     "logout": "Tizimdan chiqish"
   },
   "auth": {
@@ -54,7 +58,10 @@
     "sick_leave": "Bemor varaqasida",
     "terminated": "Ishdan bo'shatilgan",
     "central": "Markaziy",
-    "subordinate": "Bo'ysunuvchi"
+    "subordinate": "Bo'ysunuvchi",
+    "pending": "Kutilmoqda",
+    "approved": "Tasdiqlangan",
+    "rejected": "Rad etilgan"
   },
   "organizations": {
     "title": "Tashkilotlar",
@@ -96,10 +103,73 @@
     "status": "Holati",
     "createAccount": "Tizimga kirish uchun hisob yaratish",
     "username": "Foydalanuvchi nomi",
-    "role": "Roli"
+    "role": "Roli",
+    "birthDate": "Tug'ilgan sana",
+    "birthPlace": "Tug'ilgan joyi",
+    "gender": "Jinsi",
+    "genderMale": "Erkak",
+    "genderFemale": "Ayol",
+    "passportNumber": "Passport raqami",
+    "pinfl": "PINFL",
+    "changeOnlyHint": "O'zgartirish uchun kiriting"
   },
   "dashboard": {
     "title": "Boshqaruv paneli",
-    "welcome": "Xush kelibsiz"
+    "welcome": "Xush kelibsiz",
+    "profileCompletion": "Profil to'ldirilishi"
+  },
+  "profile": {
+    "title": "Mening profilim",
+    "personalInfo": "Shaxsiy ma'lumotlar",
+    "contactInfo": "Aloqa ma'lumotlari",
+    "sensitiveNotice": "Bu maydonlarni o'zgartirish HR tasdig'ini talab qiladi.",
+    "requestChange": "O'zgartirish so'rash",
+    "pendingNotice": "Ba'zi o'zgarishlar hozirda ko'rib chiqilmoqda.",
+    "photo": "Rasm",
+    "uploadPhoto": "Rasm yuklash",
+    "contacts": "Favqulodda aloqa va bank ma'lumotlari",
+    "addContact": "Aloqa qo'shish",
+    "emergencyContact": "Favqulodda aloqa",
+    "bankInfo": "Bank ma'lumotlari",
+    "contactType": "Turi",
+    "fullName": "F.I.Sh.",
+    "relationship": "Qarindoshlik",
+    "bankName": "Bank nomi",
+    "bankAccount": "Hisob raqami",
+    "myChangeRequests": "Mening so'rovlarim",
+    "tabInfo": "Ma'lumotlar",
+    "tabDocuments": "Hujjatlar",
+    "tabContacts": "Aloqalar",
+    "tabRequests": "So'rovlarim"
+  },
+  "documents": {
+    "title": "Hujjatlar",
+    "upload": "Hujjat yuklash",
+    "documentType": "Hujjat turi",
+    "documentTitle": "Nomi",
+    "documentNumber": "Hujjat raqami",
+    "issueDate": "Berilgan sana",
+    "expiryDate": "Amal qilish muddati",
+    "file": "Fayl",
+    "download": "Yuklab olish",
+    "approve": "Tasdiqlash",
+    "reject": "Rad etish",
+    "rejectReason": "Rad etish sababi",
+    "employee": "Xodim",
+    "noExpiry": "Muddatsiz"
+  },
+  "changeRequests": {
+    "title": "So'rovlar",
+    "requestedBy": "So'rovchi",
+    "changes": "O'zgarishlar",
+    "reviewComment": "Izoh",
+    "approve": "Tasdiqlash",
+    "reject": "Rad etish"
+  },
+  "notifications": {
+    "title": "Bildirishnomalar",
+    "markAllRead": "Barchasini o'qilgan deb belgilash",
+    "noNotifications": "Bildirishnomalar yo'q",
+    "viewAll": "Barchasini ko'rish"
   }
 }

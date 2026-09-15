@@ -13,7 +13,11 @@
     "exams": "Safety Exams",
     "announcements": "Announcements",
     "documents": "Documents",
+    "changeRequests": "Requests",
+    "notifications": "Notifications",
     "settings": "Settings",
+    "myProfile": "My Profile",
+    "myDocuments": "My Documents",
     "logout": "Logout"
   },
   "auth": {
@@ -54,7 +58,10 @@
     "sick_leave": "Sick leave",
     "terminated": "Terminated",
     "central": "Central",
-    "subordinate": "Subordinate"
+    "subordinate": "Subordinate",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
   },
   "organizations": {
     "title": "Organizations",
@@ -96,10 +103,73 @@
     "status": "Status",
     "createAccount": "Create a login account",
     "username": "Username",
-    "role": "Role"
+    "role": "Role",
+    "birthDate": "Date of birth",
+    "birthPlace": "Place of birth",
+    "gender": "Gender",
+    "genderMale": "Male",
+    "genderFemale": "Female",
+    "passportNumber": "Passport number",
+    "pinfl": "PINFL",
+    "changeOnlyHint": "Enter to change"
   },
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome"
+    "welcome": "Welcome",
+    "profileCompletion": "Profile completion"
+  },
+  "profile": {
+    "title": "My Profile",
+    "personalInfo": "Personal information",
+    "contactInfo": "Contact information",
+    "sensitiveNotice": "Changing these fields requires HR approval.",
+    "requestChange": "Request change",
+    "pendingNotice": "Some changes are currently pending review.",
+    "photo": "Photo",
+    "uploadPhoto": "Upload photo",
+    "contacts": "Emergency & bank contacts",
+    "addContact": "Add contact",
+    "emergencyContact": "Emergency contact",
+    "bankInfo": "Bank information",
+    "contactType": "Type",
+    "fullName": "Full name",
+    "relationship": "Relationship",
+    "bankName": "Bank name",
+    "bankAccount": "Account number",
+    "myChangeRequests": "My change requests",
+    "tabInfo": "Info",
+    "tabDocuments": "Documents",
+    "tabContacts": "Contacts",
+    "tabRequests": "My requests"
+  },
+  "documents": {
+    "title": "Documents",
+    "upload": "Upload document",
+    "documentType": "Document type",
+    "documentTitle": "Title",
+    "documentNumber": "Document number",
+    "issueDate": "Issue date",
+    "expiryDate": "Expiry date",
+    "file": "File",
+    "download": "Download",
+    "approve": "Approve",
+    "reject": "Reject",
+    "rejectReason": "Rejection reason",
+    "employee": "Employee",
+    "noExpiry": "No expiry"
+  },
+  "changeRequests": {
+    "title": "Requests",
+    "requestedBy": "Requested by",
+    "changes": "Changes",
+    "reviewComment": "Comment",
+    "approve": "Approve",
+    "reject": "Reject"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "noNotifications": "No notifications",
+    "viewAll": "View all"
   }
 }

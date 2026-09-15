@@ -3,6 +3,9 @@ export type ActiveStatus = 'active' | 'inactive'
 export type EmployeeStatus = 'active' | 'vacation' | 'business_trip' | 'sick_leave' | 'inactive' | 'terminated'
 export type EmploymentType = 'full_time' | 'part_time' | 'contract' | 'internship' | 'temporary'
 export type Gender = 'male' | 'female'
+export type ContactType = 'emergency' | 'bank'
+export type DocumentStatus = 'pending' | 'approved' | 'rejected'
+export type ChangeRequestStatus = 'pending' | 'approved' | 'rejected'
 
 export interface Organization {
   id: number
@@ -78,11 +81,74 @@ export interface Employee {
   hire_date: string | null
   termination_date: string | null
 
-  photo: string | null
+  photo_url: string | null
   status: EmployeeStatus
+  contacts?: EmployeeContact[]
 
   created_at: string
   updated_at: string
+}
+
+export interface EmployeeContact {
+  id: number
+  type: ContactType
+  full_name: string
+  relationship: string | null
+  phone: string | null
+  address: string | null
+  bank_name: string | null
+  bank_account_number: string | null
+}
+
+export interface DocumentType {
+  id: number
+  name: string
+  code: string
+  requires_expiry: boolean
+  status: ActiveStatus
+}
+
+export interface EmployeeDocument {
+  id: number
+  employee_id: number
+  employee?: Employee
+  document_type: DocumentType
+  title: string
+  document_number: string | null
+  issue_date: string | null
+  expiry_date: string | null
+  mime_type: string
+  file_size: number
+  status: DocumentStatus
+  uploaded_by: number
+  approved_by: number | null
+  approved_at: string | null
+  rejection_reason: string | null
+  download_url: string
+  created_at: string
+  updated_at: string
+}
+
+export interface EmployeeChangeRequest {
+  id: number
+  employee_id: number
+  employee?: Employee
+  changes: Record<string, unknown>
+  status: ChangeRequestStatus
+  reviewed_by: number | null
+  reviewed_at: string | null
+  review_comment: string | null
+  created_at: string
+}
+
+export interface AppNotification {
+  id: string
+  type: string
+  title: string | null
+  message: string | null
+  data: Record<string, unknown>
+  read_at: string | null
+  created_at: string
 }
 
 export interface AuthUser {

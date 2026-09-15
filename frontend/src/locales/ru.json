@@ -13,7 +13,11 @@
     "exams": "Экзамены по охране труда",
     "announcements": "Объявления",
     "documents": "Документы",
+    "changeRequests": "Запросы",
+    "notifications": "Уведомления",
     "settings": "Настройки",
+    "myProfile": "Мой профиль",
+    "myDocuments": "Мои документы",
     "logout": "Выйти"
   },
   "auth": {
@@ -54,7 +58,10 @@
     "sick_leave": "На больничном",
     "terminated": "Уволен",
     "central": "Центральный",
-    "subordinate": "Подведомственный"
+    "subordinate": "Подведомственный",
+    "pending": "На рассмотрении",
+    "approved": "Утверждено",
+    "rejected": "Отклонено"
   },
   "organizations": {
     "title": "Организации",
@@ -96,10 +103,73 @@
     "status": "Статус",
     "createAccount": "Создать учётную запись",
     "username": "Имя пользователя",
-    "role": "Роль"
+    "role": "Роль",
+    "birthDate": "Дата рождения",
+    "birthPlace": "Место рождения",
+    "gender": "Пол",
+    "genderMale": "Мужской",
+    "genderFemale": "Женский",
+    "passportNumber": "Номер паспорта",
+    "pinfl": "ПИНФЛ",
+    "changeOnlyHint": "Введите, чтобы изменить"
   },
   "dashboard": {
     "title": "Панель управления",
-    "welcome": "Добро пожаловать"
+    "welcome": "Добро пожаловать",
+    "profileCompletion": "Заполненность профиля"
+  },
+  "profile": {
+    "title": "Мой профиль",
+    "personalInfo": "Личная информация",
+    "contactInfo": "Контактная информация",
+    "sensitiveNotice": "Изменение этих полей требует утверждения HR.",
+    "requestChange": "Запросить изменение",
+    "pendingNotice": "Некоторые изменения сейчас находятся на рассмотрении.",
+    "photo": "Фото",
+    "uploadPhoto": "Загрузить фото",
+    "contacts": "Экстренные контакты и банковские данные",
+    "addContact": "Добавить контакт",
+    "emergencyContact": "Экстренный контакт",
+    "bankInfo": "Банковские данные",
+    "contactType": "Тип",
+    "fullName": "Ф.И.О.",
+    "relationship": "Родство",
+    "bankName": "Название банка",
+    "bankAccount": "Номер счёта",
+    "myChangeRequests": "Мои запросы",
+    "tabInfo": "Информация",
+    "tabDocuments": "Документы",
+    "tabContacts": "Контакты",
+    "tabRequests": "Мои запросы"
+  },
+  "documents": {
+    "title": "Документы",
+    "upload": "Загрузить документ",
+    "documentType": "Тип документа",
+    "documentTitle": "Название",
+    "documentNumber": "Номер документа",
+    "issueDate": "Дата выдачи",
+    "expiryDate": "Срок действия",
+    "file": "Файл",
+    "download": "Скачать",
+    "approve": "Утвердить",
+    "reject": "Отклонить",
+    "rejectReason": "Причина отклонения",
+    "employee": "Сотрудник",
+    "noExpiry": "Без срока"
+  },
+  "changeRequests": {
+    "title": "Запросы",
+    "requestedBy": "Запросил",
+    "changes": "Изменения",
+    "reviewComment": "Комментарий",
+    "approve": "Утвердить",
+    "reject": "Отклонить"
+  },
+  "notifications": {
+    "title": "Уведомления",
+    "markAllRead": "Отметить всё как прочитанное",
+    "noNotifications": "Нет уведомлений",
+    "viewAll": "Смотреть все"
   }
 }
