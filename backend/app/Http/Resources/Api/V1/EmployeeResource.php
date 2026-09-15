@@ -37,7 +37,13 @@ class EmployeeResource extends JsonResource
             'middle_name' => $this->middle_name,
             'full_name' => $this->fullName(),
 
-            'birth_date' => $this->birth_date,
+            // ->format(), not a bare cast value: a "date"-cast attribute is
+            // still a Carbon instance in PHP, and Carbon's own JSON
+            // serialization ignores the model cast's format string and
+            // converts to UTC — which shifts the calendar day under a
+            // non-UTC APP_TIMEZONE. Explicit formatting keeps this a plain
+            // "Y-m-d" no matter how the value is later re-serialized.
+            'birth_date' => $this->birth_date?->format('Y-m-d'),
             'birth_place' => $this->birth_place,
             'gender' => $this->gender,
 
@@ -47,10 +53,10 @@ class EmployeeResource extends JsonResource
             'address' => $this->address,
 
             'employment_type' => $this->employment_type,
-            'hire_date' => $this->hire_date,
-            'termination_date' => $this->termination_date,
+            'hire_date' => $this->hire_date?->format('Y-m-d'),
+            'termination_date' => $this->termination_date?->format('Y-m-d'),
 
-            'photo' => $this->photo,
+            'photo_url' => $this->photo ? route('employees.photo', $this->id) : null,
             'status' => $this->status,
 
             'created_at' => $this->created_at,

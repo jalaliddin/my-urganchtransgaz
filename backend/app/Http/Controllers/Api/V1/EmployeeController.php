@@ -11,8 +11,10 @@ use App\Models\Employee;
 use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EmployeeController extends Controller
 {
@@ -76,6 +78,22 @@ class EmployeeController extends Controller
         $employee->load(['organization', 'department', 'position']);
 
         return $this->success(new EmployeeResource($employee));
+    }
+
+    /**
+     * Stream the employee's profile photo. Photos live on the private
+     * disk like documents do, so this authorized endpoint is the only way
+     * to fetch one — never a public URL.
+     */
+    public function photo(Employee $employee): StreamedResponse|JsonResponse
+    {
+        Gate::authorize('view', $employee);
+
+        if (! $employee->photo || ! Storage::disk('local')->exists($employee->photo)) {
+            return $this->error('Rasm topilmadi.', 404);
+        }
+
+        return Storage::disk('local')->response($employee->photo);
     }
 
     /**

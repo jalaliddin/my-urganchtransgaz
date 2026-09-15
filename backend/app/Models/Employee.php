@@ -54,6 +54,21 @@ class Employee extends Model
         return $this->hasMany(Department::class, 'manager_id');
     }
 
+    public function documents(): HasMany
+    {
+        return $this->hasMany(EmployeeDocument::class);
+    }
+
+    public function contacts(): HasMany
+    {
+        return $this->hasMany(EmployeeContact::class);
+    }
+
+    public function changeRequests(): HasMany
+    {
+        return $this->hasMany(EmployeeChangeRequest::class);
+    }
+
     public function fullName(): string
     {
         return trim("{$this->last_name} {$this->first_name} {$this->middle_name}");
@@ -67,9 +82,17 @@ class Employee extends Model
     protected function casts(): array
     {
         return [
-            'birth_date' => 'date',
-            'hire_date' => 'date',
-            'termination_date' => 'date',
+            // "date:Y-m-d" (not plain "date") keeps JSON serialization as a
+            // bare calendar date. Plain "date" round-trips through Carbon's
+            // toJSON(), which converts to UTC — since APP_TIMEZONE is
+            // Asia/Tashkent (+5), a stored date's midnight shifts to the
+            // previous day once serialized, so anything that reads the
+            // date back from the API (e.g. the profile form) would see the
+            // wrong day and could even "change" a field the user never
+            // touched.
+            'birth_date' => 'date:Y-m-d',
+            'hire_date' => 'date:Y-m-d',
+            'termination_date' => 'date:Y-m-d',
             'gender' => Gender::class,
             'employment_type' => EmploymentType::class,
             'status' => EmployeeStatus::class,
