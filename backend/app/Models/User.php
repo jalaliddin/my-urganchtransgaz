@@ -38,10 +38,18 @@ class User extends Authenticatable
      * Super-admin already bypasses every Gate check, but query-level
      * scoping (e.g. an index listing's WHERE clause) happens outside the
      * Gate and must check this explicitly.
+     *
+     * `hr` is included deliberately: per the spec's own organization chart
+     * (§68), HR is a Central Office service, not a per-branch role — a
+     * single HR department manages employees/documents/users across all
+     * subordinate organizations, the same way Technical Policy Service
+     * must reach across organizations to assign tasks (§9). Confining hr
+     * to only the central office's own ~9 employees would make it unable
+     * to do its job for the other 14 organizations.
      */
     public function hasCentralAccess(): bool
     {
-        return $this->hasAnyRole(['super-admin', 'central-admin']);
+        return $this->hasAnyRole(['super-admin', 'central-admin', 'hr']);
     }
 
     /**

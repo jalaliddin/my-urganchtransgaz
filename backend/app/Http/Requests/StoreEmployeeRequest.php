@@ -15,9 +15,12 @@ class StoreEmployeeRequest extends FormRequest
     use ChecksOrganizationScope;
 
     /**
-     * Roles a non-central-admin creator may assign to a new employee.
-     * Assigning super-admin, central-admin, or organization-admin requires
-     * central-admin (or the super-admin Gate bypass).
+     * Roles a creator without administrative-role-granting privilege may
+     * assign to a new employee. Assigning super-admin, central-admin, or
+     * organization-admin is a separate privilege from hasCentralAccess()'s
+     * company-wide *data* scope (which hr also holds) — an hr user seeing
+     * every organization's employees must not thereby be able to mint a
+     * new central-admin account.
      *
      * @var string[]
      */
@@ -46,7 +49,7 @@ class StoreEmployeeRequest extends FormRequest
      */
     public function rules(): array
     {
-        $assignableRoles = $this->user()->hasCentralAccess()
+        $assignableRoles = $this->user()->hasRole('central-admin')
             ? array_merge($this->assignableRolesForScopedCreators, ['organization-admin', 'central-admin', 'super-admin'])
             : $this->assignableRolesForScopedCreators;
 

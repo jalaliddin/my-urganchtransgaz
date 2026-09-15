@@ -135,10 +135,23 @@ it('forbids a scoped hr user from assigning the central-admin role', function ()
     ])->assertStatus(422)->assertJsonValidationErrors(['role']);
 });
 
-it('forbids an hr user from creating an employee in another organization', function () {
+it('lets an hr user create an employee in a different organization, since hr is company-wide', function () {
     $ownOrg = Organization::factory()->create();
     $otherOrg = Organization::factory()->create();
     $user = userWithRole('hr', $ownOrg);
+
+    $this->actingAs($user, 'sanctum')->postJson('/api/v1/employees', [
+        'organization_id' => $otherOrg->id,
+        'employee_number' => 'EMP00003',
+        'first_name' => 'Aziz',
+        'last_name' => 'Karimov',
+    ])->assertCreated();
+});
+
+it('forbids an organization-admin from creating an employee in another organization', function () {
+    $ownOrg = Organization::factory()->create();
+    $otherOrg = Organization::factory()->create();
+    $user = userWithRole('organization-admin', $ownOrg);
 
     $this->actingAs($user, 'sanctum')->postJson('/api/v1/employees', [
         'organization_id' => $otherOrg->id,
