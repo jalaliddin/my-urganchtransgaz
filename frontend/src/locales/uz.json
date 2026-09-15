@@ -61,7 +61,11 @@
     "subordinate": "Bo'ysunuvchi",
     "pending": "Kutilmoqda",
     "approved": "Tasdiqlangan",
-    "rejected": "Rad etilgan"
+    "rejected": "Rad etilgan",
+    "present": "Keldi",
+    "late": "Kechikdi",
+    "early_leave": "Erta ketdi",
+    "absent": "Kelmadi"
   },
   "organizations": {
     "title": "Tashkilotlar",
@@ -171,5 +175,22 @@
     "markAllRead": "Barchasini o'qilgan deb belgilash",
     "noNotifications": "Bildirishnomalar yo'q",
     "viewAll": "Barchasini ko'rish"
+  },
+  "attendance": {
+    "tabToday": "Bugun",
+    "tabReport": "Hisobot",
+    "myStatusToday": "Bugungi holatingiz",
+    "noRecordYet": "Hali qayd etilmagan",
+    "checkIn": "Keldim",
+    "checkOut": "Ketdim",
+    "notes": "Izoh",
+    "groupBy": "Guruhlash",
+    "group": "Guruh",
+    "from": "Dan",
+    "to": "Gacha",
+    "totalDays": "Kunlar soni",
+    "totalWorked": "Ishlangan vaqt",
+    "hoursShort": "s",
+    "minutesShort": "d"
   }
 }

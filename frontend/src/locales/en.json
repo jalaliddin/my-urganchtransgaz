@@ -61,7 +61,11 @@
     "subordinate": "Subordinate",
     "pending": "Pending",
     "approved": "Approved",
-    "rejected": "Rejected"
+    "rejected": "Rejected",
+    "present": "Present",
+    "late": "Late",
+    "early_leave": "Left early",
+    "absent": "Absent"
   },
   "organizations": {
     "title": "Organizations",
@@ -171,5 +175,22 @@
     "markAllRead": "Mark all as read",
     "noNotifications": "No notifications",
     "viewAll": "View all"
+  },
+  "attendance": {
+    "tabToday": "Today",
+    "tabReport": "Report",
+    "myStatusToday": "Your status today",
+    "noRecordYet": "Not recorded yet",
+    "checkIn": "Check in",
+    "checkOut": "Check out",
+    "notes": "Notes",
+    "groupBy": "Group by",
+    "group": "Group",
+    "from": "From",
+    "to": "To",
+    "totalDays": "Total days",
+    "totalWorked": "Worked",
+    "hoursShort": "h",
+    "minutesShort": "m"
   }
 }

@@ -61,7 +61,11 @@
     "subordinate": "Подведомственный",
     "pending": "На рассмотрении",
     "approved": "Утверждено",
-    "rejected": "Отклонено"
+    "rejected": "Отклонено",
+    "present": "Пришёл",
+    "late": "Опоздал",
+    "early_leave": "Ушёл раньше",
+    "absent": "Отсутствовал"
   },
   "organizations": {
     "title": "Организации",
@@ -171,5 +175,22 @@
     "markAllRead": "Отметить всё как прочитанное",
     "noNotifications": "Нет уведомлений",
     "viewAll": "Смотреть все"
+  },
+  "attendance": {
+    "tabToday": "Сегодня",
+    "tabReport": "Отчёт",
+    "myStatusToday": "Ваш статус сегодня",
+    "noRecordYet": "Ещё не отмечено",
+    "checkIn": "Пришёл",
+    "checkOut": "Ушёл",
+    "notes": "Примечание",
+    "groupBy": "Группировка",
+    "group": "Группа",
+    "from": "С",
+    "to": "По",
+    "totalDays": "Кол-во дней",
+    "totalWorked": "Отработано",
+    "hoursShort": "ч",
+    "minutesShort": "м"
   }
 }

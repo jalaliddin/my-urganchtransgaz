@@ -41,6 +41,12 @@ const navItems = computed<NavItem[]>(() =>
       permission: 'employees.view',
     },
     {
+      title: 'nav.attendance',
+      icon: 'mdi-calendar-check-outline',
+      to: '/attendance',
+      permission: 'attendance.view',
+    },
+    {
       title: 'nav.documents',
       icon: 'mdi-file-document-outline',
       to: '/documents',

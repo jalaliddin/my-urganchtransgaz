@@ -6,6 +6,15 @@ export type Gender = 'male' | 'female'
 export type ContactType = 'emergency' | 'bank'
 export type DocumentStatus = 'pending' | 'approved' | 'rejected'
 export type ChangeRequestStatus = 'pending' | 'approved' | 'rejected'
+export type AttendanceStatus =
+  | 'present'
+  | 'late'
+  | 'early_leave'
+  | 'absent'
+  | 'business_trip'
+  | 'vacation'
+  | 'sick_leave'
+export type AttendanceSource = 'biometric' | 'manual' | 'mobile' | 'web' | 'api' | 'system'
 
 export interface Organization {
   id: number
@@ -139,6 +148,39 @@ export interface EmployeeChangeRequest {
   reviewed_at: string | null
   review_comment: string | null
   created_at: string
+}
+
+export interface AttendanceRecord {
+  id: number
+  employee_id: number
+  employee?: Employee
+  date: string
+  check_in: string | null
+  check_out: string | null
+  worked_minutes: number | null
+  status: AttendanceStatus
+  source: AttendanceSource
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface TodayAttendance {
+  employee_id: number
+  employee_number: string
+  full_name: string
+  department: Department | null
+  attendance: AttendanceRecord | null
+}
+
+export interface AttendanceReportRow {
+  group_id: number
+  label: string
+  total_days: number
+  total_worked_minutes: number
+  late_count: number
+  absent_count: number
+  early_leave_count: number
 }
 
 export interface AppNotification {

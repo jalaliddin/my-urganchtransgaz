@@ -1,15 +1,48 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
+import { attendanceService } from '@/services/attendanceService'
 import { profileService, type ProfileCompletion } from '@/services/profileService'
 import { useAuthStore } from '@/stores/auth'
+import type { TodayAttendance } from '@/types/models'
 
 const auth = useAuthStore()
 const completion = ref<ProfileCompletion | null>(null)
 
+const today = ref<TodayAttendance[]>([])
+const checkingInOut = ref(false)
+const myAttendance = computed(
+  () => today.value.find((row) => row.employee_id === auth.user?.employee?.id)?.attendance ?? null,
+)
+
+async function loadToday() {
+  today.value = await attendanceService.today()
+}
+
+async function checkIn() {
+  checkingInOut.value = true
+  try {
+    await attendanceService.checkIn()
+    await loadToday()
+  } finally {
+    checkingInOut.value = false
+  }
+}
+
+async function checkOut() {
+  checkingInOut.value = true
+  try {
+    await attendanceService.checkOut()
+    await loadToday()
+  } finally {
+    checkingInOut.value = false
+  }
+}
+
 onMounted(async () => {
   if (auth.user?.employee) {
     completion.value = await profileService.completion()
+    await loadToday()
   }
 })
 </script>
@@ -67,6 +100,41 @@ onMounted(async () => {
           <v-progress-linear :model-value="completion.percentage" color="primary" height="10" rounded class="mb-3" />
           <router-link v-if="completion.percentage < 100" :to="{ name: 'profile' }" class="text-body-2">
             {{ $t('profile.title') }} →
+          </router-link>
+        </v-card-text>
+      </v-card>
+    </v-col>
+
+    <v-col v-if="auth.user?.employee" cols="12" md="6" lg="4">
+      <v-card>
+        <v-card-text>
+          <div class="text-subtitle-2 text-medium-emphasis mb-2">{{ $t('attendance.myStatusToday') }}</div>
+          <AppStatusChip v-if="myAttendance" :status="myAttendance.status" class="mb-3" />
+          <div v-else class="text-body-2 mb-3">{{ $t('attendance.noRecordYet') }}</div>
+          <div class="d-flex ga-2">
+            <v-btn
+              color="primary"
+              variant="flat"
+              size="small"
+              :loading="checkingInOut"
+              :disabled="Boolean(myAttendance?.check_in)"
+              @click="checkIn"
+            >
+              {{ $t('attendance.checkIn') }}
+            </v-btn>
+            <v-btn
+              color="secondary"
+              variant="flat"
+              size="small"
+              :loading="checkingInOut"
+              :disabled="!myAttendance?.check_in || Boolean(myAttendance?.check_out)"
+              @click="checkOut"
+            >
+              {{ $t('attendance.checkOut') }}
+            </v-btn>
+          </div>
+          <router-link :to="{ name: 'attendance' }" class="text-body-2 d-inline-block mt-3">
+            {{ $t('nav.attendance') }} →
           </router-link>
         </v-card-text>
       </v-card>

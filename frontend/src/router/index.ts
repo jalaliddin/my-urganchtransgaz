@@ -53,6 +53,11 @@ const router = createRouter({
           component: () => import('@/views/profile/ProfileView.vue'),
         },
         {
+          path: 'attendance',
+          name: 'attendance',
+          component: () => import('@/views/attendance/AttendanceView.vue'),
+        },
+        {
           path: 'documents',
           name: 'documents',
           component: () => import('@/views/documents/DocumentsView.vue'),
