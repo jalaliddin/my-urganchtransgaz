@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Policies;
+
+use App\Models\Organization;
+use App\Models\User;
+use App\Policies\Concerns\ChecksOrganizationScope;
+
+class OrganizationPolicy
+{
+    use ChecksOrganizationScope;
+
+    /**
+     * Determine whether the user can view any models.
+     */
+    public function viewAny(User $user): bool
+    {
+        return $user->can('organizations.view');
+    }
+
+    /**
+     * Determine whether the user can view the model.
+     */
+    public function view(User $user, Organization $organization): bool
+    {
+        return $user->can('organizations.view')
+            && $this->withinScope($user, $organization->id);
+    }
+
+    /**
+     * Determine whether the user can create models.
+     */
+    public function create(User $user): bool
+    {
+        return $user->can('organizations.create');
+    }
+
+    /**
+     * Determine whether the user can update the model.
+     */
+    public function update(User $user, Organization $organization): bool
+    {
+        return $user->can('organizations.update');
+    }
+
+    /**
+     * Determine whether the user can delete the model.
+     */
+    public function delete(User $user, Organization $organization): bool
+    {
+        return $user->can('organizations.delete');
+    }
+
+    /**
+     * Determine whether the user can restore the model.
+     */
+    public function restore(User $user, Organization $organization): bool
+    {
+        return $user->can('organizations.delete');
+    }
+
+    /**
+     * Determine whether the user can permanently delete the model.
+     */
+    public function forceDelete(User $user, Organization $organization): bool
+    {
+        return $user->can('organizations.delete');
+    }
+}
