@@ -1,0 +1,105 @@
+{
+  "app": {
+    "name": "Urganchtransgaz Xodimlar Portali"
+  },
+  "nav": {
+    "dashboard": "Boshqaruv paneli",
+    "organizations": "Tashkilotlar",
+    "departments": "Bo'limlar",
+    "employees": "Xodimlar",
+    "attendance": "Davomat",
+    "tasks": "Topshiriqlar",
+    "kpi": "KPI",
+    "exams": "Xavfsizlik imtihonlari",
+    "announcements": "E'lonlar",
+    "documents": "Hujjatlar",
+    "settings": "Sozlamalar",
+    "logout": "Tizimdan chiqish"
+  },
+  "auth": {
+    "login": "Kirish",
+    "loginField": "Login (email, foydalanuvchi nomi yoki tabel raqami)",
+    "password": "Parol",
+    "loginButton": "Kirish",
+    "forgotPassword": "Parolni unutdingizmi?",
+    "loginError": "Login yoki parol noto'g'ri.",
+    "welcomeBack": "Xush kelibsiz"
+  },
+  "common": {
+    "search": "Qidirish",
+    "create": "Qo'shish",
+    "edit": "Tahrirlash",
+    "delete": "O'chirish",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "close": "Yopish",
+    "actions": "Amallar",
+    "status": "Holat",
+    "loading": "Yuklanmoqda...",
+    "noData": "Ma'lumot topilmadi",
+    "confirmDeleteTitle": "O'chirishni tasdiqlang",
+    "confirmDeleteText": "Ushbu yozuvni o'chirishga ishonchingiz komilmi? Bu amalni bekor qilib bo'lmaydi.",
+    "createdSuccess": "Muvaffaqiyatli qo'shildi.",
+    "updatedSuccess": "Muvaffaqiyatli yangilandi.",
+    "deletedSuccess": "Muvaffaqiyatli o'chirildi.",
+    "genericError": "Ma'lumotlarni yuklashda xatolik yuz berdi.",
+    "forbiddenError": "Sizda ushbu amalni bajarish uchun ruxsat mavjud emas.",
+    "total": "Jami"
+  },
+  "status": {
+    "active": "Faol",
+    "inactive": "Nofaol",
+    "vacation": "Ta'tilda",
+    "business_trip": "Xizmat safarida",
+    "sick_leave": "Bemor varaqasida",
+    "terminated": "Ishdan bo'shatilgan",
+    "central": "Markaziy",
+    "subordinate": "Bo'ysunuvchi"
+  },
+  "organizations": {
+    "title": "Tashkilotlar",
+    "name": "Nomi",
+    "shortName": "Qisqa nomi",
+    "code": "Kodi",
+    "type": "Turi",
+    "parent": "Yuqori tashkilot",
+    "director": "Direktor",
+    "address": "Manzil",
+    "phone": "Telefon",
+    "email": "Email",
+    "departmentsCount": "Bo'limlar",
+    "employeesCount": "Xodimlar"
+  },
+  "departments": {
+    "title": "Bo'limlar",
+    "name": "Nomi",
+    "code": "Kodi",
+    "organization": "Tashkilot",
+    "manager": "Boshlig'i",
+    "description": "Tavsifi",
+    "employeesCount": "Xodimlar"
+  },
+  "employees": {
+    "title": "Xodimlar",
+    "employeeNumber": "Tabel raqami",
+    "firstName": "Ismi",
+    "lastName": "Familiyasi",
+    "middleName": "Sharifi",
+    "fullName": "F.I.Sh.",
+    "organization": "Tashkilot",
+    "department": "Bo'lim",
+    "position": "Lavozim",
+    "phone": "Telefon",
+    "email": "Email",
+    "corporateEmail": "Korporativ email",
+    "hireDate": "Ishga qabul sanasi",
+    "status": "Holati",
+    "createAccount": "Tizimga kirish uchun hisob yaratish",
+    "username": "Foydalanuvchi nomi",
+    "role": "Roli"
+  },
+  "dashboard": {
+    "title": "Boshqaruv paneli",
+    "welcome": "Xush kelibsiz"
+  }
+}

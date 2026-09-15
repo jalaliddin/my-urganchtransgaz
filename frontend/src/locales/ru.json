@@ -1,0 +1,105 @@
+{
+  "app": {
+    "name": "Портал сотрудников Ургенчтрансгаз"
+  },
+  "nav": {
+    "dashboard": "Панель управления",
+    "organizations": "Организации",
+    "departments": "Отделы",
+    "employees": "Сотрудники",
+    "attendance": "Посещаемость",
+    "tasks": "Задачи",
+    "kpi": "KPI",
+    "exams": "Экзамены по охране труда",
+    "announcements": "Объявления",
+    "documents": "Документы",
+    "settings": "Настройки",
+    "logout": "Выйти"
+  },
+  "auth": {
+    "login": "Вход",
+    "loginField": "Логин (email, имя пользователя или табельный номер)",
+    "password": "Пароль",
+    "loginButton": "Войти",
+    "forgotPassword": "Забыли пароль?",
+    "loginError": "Неверный логин или пароль.",
+    "welcomeBack": "С возвращением"
+  },
+  "common": {
+    "search": "Поиск",
+    "create": "Добавить",
+    "edit": "Редактировать",
+    "delete": "Удалить",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "close": "Закрыть",
+    "actions": "Действия",
+    "status": "Статус",
+    "loading": "Загрузка...",
+    "noData": "Данные не найдены",
+    "confirmDeleteTitle": "Подтвердите удаление",
+    "confirmDeleteText": "Вы уверены, что хотите удалить эту запись? Это действие нельзя отменить.",
+    "createdSuccess": "Успешно создано.",
+    "updatedSuccess": "Успешно обновлено.",
+    "deletedSuccess": "Успешно удалено.",
+    "genericError": "Произошла ошибка при загрузке данных.",
+    "forbiddenError": "У вас нет прав для выполнения этого действия.",
+    "total": "Всего"
+  },
+  "status": {
+    "active": "Активен",
+    "inactive": "Неактивен",
+    "vacation": "В отпуске",
+    "business_trip": "В командировке",
+    "sick_leave": "На больничном",
+    "terminated": "Уволен",
+    "central": "Центральный",
+    "subordinate": "Подведомственный"
+  },
+  "organizations": {
+    "title": "Организации",
+    "name": "Название",
+    "shortName": "Краткое название",
+    "code": "Код",
+    "type": "Тип",
+    "parent": "Вышестоящая организация",
+    "director": "Директор",
+    "address": "Адрес",
+    "phone": "Телефон",
+    "email": "Email",
+    "departmentsCount": "Отделы",
+    "employeesCount": "Сотрудники"
+  },
+  "departments": {
+    "title": "Отделы",
+    "name": "Название",
+    "code": "Код",
+    "organization": "Организация",
+    "manager": "Руководитель",
+    "description": "Описание",
+    "employeesCount": "Сотрудники"
+  },
+  "employees": {
+    "title": "Сотрудники",
+    "employeeNumber": "Табельный номер",
+    "firstName": "Имя",
+    "lastName": "Фамилия",
+    "middleName": "Отчество",
+    "fullName": "Ф.И.О.",
+    "organization": "Организация",
+    "department": "Отдел",
+    "position": "Должность",
+    "phone": "Телефон",
+    "email": "Email",
+    "corporateEmail": "Корпоративный email",
+    "hireDate": "Дата приёма",
+    "status": "Статус",
+    "createAccount": "Создать учётную запись",
+    "username": "Имя пользователя",
+    "role": "Роль"
+  },
+  "dashboard": {
+    "title": "Панель управления",
+    "welcome": "Добро пожаловать"
+  }
+}
