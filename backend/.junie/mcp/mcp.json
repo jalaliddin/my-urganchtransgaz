@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/usr/bin/php8.3",
+            "args": [
+                "/home/eversoft/Projects/webappurtg/my.urtg.uz/backend/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}
