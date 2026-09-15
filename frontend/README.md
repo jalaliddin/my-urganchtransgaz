@@ -21,16 +21,22 @@ npm run build   # type-checks (vue-tsc) then builds to dist/
 ```
 src/
 ├── components/common/   Reusable building blocks (AppDataTable, AppPageHeader,
-│                        AppStatusChip, AppEmptyState, AppConfirmDialog) —
+│                        AppStatusChip, AppEmptyState, AppConfirmDialog,
+│                        AppAvatar, AppFileUpload, AppLoading, NotificationBell) —
 │                        registered globally, see plugins/globalComponents.ts
 ├── views/                Route-level pages, grouped by feature
 ├── layouts/              DefaultLayout (authenticated app shell, dark-navy
 │                        sidebar) and AuthLayout (login/reset-password)
-├── stores/               Pinia stores (auth.ts)
+├── stores/               Pinia stores (auth.ts, notifications.ts)
 ├── services/             Axios-based API clients — one per resource, built
-│                        on resourceService.ts's generic REST factory
-├── composables/          usePaginatedResource.ts — shared server-side
-│                        pagination/search/sort state for list views
+│                        on resourceService.ts's generic REST factory where
+│                        the endpoint is plain CRUD (custom methods otherwise,
+│                        e.g. documentService's approve/reject/download)
+├── composables/          usePaginatedResource.ts (shared server-side
+│                        pagination/search/sort state for list views) and
+│                        useAuthenticatedImage.ts (fetches a private-disk
+│                        image as a blob, since <img src> can't attach a
+│                        Bearer token)
 ├── types/                TypeScript interfaces mirroring the API's
 │                        Resources (models.ts) and envelope shape (api.ts)
 ├── router/                Vue Router routes + auth guards
@@ -42,7 +48,7 @@ No business logic lives here — every view calls a `services/*Service.ts` modul
 
 ## i18n
 
-Uzbek (`uz`) is the default and most complete locale; Russian and English are fully translated for the Phase 1 UI strings. Add new keys to all three locale files together. Switch locale at runtime via `plugins/i18n.ts`'s `setLocale()`.
+Uzbek (`uz`) is the default and most complete locale; Russian and English are fully translated for the current UI strings. Add new keys to all three locale files together. Switch locale at runtime via `plugins/i18n.ts`'s `setLocale()`.
 
 ## Session restoration
 
