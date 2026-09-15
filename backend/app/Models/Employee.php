@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
@@ -67,6 +68,16 @@ class Employee extends Model
     public function changeRequests(): HasMany
     {
         return $this->hasMany(EmployeeChangeRequest::class);
+    }
+
+    public function attendanceRecords(): HasMany
+    {
+        return $this->hasMany(AttendanceRecord::class);
+    }
+
+    public function todayAttendance(): HasOne
+    {
+        return $this->hasOne(AttendanceRecord::class)->whereDate('date', now()->toDateString());
     }
 
     public function fullName(): string

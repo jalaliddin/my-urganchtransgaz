@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Integrations\AttendanceEventController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -13,5 +14,13 @@ Route::prefix('v1')->group(function () {
         require base_path('routes/api/documents.php');
         require base_path('routes/api/change-requests.php');
         require base_path('routes/api/notifications.php');
+        require base_path('routes/api/attendance.php');
+    });
+
+    // Biometric/integration device webhook — its own token scheme
+    // (AuthenticateAttendanceDevice), never Sanctum user auth.
+    Route::middleware('attendance.device')->group(function () {
+        Route::post('integrations/attendance/events', [AttendanceEventController::class, 'store'])
+            ->name('integrations.attendance.events');
     });
 });
