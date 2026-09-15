@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Policies\DatabaseNotificationPolicy;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -27,6 +29,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::before(fn (User $user, string $ability) => $user->hasRole('super-admin') ? true : null);
+
+        // Laravel's policy auto-discovery only guesses within a model's own
+        // namespace, so it never finds App\Policies for a framework class
+        // like DatabaseNotification — it has to be registered explicitly.
+        Gate::policy(DatabaseNotification::class, DatabaseNotificationPolicy::class);
 
         RateLimiter::for('login', function (Request $request) {
             return Limit::perMinute(5)->by(Str::transliterate(
