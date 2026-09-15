@@ -40,12 +40,30 @@ mysql -uroot -p -e "CREATE DATABASE my_urtg_test CHARACTER SET utf8mb4 COLLATE u
 
 ## Scheduled jobs
 
-`documents:check-expiration` runs daily at 07:00 (`routes/console.php`), notifying employees at 30/7/1 days before a document's `expiry_date` and once when it expires. In local development, either run it once manually or start the scheduler loop:
+`documents:check-expiration` runs daily at 07:00 (`routes/console.php`), notifying employees at 30/7/1 days before a document's `expiry_date` and once when it expires. `attendance:mark-absentees` runs daily at 00:30, giving every currently-employed staff member with no attendance record for *yesterday* one — `absent`, or their current vacation/business-trip/sick-leave status if that's what `Employee.status` says. In local development, either run these once manually or start the scheduler loop:
 
 ```bash
-php artisan documents:check-expiration   # one-off run
+php artisan documents:check-expiration    # one-off run
+php artisan attendance:mark-absentees     # one-off run
 php artisan schedule:work                 # runs the scheduler continuously
 ```
+
+## Attendance devices
+
+A biometric/integration device is provisioned with its own revocable token (never a Sanctum user token):
+
+```bash
+php artisan attendance:create-device DEV-001 "Main entrance" --organization_id=1
+# prints a plaintext token once — save it, it is stored only as a SHA-256 hash
+```
+
+The device then authenticates with `Authorization: Bearer <token>` against `POST /api/v1/integrations/attendance/events`:
+
+```jsonc
+{ "device_id": "DEV-001", "employee_number": "EMP00001", "event_type": "check_in", "event_time": "2026-09-16 09:00:00" }
+```
+
+The employee is always resolved server-side from `employee_number` — a raw `employee_id` is never accepted from the payload.
 
 ## Architecture decisions
 
@@ -70,6 +88,17 @@ Deliberate substitutions/choices made while implementing the spec — recorded h
 - **Notifications are result-facing only**: an employee is notified of outcomes (approved/rejected/expiring); HR is not notified per submission and instead works off the scoped pending-queue endpoints.
 - **`DatabaseNotificationPolicy` is registered explicitly** via `Gate::policy()` in `AppServiceProvider` — Laravel's policy auto-discovery only guesses within a model's own namespace, so it never finds `App\Policies\DatabaseNotificationPolicy` for the framework's `Illuminate\Notifications\DatabaseNotification`.
 - **Photos and documents are both served through authenticated controller endpoints** (`GET /employees/{id}/photo`, `GET /documents/{id}/download`) on the private `local` disk — never a public URL, for the same reason §20 gives for documents.
+
+**Phase 3:**
+
+- **One attendance row per employee per calendar day** (`unique(employee_id, date)`), not a multi-session log — the spec's Module 8 only asks for a single daily check-in/check-out pair.
+- **`status` is computed, not freely chosen**, except for three administrative overrides (`business_trip`, `vacation`, `sick_leave`) settable via a manual correction. Otherwise: late check-in beats early leave when a day is both, since a single record can only hold one status (`App\Actions\Attendance\CalculateAttendanceStatus`). `absent` is never produced by this calculator — see the next point.
+- **A nightly command (`attendance:mark-absentees`), not a live computation, produces `absent`.** There is no event to react to when someone simply never shows up, so a day is only "no record yet" until the day has fully elapsed; the command then gives every active/vacationing/traveling/sick employee with no record for *yesterday* one, taking the status from `Employee.status` when it's a leave state. This is also how business-trip status reaches attendance (Module 16) without building the full Business Trips workflow (a later phase) — it just reads the employee record's existing status field.
+- **Work hours live in `config/attendance.php`** (env-overridable), not a hard-coded constant and not yet a database-backed Setting — the Settings module is a later phase.
+- **Biometric/device auth is its own scheme** (`AttendanceDevice` + `AuthenticateAttendanceDevice` middleware, alias `attendance.device`), not Sanctum — a device isn't a user. The token is stored as a SHA-256 hash and looked up by exact match, the same shape as Sanctum's own token storage. The employee is always resolved from `employee_number` server-side; a device is provisioned via `php artisan attendance:create-device`, not an admin UI, since there is nothing else yet to manage for a device that doesn't exist in this environment.
+- **`GET /attendance/today` is built from `Employee`, not `attendance_records`** (`Employee::todayAttendance()`, a date-constrained `hasOne`), so an employee who is absent all day still appears instead of silently vanishing from the board.
+- **The report is one endpoint, not separate daily/weekly/monthly ones** — `GET /attendance/report?group_by=employee|department|organization&from=&to=` — with every aggregate (`total_days`, `total_worked_minutes`, `late_count`, `absent_count`, `early_leave_count`) computed in SQL (`SUM`/`COUNT` with `GROUP BY`), never by loading records into PHP.
+- **Scoping follows the same convention as Documents (Phase 2)**: `attendance.view` is granted broadly (including the base `employee` role) and, combined with `hasCentralAccess()`/`department-manager` checks, controls the org/department breadth of the index/today/report queries — it is not "self vs. everyone," matching the precedent already shipped for documents rather than inventing a stricter model just for this module.
 
 ## API
 
@@ -103,6 +132,11 @@ All endpoints are versioned under `/api/v1`. Auth is a Bearer token from `POST /
 | GET | `/api/v1/notifications` | `?unread_only=1` to filter |
 | GET | `/api/v1/notifications/unread-count` | Powers the header bell badge |
 | POST | `/api/v1/notifications/{id}/read` \| `/read-all` | |
+| GET/POST/PUT/DELETE | `/api/v1/attendance[/{id}]` | `POST`/`PUT` are manual HR/admin corrections (`attendance.manage`); filters: `filter[status]`, `filter[employee_id]`, `from`, `to` |
+| GET | `/api/v1/attendance/today` | Scoped board built from Employee, not attendance_records |
+| POST | `/api/v1/attendance/check-in` \| `/check-out` | Always the authenticated user's own employee record; 409 if already done |
+| GET | `/api/v1/attendance/report` | `?group_by=employee\|department\|organization&from=&to=`, SQL-aggregated |
+| POST | `/api/v1/integrations/attendance/events` | Biometric device webhook; device Bearer token, not Sanctum — see "Attendance devices" above |
 
 `php artisan route:list --path=api` is the source of truth as more phases land.
 

@@ -19,13 +19,15 @@ The API is versioned (`/api/v1`) and mobile-ready by design: authentication is a
 
 See [`backend/README.md`](backend/README.md) and [`frontend/README.md`](frontend/README.md) for stack-specific setup, and the architecture decisions recorded there for *why* things are built this way (Sanctum token mode, `spatie/laravel-permission` instead of hand-rolled tables, organization-scoped Policies, etc.).
 
-## Current status: Phase 2 (Employee Self-Service, Documents, Notifications)
+## Current status: Phase 3 (Attendance)
 
 **Phase 1 — Foundation:** authentication (login/logout/me/change-password/forgot-reset password, login history), RBAC (9 roles, granular permissions), Organizations (unlimited-depth hierarchy), Departments, Employees, audit logging, and the corresponding Vue admin UI.
 
 **Phase 2 — Employee self-service:** employees edit their own phone/email/address/photo/contacts immediately; changes to official-record fields (name, birth info, passport/PINFL, org/department/position/employee_number/hire_date) instead create a pending change request that HR/admin must approve before it takes effect. Document upload with HR approve/reject, private authenticated file access, and a daily expiry-reminder job (30/7/1-day + expired thresholds). In-app notifications with a header bell and a notifications page. Corresponding Vue UI: profile page, documents page (adapts to the viewer's permissions), HR change-request review queue, notifications page.
 
-Not yet built (later phases, per the project's phased delivery plan): attendance, tasks, KPI, safety exams, announcements, business trips/leave, global search, full audit-log coverage, import/export, system settings.
+**Phase 3 — Attendance:** self-service check-in/check-out with an automatically computed status (present/late/early leave, against configurable work hours), a scoped "today" board, a database-aggregated report (by employee/department/organization), and a manual-correction path for HR/admin. A nightly job marks employees with no record as absent (or carries over their vacation/business-trip/sick-leave status). A biometric/integration device API boundary (`POST /api/v1/integrations/attendance/events`, its own per-device token auth, provisioned via `php artisan attendance:create-device`) exists so a real device (e.g. Hikvision) can be wired up later without any API changes. Corresponding Vue UI: an Attendance page (Today / Report tabs) and a dashboard check-in/out widget.
+
+Not yet built (later phases, per the project's phased delivery plan): tasks, KPI, safety exams, announcements, business trips/leave workflows, global search, full audit-log coverage, import/export, system settings.
 
 ## Quick start
 
@@ -80,11 +82,12 @@ cd backend
 php artisan test --compact
 ```
 
-The backend test database is a separate MySQL schema (`my_urtg_test`, configured in `phpunit.xml`) — running tests never touches the `my_urtg` development data. Tests cover authentication, RBAC, and — critically — that a user from one organization cannot read or write another organization's data by changing an id (see `tests/Feature/Http/Controllers/Api/V1/EmployeeControllerTest.php`).
+The backend test database is a separate MySQL schema (`my_urtg_test`, configured in `phpunit.xml`) — running tests never touches the `my_urtg` development data. Tests cover authentication, RBAC, and — critically — that a user from one organization cannot read or write another organization's data by changing an id (see `tests/Feature/Http/Controllers/Api/V1/EmployeeControllerTest.php` and `AttendanceControllerTest.php`).
 
 ## Deployment notes
 
 - Local/dev uses the `database` queue and cache drivers (no Redis required). Redis is the recommended driver for production/Docker but is not wired up yet.
 - Employee documents and profile photos are stored on the private `local` disk (`storage/app/private`) and served only through authenticated controller endpoints — never a public URL.
-- `php artisan documents:check-expiration` is scheduled daily at 07:00 (`routes/console.php`); running the scheduler in production requires the standard `* * * * * php artisan schedule:run` cron entry (or `php artisan schedule:work` in development).
+- `php artisan documents:check-expiration` is scheduled daily at 07:00 and `php artisan attendance:mark-absentees` daily at 00:30 (`routes/console.php`); running the scheduler in production requires the standard `* * * * * php artisan schedule:run` cron entry (or `php artisan schedule:work` in development).
+- To connect a real biometric/attendance device, provision it with `php artisan attendance:create-device {device_id} {name} [--organization_id=]` and configure the device to POST to `/api/v1/integrations/attendance/events` with the printed Bearer token — see `backend/README.md` for the payload shape.
 - CORS currently allows all origins (`config('cors')` defaults) since auth is token-based, not cookie-based; tighten `allowed_origins` to `https://my.urtg.uz` before deploying to production.
