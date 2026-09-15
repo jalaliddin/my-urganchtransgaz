@@ -9,5 +9,9 @@ Route::prefix('v1')->group(function () {
         require base_path('routes/api/organizations.php');
         require base_path('routes/api/departments.php');
         require base_path('routes/api/employees.php');
+        require base_path('routes/api/profile.php');
+        require base_path('routes/api/documents.php');
+        require base_path('routes/api/change-requests.php');
+        require base_path('routes/api/notifications.php');
     });
 });
