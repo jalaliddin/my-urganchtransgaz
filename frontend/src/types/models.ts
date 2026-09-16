@@ -20,6 +20,8 @@ export type TaskStatus = 'new' | 'in_progress' | 'waiting' | 'completed' | 'canc
 export type ExamStatus = 'draft' | 'active' | 'closed'
 export type QuestionType = 'single_choice' | 'multiple_choice' | 'true_false'
 export type AttemptStatus = 'in_progress' | 'completed'
+export type KpiCalculationType = 'manual' | 'percentage' | 'quantity' | 'rating' | 'formula'
+export type KpiPeriodType = 'monthly' | 'quarterly' | 'semiannual' | 'annual'
 
 export interface Organization {
   id: number
@@ -345,6 +347,72 @@ export interface ExamResultRow {
   best_percentage: number | null
   passed: boolean
   status: 'passed' | 'failed' | 'not_taken'
+}
+
+export interface KpiIndicator {
+  id: number
+  kpi_template_id: number
+  name: string
+  description: string | null
+  weight: number
+  target: number
+  measurement_unit: string | null
+  calculation_type: KpiCalculationType
+  period: KpiPeriodType
+  status: ActiveStatus
+}
+
+export interface KpiTemplate {
+  id: number
+  name: string
+  description: string | null
+  organization_id: number | null
+  organization?: Organization | null
+  department_id: number | null
+  department?: Department | null
+  status: ActiveStatus
+  indicators?: KpiIndicator[]
+  created_at: string
+  updated_at: string
+}
+
+export interface KpiPeriod {
+  id: number
+  name: string
+  period_type: KpiPeriodType
+  start_date: string
+  end_date: string
+  status: ActiveStatus
+}
+
+export interface EmployeeKpi {
+  id: number
+  employee_id: number
+  employee?: Employee
+  kpi_period_id: number
+  period?: KpiPeriod
+  kpi_indicator_id: number
+  indicator?: KpiIndicator
+
+  target_value: number
+  actual_value: number | null
+  score: number | null
+  weight: number
+  weighted_score: number | null
+  comment: string | null
+
+  approved_by: number | null
+  approved_at: string | null
+
+  created_at: string
+  updated_at: string
+}
+
+export interface KpiReportRow {
+  department_id: number | null
+  department_name: string
+  employees_count: number
+  average_score: number
 }
 
 export interface AppNotification {

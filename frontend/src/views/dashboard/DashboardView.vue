@@ -2,10 +2,11 @@
 import { computed, onMounted, ref } from 'vue'
 
 import { attendanceService } from '@/services/attendanceService'
+import { kpiService } from '@/services/kpiService'
 import { profileService, type ProfileCompletion } from '@/services/profileService'
 import { taskService } from '@/services/taskService'
 import { useAuthStore } from '@/stores/auth'
-import type { Task, TodayAttendance } from '@/types/models'
+import type { EmployeeKpi, Task, TodayAttendance } from '@/types/models'
 
 const auth = useAuthStore()
 const completion = ref<ProfileCompletion | null>(null)
@@ -51,11 +52,18 @@ async function checkOut() {
   }
 }
 
+const latestKpi = ref<EmployeeKpi | null>(null)
+async function loadMyKpi() {
+  const result = await kpiService.my({ per_page: 1 })
+  latestKpi.value = result.data[0] ?? null
+}
+
 onMounted(async () => {
   if (auth.user?.employee) {
     completion.value = await profileService.completion()
     await loadToday()
     await loadMyTasks()
+    await loadMyKpi()
   }
 })
 </script>
@@ -169,6 +177,19 @@ onMounted(async () => {
           </div>
           <router-link :to="{ name: 'tasks' }" class="text-body-2 d-inline-block">
             {{ $t('nav.tasks') }} →
+          </router-link>
+        </v-card-text>
+      </v-card>
+    </v-col>
+
+    <v-col v-if="auth.user?.employee && latestKpi" cols="12" md="6" lg="4">
+      <v-card>
+        <v-card-text>
+          <div class="text-subtitle-2 text-medium-emphasis mb-2">{{ $t('nav.kpi') }}</div>
+          <div class="text-h4 font-weight-bold mb-1">{{ latestKpi.score }}%</div>
+          <div class="text-body-2 text-medium-emphasis mb-3">{{ latestKpi.indicator?.name }} · {{ latestKpi.period?.name }}</div>
+          <router-link :to="{ name: 'kpi' }" class="text-body-2 d-inline-block">
+            {{ $t('nav.kpi') }} →
           </router-link>
         </v-card-text>
       </v-card>

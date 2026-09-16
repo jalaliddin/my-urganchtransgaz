@@ -83,6 +83,16 @@ const router = createRouter({
           component: () => import('@/views/exams/ExamResultsView.vue'),
         },
         {
+          path: 'kpi',
+          name: 'kpi',
+          component: () => import('@/views/kpi/KpiView.vue'),
+        },
+        {
+          path: 'kpi/report',
+          name: 'kpi-report',
+          component: () => import('@/views/kpi/KpiReportView.vue'),
+        },
+        {
           path: 'documents',
           name: 'documents',
           component: () => import('@/views/documents/DocumentsView.vue'),

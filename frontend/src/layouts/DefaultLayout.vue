@@ -59,6 +59,12 @@ const navItems = computed<NavItem[]>(() =>
       permission: 'exams.view',
     },
     {
+      title: 'nav.kpi',
+      icon: 'mdi-chart-line',
+      to: '/kpi',
+      permission: 'kpi.view',
+    },
+    {
       title: 'nav.documents',
       icon: 'mdi-file-document-outline',
       to: '/documents',
