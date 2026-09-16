@@ -40,14 +40,15 @@ mysql -uroot -p -e "CREATE DATABASE my_urtg_test CHARACTER SET utf8mb4 COLLATE u
 
 ## Scheduled jobs
 
-`documents:check-expiration` runs daily at 07:00 (`routes/console.php`), notifying employees at 30/7/1 days before a document's `expiry_date` and once when it expires. `attendance:mark-absentees` runs daily at 00:30, giving every currently-employed staff member with no attendance record for *yesterday* one — `absent`, or their current vacation/business-trip/sick-leave status if that's what `Employee.status` says. `tasks:check-deadlines` runs daily at 07:15, notifying every assignee of a task due in 3/1 days or today, and flipping any past-due `new`/`in_progress` task to `overdue`. `exams:send-reminders` runs daily at 07:30, notifying eligible employees 3/1 days before an exam's `start_date` and 3/1/0 days before its `end_date`. In local development, either run these once manually or start the scheduler loop:
+`documents:check-expiration` runs daily at 07:00 (`routes/console.php`), notifying employees at 30/7/1 days before a document's `expiry_date` and once when it expires. `attendance:mark-absentees` runs daily at 00:30, giving every currently-employed staff member with no attendance record for *yesterday* one — `absent`, or their current vacation/business-trip/sick-leave status if that's what `Employee.status` says. `tasks:check-deadlines` runs daily at 07:15, notifying every assignee of a task due in 3/1 days or today, and flipping any past-due `new`/`in_progress` task to `overdue`. `exams:send-reminders` runs daily at 07:30, notifying eligible employees 3/1 days before an exam's `start_date` and 3/1/0 days before its `end_date`. `announcements:process-schedule` runs every 5 minutes, auto-publishing any draft whose `publish_at` has arrived and auto-archiving any published announcement past its `expire_at`. In local development, either run these once manually or start the scheduler loop:
 
 ```bash
-php artisan documents:check-expiration    # one-off run
-php artisan attendance:mark-absentees     # one-off run
-php artisan tasks:check-deadlines         # one-off run
-php artisan exams:send-reminders          # one-off run
-php artisan schedule:work                 # runs the scheduler continuously
+php artisan documents:check-expiration      # one-off run
+php artisan attendance:mark-absentees       # one-off run
+php artisan tasks:check-deadlines           # one-off run
+php artisan exams:send-reminders            # one-off run
+php artisan announcements:process-schedule  # one-off run
+php artisan schedule:work                   # runs the scheduler continuously
 ```
 
 ## Attendance devices
@@ -136,6 +137,19 @@ Deliberate substitutions/choices made while implementing the spec — recorded h
 - **Verified in the live seeder before designing scope**: `kpi.manage` is granted only to `organization-admin` (+ central via `*`); `kpi.view` reaches `organization-admin`, `department-manager`, `manager`, and `employee`. `hr`/`safety-manager`/`technical-policy` have no KPI permission at all — Module 11 only ever mentions "Managers," "Employees," and "Central administrators," so (unlike Phases 2 and 4) nothing needed adding to `hasCentralAccess()` or the seeder this phase.
 - **The report endpoint aggregates only approved (published) results, in SQL** (`GROUP BY department`, `AVG(score)`), the same never-loop-summing-in-PHP convention as `AttendanceController::report()` — a department with only draft, unapproved results correctly shows no row until at least one result there is published.
 
+**Phase 7:**
+
+- **`announcement_targets` is a real one-to-many table, not inline nullable columns on `announcements`.** Unlike `Exam`'s single nullable organization/department pair, §21 lists a separate targets table, so one announcement can carry several simultaneous audiences at once (e.g. "Organization A" and "role: safety-manager"). `Announcement::appliesTo(Employee $employee)` OR-checks every target row in PHP for a single-instance check (the `AnnouncementPolicy::view()` gate); `AnnouncementController::scopeToAudience()` expresses the identical rule in SQL for the audience-feed listing — the same dual-representation precedent as `Exam::appliesTo()` vs. `ExamController::scopeToEligible()`.
+- **Creation is split from publishing by permission, on purpose.** The live seeder already grants `announcements.create` to `organization-admin`/`hr`/central, but `announcements.publish` to no one except central-admin — matching §7's literal "Administrators must have centralized control... over announcements." An organization-admin composes and edits a draft but cannot publish or archive even their own; only a central-admin can. `AnnouncementController::index()` therefore gives `announcements.publish` holders every announcement awaiting review (not just their own authored ones), so there's actually something for them to find and act on.
+- **A non-central creator's target choices are restricted at the `StoreAnnouncementRequest`/`UpdateAnnouncementRequest` level** — the same per-field scope-check shape as `StoreTaskRequest`'s per-assignee loop — to their own organization, its departments, or its employees; `everyone`/`central`/`role` targets require `hasCentralAccess()`. Without this, `announcements.create` alone would let an organization-admin broadcast company-wide.
+- **`publish_at` drives real scheduled publishing, not just a display timestamp.** A draft's `publish_at` can be left null (goes live only via the explicit `publish` action, which stamps it `now()`) or set to a future time; `announcements:process-schedule` (every 5 minutes — more responsive than the app's existing daily jobs, since "scheduled publishing" implies real timeliness) auto-publishes any draft whose time has arrived and auto-archives any published announcement past its `expire_at`. Both the explicit action and the command share one `PublishAnnouncement::handle()`, so notifying the audience and audit-logging only happens in one place.
+- **"Rich text" is authored plain text rendered with preserved line breaks, not a WYSIWYG/HTML editor** — no rich-text package exists in the frontend today, and adding one is a dependency change outside this phase's actual need. Same treatment as Phase 6's "no formula DSL" call.
+- **Read tracking is its own table (`announcement_reads`), separate from the generic `notifications.read_at`.** Module 12 calls out "read/unread status" as its own feature distinct from Module 13's notification delivery; opening a published, currently-applicable announcement (`GET /announcements/{id}`) marks it read — no separate "mark as read" click, unlike the notifications bell.
+- **Image/attachment uploads are their own multipart endpoints**, not bundled into the JSON `store`/`update` payload — mirrors `POST /profile/photo` being separate from `PUT /profile`, and avoids a nested-array-plus-file multipart payload for the `targets` array. Both stream back only through authenticated endpoints, never a public URL.
+- **Priority reuses the existing `TaskPriority` enum** instead of a new one — same four values, same `status.*` i18n keys already shipped for Tasks.
+- **A small `GET /api/v1/roles` lookup was added** (mirroring `GET /document-types`), purely to populate the "specific role" target picker — there was no role-listing endpoint anywhere in the app before this phase.
+- **A real bug caught by the test suite, not manually**: chaining Spatie `QueryBuilder`'s own `->when()` inside `AnnouncementController::index()` silently downgraded the query to a bare Eloquent `Builder` inside the callback (Spatie forwards unrecognized methods like `when()` to the underlying builder via `__call`, so `$this` inside `when()`'s own logic is the *inner* builder, not the QueryBuilder wrapper) — calling `allowedFilters()` afterward then threw `BadMethodCallException`. Fixed by never chaining through `->when()` on a QueryBuilder instance: plain `if`/`else` statements mutate the same held builder in place instead.
+
 ## API
 
 All endpoints are versioned under `/api/v1`. Auth is a Bearer token from `POST /api/v1/auth/login`. Standard response envelope:
@@ -194,6 +208,11 @@ All endpoints are versioned under `/api/v1`. Auth is a Bearer token from `POST /
 | GET | `/api/v1/kpi/my` | The authenticated employee's own results across periods |
 | GET | `/api/v1/kpi/report` | `?kpi_period_id=`; SQL-aggregated department ranking, approved results only |
 | POST | `/api/v1/kpi/{id}/approve` | Computes the score, stamps the approver, fires `KpiPublished`; 409 if already approved |
+| GET | `/api/v1/roles` | Read-only lookup (id/name); populates the announcement "specific role" target picker |
+| GET/POST/PUT | `/api/v1/announcements[/{id}]` | `announcements.create`; `index` shows authored-or-reviewable items to creators/`announcements.publish` holders, the live targeted audience feed to everyone else |
+| POST | `/api/v1/announcements/{id}/publish` \| `/archive` | `announcements.publish` only, regardless of author; both 409 on an invalid current status |
+| POST | `/api/v1/announcements/{id}/image` \| `/attachment` | Multipart upload; author or central only |
+| GET | `/api/v1/announcements/{id}/image` \| `/attachment` | Streams/downloads the file; never a public URL |
 
 `php artisan route:list --path=api` is the source of truth as more phases land.
 
