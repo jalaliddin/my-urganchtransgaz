@@ -40,11 +40,12 @@ mysql -uroot -p -e "CREATE DATABASE my_urtg_test CHARACTER SET utf8mb4 COLLATE u
 
 ## Scheduled jobs
 
-`documents:check-expiration` runs daily at 07:00 (`routes/console.php`), notifying employees at 30/7/1 days before a document's `expiry_date` and once when it expires. `attendance:mark-absentees` runs daily at 00:30, giving every currently-employed staff member with no attendance record for *yesterday* one — `absent`, or their current vacation/business-trip/sick-leave status if that's what `Employee.status` says. In local development, either run these once manually or start the scheduler loop:
+`documents:check-expiration` runs daily at 07:00 (`routes/console.php`), notifying employees at 30/7/1 days before a document's `expiry_date` and once when it expires. `attendance:mark-absentees` runs daily at 00:30, giving every currently-employed staff member with no attendance record for *yesterday* one — `absent`, or their current vacation/business-trip/sick-leave status if that's what `Employee.status` says. `tasks:check-deadlines` runs daily at 07:15, notifying every assignee of a task due in 3/1 days or today, and flipping any past-due `new`/`in_progress` task to `overdue`. In local development, either run these once manually or start the scheduler loop:
 
 ```bash
 php artisan documents:check-expiration    # one-off run
 php artisan attendance:mark-absentees     # one-off run
+php artisan tasks:check-deadlines         # one-off run
 php artisan schedule:work                 # runs the scheduler continuously
 ```
 
@@ -100,6 +101,17 @@ Deliberate substitutions/choices made while implementing the spec — recorded h
 - **The report is one endpoint, not separate daily/weekly/monthly ones** — `GET /attendance/report?group_by=employee|department|organization&from=&to=` — with every aggregate (`total_days`, `total_worked_minutes`, `late_count`, `absent_count`, `early_leave_count`) computed in SQL (`SUM`/`COUNT` with `GROUP BY`), never by loading records into PHP.
 - **Scoping follows the same convention as Documents (Phase 2)**: `attendance.view` is granted broadly (including the base `employee` role) and, combined with `hasCentralAccess()`/`department-manager` checks, controls the org/department breadth of the index/today/report queries — it is not "self vs. everyone," matching the precedent already shipped for documents rather than inventing a stricter model just for this module.
 
+**Phase 4:**
+
+- **`task_assignees` is a real many-to-many table** (`Task belongsToMany Employee`), not the single `assignee_id` column Module 9's field list shows — §21 explicitly lists `task_assignees` as its own minimum table and says not to duplicate data, so the field list is treated as illustrative (as with every other module). Progress/status/result stay on the `tasks` row as one shared source of truth; the common case is one assignee, and multiple assignees simply collaborate on the same shared state.
+- **`technical-policy` was added to `User::hasCentralAccess()`**, the same justified exception as `hr` in Phase 2 — per §68's org chart it's also a Central Office service, and Module 9 explicitly requires it to assign tasks across subordinate organizations. This gap was flagged in `hasCentralAccess()`'s own docblock back in Phase 2, in anticipation of this exact phase.
+- **No hard delete for tasks.** The seeded `tasks` permission set is `view/create/update/complete/assign` — there's no `tasks.delete`, and the status enum has a first-class `cancelled` value instead. A task's end-of-life is `POST /tasks/{task}/cancel`.
+- **Manager-tier actions (edit/cancel/approve/reopen) are gated on `tasks.assign`, not `tasks.update`.** The base `employee` role also holds `tasks.update` (for updating its own progress), so that permission alone can't distinguish a manager from a plain assignee — using it as the gate let any assignee approve or cancel their own task. Every manager-tier role holds `tasks.assign` and `employee` does not, which is exactly the line Module 9 draws.
+- **Updating one's own progress or marking assigned work complete needs no permission check** beyond currently being an assignee — the same inherent-right precedent as attendance's check-in/check-out. `tasks.complete` is seeded for the base role but isn't the actual gate.
+- **"Mark completed" moves a task to `waiting`, not `completed`.** Module 9 splits "employee marks completed" from "manager approves completion" — the assignee's action submits the task for review; only a manager's `approve` sets `completed_at`. `reopen` moves `waiting` or `completed` back to `in_progress`.
+- **The nightly `tasks:check-deadlines` only reminds/auto-overdues `new`/`in_progress` tasks**, never `waiting` ones — a task already submitted for a manager's approval shouldn't have its state silently overwritten by a passing deadline.
+- **Every task action response eager-loads `creator`/`organization`/`department`/`assignees`** before serializing. An earlier draft of `updateProgress`/`complete`/`approve`/`reopen`/`cancel` returned `TaskResource` without loading these relations, which Laravel's `whenLoaded()` then silently drops from the JSON — caught during browser verification when the assignee-only "mark complete" control vanished from the UI right after a progress update. Regression-guarded in `TaskControllerTest` by asserting `data.assignees` on every action response.
+
 ## API
 
 All endpoints are versioned under `/api/v1`. Auth is a Bearer token from `POST /api/v1/auth/login`. Standard response envelope:
@@ -137,6 +149,13 @@ All endpoints are versioned under `/api/v1`. Auth is a Bearer token from `POST /
 | POST | `/api/v1/attendance/check-in` \| `/check-out` | Always the authenticated user's own employee record; 409 if already done |
 | GET | `/api/v1/attendance/report` | `?group_by=employee\|department\|organization&from=&to=`, SQL-aggregated |
 | POST | `/api/v1/integrations/attendance/events` | Biometric device webhook; device Bearer token, not Sanctum — see "Attendance devices" above |
+| GET/POST/PUT | `/api/v1/tasks[/{id}]` | `POST`/`PUT` require `tasks.create`/`tasks.assign`; `assignee_ids` (array) on both; filters: `filter[status]`, `filter[priority]`, `filter[organization_id]`, `filter[department_id]` |
+| PATCH | `/api/v1/tasks/{id}/progress` | Any current assignee; `{ progress: 0-100 }` |
+| POST | `/api/v1/tasks/{id}/complete` | Any current assignee; `{ result? }`; moves status to `waiting` |
+| POST | `/api/v1/tasks/{id}/approve` \| `/reopen` | Creator/manager-in-scope only; `approve` requires `waiting`, both 409 otherwise |
+| POST | `/api/v1/tasks/{id}/cancel` | Creator/manager-in-scope; no hard delete exists |
+| POST/DELETE | `/api/v1/tasks/{id}/comments[/{comment}]` | Anyone who can view the task; delete is author or manager-in-scope |
+| POST/DELETE | `/api/v1/tasks/{id}/attachments[/{attachment}]` | Same visibility rule; `GET .../download` streams the file |
 
 `php artisan route:list --path=api` is the source of truth as more phases land.
 
