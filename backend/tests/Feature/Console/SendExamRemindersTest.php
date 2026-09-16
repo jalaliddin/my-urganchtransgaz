@@ -3,6 +3,7 @@
 use App\Models\Exam;
 use App\Models\ExamAttempt;
 use App\Models\Organization;
+use App\Models\Setting;
 use App\Notifications\ExamAvailable;
 use App\Notifications\ExamDeadlineApproaching;
 use Database\Seeders\RolePermissionSeeder;
@@ -85,6 +86,25 @@ it('does not remind an employee who has already passed the exam', function () {
     $this->artisan('exams:send-reminders');
 
     expect($employee->notifications()->count())->toBe(0);
+});
+
+it('uses a Settings-configured reminder threshold instead of the default 3/1', function () {
+    Setting::set('exams.reminder_thresholds', [5], 'exams');
+    $organization = Organization::factory()->create();
+    $employee = userWithRole('employee', $organization);
+    $exam = Exam::factory()->create([
+        'organization_id' => $organization->id,
+        'status' => 'active',
+        'start_date' => Carbon::today()->addDays(5),
+        'end_date' => Carbon::today()->addMonth(),
+    ]);
+
+    $this->artisan('exams:send-reminders');
+
+    $notification = $employee->notifications()->where('type', ExamAvailable::class)->first();
+    expect($notification)->not->toBeNull()
+        ->and($notification->data['threshold'])->toBe(5)
+        ->and($notification->data['exam_id'])->toBe($exam->id);
 });
 
 it('does not remind about an exam outside the employee organization', function () {

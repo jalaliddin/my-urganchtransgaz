@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Enums\ExamStatus;
 use App\Models\Employee;
 use App\Models\Exam;
+use App\Models\Setting;
 use App\Models\User;
 use App\Notifications\ExamAvailable;
 use App\Notifications\ExamDeadlineApproaching;
@@ -19,6 +20,9 @@ use Illuminate\Support\Carbon;
 class SendExamReminders extends Command
 {
     /**
+     * Default "upcoming exam" reminder days-before, Settings-backed
+     * (group "exams", key "exams.reminder_thresholds").
+     *
      * @var int[]
      */
     private const UPCOMING_THRESHOLDS = [3, 1];
@@ -30,7 +34,9 @@ class SendExamReminders extends Command
 
     public function handle(): int
     {
-        foreach (self::UPCOMING_THRESHOLDS as $days) {
+        $upcomingThresholds = Setting::get('exams.reminder_thresholds', self::UPCOMING_THRESHOLDS);
+
+        foreach ($upcomingThresholds as $days) {
             $this->notifyForExams(
                 Exam::query()->where('status', ExamStatus::Active)->whereDate('start_date', Carbon::today()->addDays($days))->get(),
                 $days,

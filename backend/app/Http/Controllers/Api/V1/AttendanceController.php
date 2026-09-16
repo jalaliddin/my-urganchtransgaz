@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Actions\Attendance\CalculateAttendanceStatus;
 use App\Actions\Attendance\RecordCheckInAction;
 use App\Actions\Attendance\RecordCheckOutAction;
+use App\Actions\Export\ExportRecords;
 use App\Enums\AttendanceSource;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAttendanceRequest;
@@ -20,6 +21,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
+use Symfony\Component\HttpFoundation\Response;
 
 class AttendanceController extends Controller
 {
@@ -230,7 +232,7 @@ class AttendanceController extends Controller
      * department, or organization over a date range. Aggregation happens
      * entirely in SQL — never loads the underlying records into memory.
      */
-    public function report(): JsonResponse
+    public function report(ExportRecords $export): JsonResponse|Response
     {
         Gate::authorize('viewAny', AttendanceRecord::class);
 
@@ -250,7 +252,7 @@ class AttendanceController extends Controller
             'organization' => ['organizations.id', 'organizations.name'],
         };
 
-        $rows = AttendanceRecord::query()
+        $query = AttendanceRecord::query()
             ->join('employees', 'employees.id', '=', 'attendance_records.employee_id')
             ->leftJoin('departments', 'departments.id', '=', 'employees.department_id')
             ->join('organizations', 'organizations.id', '=', 'employees.organization_id')
@@ -276,17 +278,28 @@ class AttendanceController extends Controller
             ->selectRaw("SUM(CASE WHEN attendance_records.status = 'absent' THEN 1 ELSE 0 END) as absent_count")
             ->selectRaw("SUM(CASE WHEN attendance_records.status = 'early_leave' THEN 1 ELSE 0 END) as early_leave_count")
             ->groupBy('group_id', 'label')
-            ->orderBy('label')
-            ->get()
-            ->map(fn ($row) => [
-                'group_id' => (int) $row->group_id,
-                'label' => $row->label,
-                'total_days' => (int) $row->total_days,
-                'total_worked_minutes' => (int) $row->total_worked_minutes,
-                'late_count' => (int) $row->late_count,
-                'absent_count' => (int) $row->absent_count,
-                'early_leave_count' => (int) $row->early_leave_count,
-            ]);
+            ->orderBy('label');
+
+        if ($format = request()->string('export')->toString()) {
+            return $export->stream($query, [
+                'label' => 'Nomi',
+                'total_days' => 'Kunlar soni',
+                'total_worked_minutes' => 'Ishlangan (daqiqa)',
+                'late_count' => 'Kechikishlar',
+                'absent_count' => 'Kelmagan kunlar',
+                'early_leave_count' => 'Erta ketishlar',
+            ], $format, 'attendance-report');
+        }
+
+        $rows = $query->get()->map(fn ($row) => [
+            'group_id' => (int) $row->group_id,
+            'label' => $row->label,
+            'total_days' => (int) $row->total_days,
+            'total_worked_minutes' => (int) $row->total_worked_minutes,
+            'late_count' => (int) $row->late_count,
+            'absent_count' => (int) $row->absent_count,
+            'early_leave_count' => (int) $row->early_leave_count,
+        ]);
 
         return $this->success($rows, meta: [
             'group_by' => $groupBy,

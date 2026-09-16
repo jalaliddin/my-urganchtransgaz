@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Employee;
+use App\Models\Setting;
 use App\Policies\Concerns\ChecksOrganizationScope;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -48,7 +49,10 @@ class StoreEmployeeDocumentRequest extends FormRequest
             'document_number' => ['nullable', 'string', 'max:100'],
             'issue_date' => ['nullable', 'date', 'before_or_equal:today'],
             'expiry_date' => ['nullable', 'date', 'after:issue_date'],
-            'file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'extensions:pdf,jpg,jpeg,png', 'max:10240'],
+            'file' => [
+                'required', 'file', 'mimes:pdf,jpg,jpeg,png', 'extensions:pdf,jpg,jpeg,png',
+                'max:'.Setting::get('documents.max_upload_kb', 10240),
+            ],
         ];
     }
 }

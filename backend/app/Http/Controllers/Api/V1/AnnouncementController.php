@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\Announcements\PublishAnnouncement;
 use App\Enums\AnnouncementStatus;
-use App\Enums\AnnouncementTargetType;
-use App\Enums\OrganizationType;
 use App\Enums\TaskPriority;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAnnouncementRequest;
@@ -13,9 +11,7 @@ use App\Http\Requests\UpdateAnnouncementRequest;
 use App\Http\Resources\Api\V1\AnnouncementResource;
 use App\Models\Announcement;
 use App\Models\AnnouncementRead;
-use App\Models\Employee;
 use App\Services\AuditLogService;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -74,7 +70,7 @@ class AnnouncementController extends Controller
                 ->where(fn ($q) => $q->whereNull('expire_at')->orWhere('expire_at', '>=', now()));
 
             if ($employee) {
-                $this->scopeToAudience($query, $employee);
+                $query->audienceFor($employee);
             } else {
                 $query->whereRaw('1 = 0');
             }
@@ -281,43 +277,5 @@ class AnnouncementController extends Controller
         }
 
         return Storage::disk('local')->download($announcement->attachment_path, $announcement->attachment_name);
-    }
-
-    /**
-     * The audience-feed scope: any announcement targeting this employee,
-     * expressed in SQL — kept in lockstep with Announcement::appliesTo().
-     * Every type/id pair is wrapped in its own closure so AND/OR grouping
-     * never depends on SQL operator-precedence tricks. Takes the Spatie
-     * QueryBuilder directly (not Eloquent's Builder — the two are
-     * unrelated classes) and mutates it in place, so the caller must not
-     * reassign its return value back onto a QueryBuilder variable.
-     */
-    private function scopeToAudience(QueryBuilder $query, Employee $employee): void
-    {
-        $roleIds = $employee->user?->roles->pluck('id')->all() ?? [];
-
-        $query->whereHas('targets', function (Builder $targets) use ($employee, $roleIds) {
-            $targets->where('target_type', AnnouncementTargetType::Everyone->value);
-
-            if ($employee->organization?->type === OrganizationType::Central) {
-                $targets->orWhere('target_type', AnnouncementTargetType::Central->value);
-            }
-
-            $targets->orWhere(
-                fn (Builder $q) => $q->where('target_type', AnnouncementTargetType::Organization->value)->where('target_id', $employee->organization_id)
-            );
-            $targets->orWhere(
-                fn (Builder $q) => $q->where('target_type', AnnouncementTargetType::Department->value)->where('target_id', $employee->department_id)
-            );
-            $targets->orWhere(
-                fn (Builder $q) => $q->where('target_type', AnnouncementTargetType::Employee->value)->where('target_id', $employee->id)
-            );
-
-            if ($roleIds !== []) {
-                $targets->orWhere(
-                    fn (Builder $q) => $q->where('target_type', AnnouncementTargetType::Role->value)->whereIn('target_id', $roleIds)
-                );
-            }
-        });
     }
 }

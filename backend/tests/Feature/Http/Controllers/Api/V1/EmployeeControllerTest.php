@@ -161,6 +161,46 @@ it('forbids an organization-admin from creating an employee in another organizat
     ])->assertStatus(403);
 });
 
+it('lets hr change an employee\'s role and audit-logs it as permission_changed', function () {
+    $organization = Organization::factory()->create();
+    $hr = userWithRole('hr', $organization);
+    $employeeUser = userWithRole('employee', $organization);
+
+    $response = $this->actingAs($hr, 'sanctum')
+        ->putJson("/api/v1/employees/{$employeeUser->employee->id}/role", ['role' => 'manager']);
+
+    $response->assertOk();
+    expect($employeeUser->fresh()->hasRole('manager'))->toBeTrue();
+    expect($employeeUser->fresh()->hasRole('employee'))->toBeFalse();
+
+    $this->assertDatabaseHas('audit_logs', [
+        'action' => 'permission_changed',
+        'module' => 'users',
+        'entity_id' => $employeeUser->id,
+    ]);
+});
+
+it('forbids a scoped hr user from promoting an employee to central-admin via a role change', function () {
+    $organization = Organization::factory()->create();
+    $hr = userWithRole('hr', $organization);
+    $employeeUser = userWithRole('employee', $organization);
+
+    $this->actingAs($hr, 'sanctum')
+        ->putJson("/api/v1/employees/{$employeeUser->employee->id}/role", ['role' => 'central-admin'])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['role']);
+});
+
+it('forbids an organization-admin (no users.update) from changing a role', function () {
+    $organization = Organization::factory()->create();
+    $orgAdmin = userWithRole('organization-admin', $organization);
+    $employeeUser = userWithRole('employee', $organization);
+
+    $this->actingAs($orgAdmin, 'sanctum')
+        ->putJson("/api/v1/employees/{$employeeUser->employee->id}/role", ['role' => 'manager'])
+        ->assertStatus(403);
+});
+
 it('rejects a duplicate employee number', function () {
     $organization = Organization::factory()->create();
     Employee::factory()->create(['organization_id' => $organization->id, 'employee_number' => 'DUP001']);
@@ -216,4 +256,39 @@ it('forbids an hr user from deleting an employee', function () {
     $this->actingAs($user, 'sanctum')
         ->deleteJson("/api/v1/employees/{$employee->id}")
         ->assertStatus(403);
+});
+
+it('exports employees as csv, unwrapping the status enum instead of failing on it', function () {
+    $organization = Organization::factory()->create();
+    Employee::factory()->create(['organization_id' => $organization->id, 'status' => 'active']);
+    $user = userWithRole('central-admin', $organization);
+
+    $response = $this->actingAs($user, 'sanctum')->get('/api/v1/employees?export=csv');
+
+    $response->assertOk();
+    expect($response->headers->get('Content-Type'))->toContain('text/csv');
+    expect($response->streamedContent())->toContain('active');
+});
+
+it('exports employees as xlsx, unwrapping the status enum instead of failing on it', function () {
+    $organization = Organization::factory()->create();
+    Employee::factory()->create(['organization_id' => $organization->id, 'status' => 'active']);
+    $user = userWithRole('central-admin', $organization);
+
+    $response = $this->actingAs($user, 'sanctum')->get('/api/v1/employees?export=xlsx');
+
+    $response->assertOk();
+    expect($response->headers->get('Content-Type'))
+        ->toContain('officedocument.spreadsheetml.sheet');
+});
+
+it('exports employees as pdf', function () {
+    $organization = Organization::factory()->create();
+    Employee::factory()->create(['organization_id' => $organization->id]);
+    $user = userWithRole('central-admin', $organization);
+
+    $response = $this->actingAs($user, 'sanctum')->get('/api/v1/employees?export=pdf');
+
+    $response->assertOk();
+    expect($response->headers->get('Content-Type'))->toContain('application/pdf');
 });

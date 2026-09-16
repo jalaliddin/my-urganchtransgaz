@@ -140,6 +140,31 @@ it('grades a fully correct attempt as 100 percent and passed', function () {
         ->assertJsonPath('data.status', 'completed');
 });
 
+it('audit-logs exam completion', function () {
+    $organization = Organization::factory()->create();
+    $exam = createQuizExam($organization);
+    $employeeUser = userWithRole('employee', $organization);
+
+    $start = $this->actingAs($employeeUser, 'sanctum')->postJson("/api/v1/exams/{$exam->id}/attempts");
+    $attemptId = $start->json('data.attempt.id');
+
+    [$q1, $q2, $q3] = $exam->questions;
+    $answers = [
+        ['question_id' => $q1->id, 'answer_ids' => [$q1->answers->firstWhere('is_correct', true)->id]],
+        ['question_id' => $q2->id, 'answer_ids' => [$q2->answers->firstWhere('is_correct', true)->id]],
+        ['question_id' => $q3->id, 'answer_ids' => $q3->answers->where('is_correct', true)->pluck('id')->all()],
+    ];
+
+    $this->actingAs($employeeUser, 'sanctum')
+        ->postJson("/api/v1/exams/{$exam->id}/attempts/{$attemptId}/submit", ['answers' => $answers]);
+
+    $this->assertDatabaseHas('audit_logs', [
+        'action' => 'completed',
+        'module' => 'exams',
+        'entity_id' => $exam->id,
+    ]);
+});
+
 it('does not award credit for a partially-selected multiple_choice answer', function () {
     $organization = Organization::factory()->create();
     $exam = createQuizExam($organization);

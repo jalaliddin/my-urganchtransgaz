@@ -7,6 +7,7 @@ use App\Enums\AttendanceStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
+use App\Models\Setting;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -21,10 +22,22 @@ class MarkAbsentAttendance extends Command
      * a day is only truly absent once it has fully elapsed, and running
      * against a day still in progress would mark people absent before
      * they've had a chance to check in.
+     *
+     * Skips non-working days entirely (Settings-backed, default Mon-Fri)
+     * — recording "absent" for a Saturday nobody was expected to work is
+     * meaningless noise, and there was previously no "working day"
+     * concept anywhere in the app.
      */
     public function handle(): int
     {
-        $date = Carbon::yesterday()->toDateString();
+        $yesterday = Carbon::yesterday();
+        $workingDays = Setting::get('attendance.working_days', [1, 2, 3, 4, 5]);
+
+        if (! in_array($yesterday->isoWeekday(), $workingDays, true)) {
+            return self::SUCCESS;
+        }
+
+        $date = $yesterday->toDateString();
 
         Employee::query()
             ->whereIn('status', [

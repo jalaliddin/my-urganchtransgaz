@@ -103,6 +103,43 @@ class Announcement extends Model
     }
 
     /**
+     * Eloquent local scope: any announcement targeting this employee,
+     * expressed in SQL — kept in lockstep with appliesTo() above. Shared
+     * by the announcement audience feed and global search, so the rule
+     * lives in exactly one place. Every type/id pair is wrapped in its
+     * own closure so AND/OR grouping never depends on SQL
+     * operator-precedence tricks.
+     */
+    public function scopeAudienceFor(Builder $query, Employee $employee): void
+    {
+        $roleIds = $employee->user?->roles->pluck('id')->all() ?? [];
+
+        $query->whereHas('targets', function (Builder $targets) use ($employee, $roleIds) {
+            $targets->where('target_type', AnnouncementTargetType::Everyone->value);
+
+            if ($employee->organization?->type === OrganizationType::Central) {
+                $targets->orWhere('target_type', AnnouncementTargetType::Central->value);
+            }
+
+            $targets->orWhere(
+                fn (Builder $q) => $q->where('target_type', AnnouncementTargetType::Organization->value)->where('target_id', $employee->organization_id)
+            );
+            $targets->orWhere(
+                fn (Builder $q) => $q->where('target_type', AnnouncementTargetType::Department->value)->where('target_id', $employee->department_id)
+            );
+            $targets->orWhere(
+                fn (Builder $q) => $q->where('target_type', AnnouncementTargetType::Employee->value)->where('target_id', $employee->id)
+            );
+
+            if ($roleIds !== []) {
+                $targets->orWhere(
+                    fn (Builder $q) => $q->where('target_type', AnnouncementTargetType::Role->value)->whereIn('target_id', $roleIds)
+                );
+            }
+        });
+    }
+
+    /**
      * Whether this announcement is currently live for its audience:
      * published, its scheduled publish time (if any) has arrived, and it
      * hasn't expired yet.

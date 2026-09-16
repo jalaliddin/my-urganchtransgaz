@@ -31,6 +31,8 @@ class RolePermissionSeeder extends Seeder
         'announcements' => ['view', 'create', 'publish'],
         'leave_requests' => ['view', 'review', 'approve'],
         'business_trips' => ['view', 'manage'],
+        'audit_logs' => ['view'],
+        'settings' => ['manage'],
     ];
 
     /**

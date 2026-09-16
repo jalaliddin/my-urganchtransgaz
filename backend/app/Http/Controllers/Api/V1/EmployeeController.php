@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\Employees\CreateEmployeeAction;
+use App\Actions\Export\ExportRecords;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
+use App\Http\Requests\UpdateUserRoleRequest;
 use App\Http\Resources\Api\V1\EmployeeResource;
 use App\Models\Employee;
 use App\Services\AuditLogService;
@@ -14,6 +16,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EmployeeController extends Controller
@@ -26,13 +29,13 @@ class EmployeeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(ExportRecords $export): JsonResponse|Response
     {
         Gate::authorize('viewAny', Employee::class);
 
         $user = request()->user();
 
-        $employees = QueryBuilder::for(Employee::class)
+        $query = QueryBuilder::for(Employee::class)
             ->with(['organization', 'department', 'position'])
             ->allowedFilters(
                 'status', 'employment_type',
@@ -41,16 +44,35 @@ class EmployeeController extends Controller
                 AllowedFilter::partial('search', 'first_name'),
             )
             ->allowedSorts('last_name', 'employee_number', 'hire_date', 'created_at')
-            ->defaultSort('last_name')
-            ->when(
-                ! $user->hasCentralAccess(),
-                fn ($query) => $query->where('organization_id', $user->employee?->organization_id)
-            )
-            ->when(
-                $user->hasRole('department-manager'),
-                fn ($query) => $query->where('department_id', $user->employee?->department_id)
-            )
-            ->paginate(request()->integer('per_page', 15));
+            ->defaultSort('last_name');
+
+        // Plain if, never ->when(): Spatie's QueryBuilder forwards
+        // unrecognized methods (when() included) to the underlying
+        // Eloquent builder, so a ->when() callback's return value
+        // silently downgrades the chain away from QueryBuilder — this
+        // must stay the real wrapper so getEloquentBuilder() below is
+        // reliable regardless of which branches actually ran.
+        if (! $user->hasCentralAccess()) {
+            $query->where('organization_id', $user->employee?->organization_id);
+        }
+
+        if ($user->hasRole('department-manager')) {
+            $query->where('department_id', $user->employee?->department_id);
+        }
+
+        if ($format = request()->string('export')->toString()) {
+            return $export->stream($query->getEloquentBuilder(), [
+                'employee_number' => 'Tabel raqami',
+                'last_name' => 'Familiyasi',
+                'first_name' => 'Ismi',
+                'organization.name' => 'Tashkilot',
+                'department.name' => 'Bo\'lim',
+                'phone' => 'Telefon',
+                'status' => 'Holat',
+            ], $format, 'employees');
+        }
+
+        $employees = $query->paginate(request()->integer('per_page', 15));
 
         return $this->success(
             EmployeeResource::collection($employees),
@@ -130,5 +152,26 @@ class EmployeeController extends Controller
         $this->auditLog->log('deleted', 'employees', $employee, oldValues: $oldValues);
 
         return $this->success(message: 'Employee deleted.');
+    }
+
+    /**
+     * Change the linked user account's role — the only place a role is
+     * ever changed after initial account creation (CreateEmployeeAction
+     * assigns the first one). Audit-logged as "permission_changed" per
+     * Module 19's own action list.
+     */
+    public function updateRole(UpdateUserRoleRequest $request, Employee $employee): JsonResponse
+    {
+        abort_unless($employee->user_id, 404);
+
+        $user = $employee->user;
+        $oldRole = $user->getRoleNames()->first();
+        $newRole = $request->validated('role');
+
+        $user->syncRoles([$newRole]);
+
+        $this->auditLog->log('permission_changed', 'users', $user, ['role' => $oldRole], ['role' => $newRole]);
+
+        return $this->success(message: 'Xodim roli yangilandi.');
     }
 }

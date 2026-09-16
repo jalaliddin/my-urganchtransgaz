@@ -12,12 +12,18 @@ use App\Http\Resources\Api\V1\ExamAttemptResource;
 use App\Models\Exam;
 use App\Models\ExamAttempt;
 use App\Notifications\ExamFailed;
+use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 
 class ExamAttemptController extends Controller
 {
+    public function __construct(private AuditLogService $auditLog)
+    {
+        //
+    }
+
     /**
      * Start a new attempt (or resume one already in progress).
      */
@@ -84,6 +90,8 @@ class ExamAttemptController extends Controller
             $remaining = $exam->attempts_allowed - ExamAttempt::where('exam_id', $exam->id)->where('employee_id', $attempt->employee_id)->count();
             request()->user()->notify(new ExamFailed($exam, $remaining));
         }
+
+        $this->auditLog->log('completed', 'exams', $exam, newValues: ['attempt_id' => $attempt->id, 'passed' => $attempt->passed]);
 
         return $this->success(new ExamAttemptResource($attempt), 'Imtihon yakunlandi.');
     }
