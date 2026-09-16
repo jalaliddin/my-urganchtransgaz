@@ -75,7 +75,12 @@
     "low": "Низкий",
     "normal": "Обычный",
     "high": "Высокий",
-    "urgent": "Срочный"
+    "urgent": "Срочный",
+    "draft": "Черновик",
+    "closed": "Закрыт",
+    "passed": "Сдал",
+    "failed": "Не сдал",
+    "not_taken": "Не пройден"
   },
   "organizations": {
     "title": "Организации",
@@ -222,5 +227,38 @@
     "totalWorked": "Отработано",
     "hoursShort": "ч",
     "minutesShort": "м"
+  },
+  "exams": {
+    "examTitle": "Название",
+    "createExam": "Создать экзамен",
+    "companyWide": "Вся компания",
+    "wholeOrganization": "Вся организация",
+    "duration": "Длительность",
+    "minutes": "мин.",
+    "passingScore": "Проходной балл",
+    "attemptsAllowed": "Допустимые попытки",
+    "endDate": "Дата окончания",
+    "questions": "Вопросы",
+    "questionText": "Текст вопроса",
+    "questionType": "Тип вопроса",
+    "singleChoice": "Один ответ",
+    "multipleChoice": "Несколько ответов",
+    "trueFalse": "Верно/Неверно",
+    "points": "Баллы",
+    "answerText": "Текст ответа",
+    "addAnswer": "Добавить ответ",
+    "addQuestion": "Добавить вопрос",
+    "true": "Верно",
+    "false": "Неверно",
+    "tabAvailable": "Доступные",
+    "tabResults": "Мои результаты",
+    "start": "Начать",
+    "submit": "Завершить",
+    "score": "Баллы",
+    "bestScore": "Лучший результат",
+    "attemptsUsed": "Попытки",
+    "results": "Результаты",
+    "totalEligible": "Всего сотрудников",
+    "notTaken": "Не пройден"
   }
 }

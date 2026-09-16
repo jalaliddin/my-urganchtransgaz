@@ -75,7 +75,12 @@
     "low": "Low",
     "normal": "Normal",
     "high": "High",
-    "urgent": "Urgent"
+    "urgent": "Urgent",
+    "draft": "Draft",
+    "closed": "Closed",
+    "passed": "Passed",
+    "failed": "Failed",
+    "not_taken": "Not taken"
   },
   "organizations": {
     "title": "Organizations",
@@ -222,5 +227,38 @@
     "totalWorked": "Worked",
     "hoursShort": "h",
     "minutesShort": "m"
+  },
+  "exams": {
+    "examTitle": "Title",
+    "createExam": "Create exam",
+    "companyWide": "Company-wide",
+    "wholeOrganization": "Whole organization",
+    "duration": "Duration",
+    "minutes": "min",
+    "passingScore": "Passing score",
+    "attemptsAllowed": "Attempts allowed",
+    "endDate": "End date",
+    "questions": "Questions",
+    "questionText": "Question text",
+    "questionType": "Question type",
+    "singleChoice": "Single choice",
+    "multipleChoice": "Multiple choice",
+    "trueFalse": "True/False",
+    "points": "Points",
+    "answerText": "Answer text",
+    "addAnswer": "Add answer",
+    "addQuestion": "Add question",
+    "true": "True",
+    "false": "False",
+    "tabAvailable": "Available",
+    "tabResults": "My results",
+    "start": "Start",
+    "submit": "Submit",
+    "score": "Score",
+    "bestScore": "Best score",
+    "attemptsUsed": "Attempts",
+    "results": "Results",
+    "totalEligible": "Total eligible",
+    "notTaken": "Not taken"
   }
 }

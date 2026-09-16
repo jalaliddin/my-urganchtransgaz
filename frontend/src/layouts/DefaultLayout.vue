@@ -53,6 +53,12 @@ const navItems = computed<NavItem[]>(() =>
       permission: 'tasks.view',
     },
     {
+      title: 'nav.exams',
+      icon: 'mdi-school-outline',
+      to: '/exams',
+      permission: 'exams.view',
+    },
+    {
       title: 'nav.documents',
       icon: 'mdi-file-document-outline',
       to: '/documents',

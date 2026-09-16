@@ -75,7 +75,12 @@
     "low": "Past",
     "normal": "O'rtacha",
     "high": "Yuqori",
-    "urgent": "Shoshilinch"
+    "urgent": "Shoshilinch",
+    "draft": "Qoralama",
+    "closed": "Yopilgan",
+    "passed": "O'tdi",
+    "failed": "O'ta olmadi",
+    "not_taken": "Topshirilmagan"
   },
   "organizations": {
     "title": "Tashkilotlar",
@@ -222,5 +227,38 @@
     "totalWorked": "Ishlangan vaqt",
     "hoursShort": "s",
     "minutesShort": "d"
+  },
+  "exams": {
+    "examTitle": "Nomi",
+    "createExam": "Imtihon yaratish",
+    "companyWide": "Butun korxona",
+    "wholeOrganization": "Butun tashkilot",
+    "duration": "Davomiyligi",
+    "minutes": "daqiqa",
+    "passingScore": "O'tish balli",
+    "attemptsAllowed": "Ruxsat etilgan urinishlar",
+    "endDate": "Tugash sanasi",
+    "questions": "Savollar",
+    "questionText": "Savol matni",
+    "questionType": "Savol turi",
+    "singleChoice": "Bitta javob",
+    "multipleChoice": "Bir nechta javob",
+    "trueFalse": "To'g'ri/Noto'g'ri",
+    "points": "Ball",
+    "answerText": "Javob matni",
+    "addAnswer": "Javob qo'shish",
+    "addQuestion": "Savol qo'shish",
+    "true": "To'g'ri",
+    "false": "Noto'g'ri",
+    "tabAvailable": "Mavjud",
+    "tabResults": "Natijalarim",
+    "start": "Boshlash",
+    "submit": "Yakunlash",
+    "score": "Ball",
+    "bestScore": "Eng yaxshi natija",
+    "attemptsUsed": "Urinishlar",
+    "results": "Natijalar",
+    "totalEligible": "Jami xodimlar",
+    "notTaken": "Topshirilmagan"
   }
 }

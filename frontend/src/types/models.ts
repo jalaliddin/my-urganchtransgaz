@@ -17,6 +17,9 @@ export type AttendanceStatus =
 export type AttendanceSource = 'biometric' | 'manual' | 'mobile' | 'web' | 'api' | 'system'
 export type TaskPriority = 'low' | 'normal' | 'high' | 'urgent'
 export type TaskStatus = 'new' | 'in_progress' | 'waiting' | 'completed' | 'cancelled' | 'overdue'
+export type ExamStatus = 'draft' | 'active' | 'closed'
+export type QuestionType = 'single_choice' | 'multiple_choice' | 'true_false'
+export type AttemptStatus = 'in_progress' | 'completed'
 
 export interface Organization {
   id: number
@@ -242,6 +245,106 @@ export interface Task {
 
   created_at: string
   updated_at: string
+}
+
+export interface ExamAnswer {
+  id: number
+  answer: string
+  is_correct?: boolean
+  was_selected?: boolean
+}
+
+export interface ExamQuestion {
+  id: number
+  exam_id?: number
+  question: string
+  type: QuestionType
+  points: number
+  order?: number
+  answers: ExamAnswer[]
+}
+
+export interface ExamAttemptSummary {
+  attempts_used: number
+  best_percentage: number | null
+  passed: boolean
+  last_status: AttemptStatus
+}
+
+export interface Exam {
+  id: number
+  title: string
+  description: string | null
+  organization_id: number | null
+  organization?: Organization | null
+  department_id: number | null
+  department?: Department | null
+  created_by: number
+
+  duration_minutes: number
+  passing_score: number
+  attempts_allowed: number
+
+  start_date: string | null
+  end_date: string | null
+  status: ExamStatus
+
+  questions_count?: number
+  questions?: ExamQuestion[]
+  my_attempt_summary?: ExamAttemptSummary | null
+
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * The question shape while taking an exam (ExamAttemptQuestionResource) —
+ * has type/points but never is_correct on its answers.
+ */
+export interface ExamAttemptQuestion {
+  id: number
+  question: string
+  type: QuestionType
+  points: number
+  answers: Pick<ExamAnswer, 'id' | 'answer'>[]
+}
+
+/**
+ * The question shape when reviewing a finished attempt
+ * (ExamAttemptResource) — no type/points, but answers now reveal
+ * is_correct/was_selected.
+ */
+export interface ExamAttemptQuestionResult {
+  id: number
+  question: string
+  answers: ExamAnswer[]
+}
+
+export interface ExamAttempt {
+  id: number
+  exam_id: number
+  employee_id: number
+
+  score: number | null
+  percentage: number | null
+  passed: boolean | null
+  status: AttemptStatus
+  is_late: boolean
+
+  started_at: string
+  completed_at: string | null
+
+  questions?: ExamAttemptQuestionResult[]
+}
+
+export interface ExamResultRow {
+  employee_id: number
+  full_name: string
+  employee_number: string
+  attempts_used: number
+  best_percentage: number | null
+  passed: boolean
+  status: 'passed' | 'failed' | 'not_taken'
 }
 
 export interface AppNotification {

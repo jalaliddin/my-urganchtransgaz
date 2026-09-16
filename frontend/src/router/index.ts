@@ -68,6 +68,21 @@ const router = createRouter({
           component: () => import('@/views/tasks/TaskDetailView.vue'),
         },
         {
+          path: 'exams',
+          name: 'exams',
+          component: () => import('@/views/exams/ExamsView.vue'),
+        },
+        {
+          path: 'exams/:id/attempt',
+          name: 'exam-attempt',
+          component: () => import('@/views/exams/ExamAttemptView.vue'),
+        },
+        {
+          path: 'exams/:id/results',
+          name: 'exam-results',
+          component: () => import('@/views/exams/ExamResultsView.vue'),
+        },
+        {
           path: 'documents',
           name: 'documents',
           component: () => import('@/views/documents/DocumentsView.vue'),
