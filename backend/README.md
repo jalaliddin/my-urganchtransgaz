@@ -40,12 +40,13 @@ mysql -uroot -p -e "CREATE DATABASE my_urtg_test CHARACTER SET utf8mb4 COLLATE u
 
 ## Scheduled jobs
 
-`documents:check-expiration` runs daily at 07:00 (`routes/console.php`), notifying employees at 30/7/1 days before a document's `expiry_date` and once when it expires. `attendance:mark-absentees` runs daily at 00:30, giving every currently-employed staff member with no attendance record for *yesterday* one — `absent`, or their current vacation/business-trip/sick-leave status if that's what `Employee.status` says. `tasks:check-deadlines` runs daily at 07:15, notifying every assignee of a task due in 3/1 days or today, and flipping any past-due `new`/`in_progress` task to `overdue`. In local development, either run these once manually or start the scheduler loop:
+`documents:check-expiration` runs daily at 07:00 (`routes/console.php`), notifying employees at 30/7/1 days before a document's `expiry_date` and once when it expires. `attendance:mark-absentees` runs daily at 00:30, giving every currently-employed staff member with no attendance record for *yesterday* one — `absent`, or their current vacation/business-trip/sick-leave status if that's what `Employee.status` says. `tasks:check-deadlines` runs daily at 07:15, notifying every assignee of a task due in 3/1 days or today, and flipping any past-due `new`/`in_progress` task to `overdue`. `exams:send-reminders` runs daily at 07:30, notifying eligible employees 3/1 days before an exam's `start_date` and 3/1/0 days before its `end_date`. In local development, either run these once manually or start the scheduler loop:
 
 ```bash
 php artisan documents:check-expiration    # one-off run
 php artisan attendance:mark-absentees     # one-off run
 php artisan tasks:check-deadlines         # one-off run
+php artisan exams:send-reminders          # one-off run
 php artisan schedule:work                 # runs the scheduler continuously
 ```
 
@@ -112,6 +113,17 @@ Deliberate substitutions/choices made while implementing the spec — recorded h
 - **The nightly `tasks:check-deadlines` only reminds/auto-overdues `new`/`in_progress` tasks**, never `waiting` ones — a task already submitted for a manager's approval shouldn't have its state silently overwritten by a passing deadline.
 - **Every task action response eager-loads `creator`/`organization`/`department`/`assignees`** before serializing. An earlier draft of `updateProgress`/`complete`/`approve`/`reopen`/`cancel` returned `TaskResource` without loading these relations, which Laravel's `whenLoaded()` then silently drops from the JSON — caught during browser verification when the assignee-only "mark complete" control vanished from the UI right after a progress update. Regression-guarded in `TaskControllerTest` by asserting `data.assignees` on every action response.
 
+**Phase 5:**
+
+- **An exam's `organization_id`/`department_id` (both nullable) are its audience**, not a per-employee assignee list — §21's minimum-tables list has no `exam_assignees` table, so "Safety Department can... assign exams" (§60) means setting this scope (and activating the exam), the same field-list-is-illustrative reasoning as Phase 4's `task_assignees`. `Exam::appliesTo(Employee $employee)` is the one place that scope match is evaluated.
+- **Only `safety-manager` administers exams; every other role is a plain exam-taker.** Verified directly in the live seeder before building this phase: `exams.view/create/manage/evaluate` are granted in full only to `safety-manager` (plus central-admin via `*`) — every other non-central role has no exam permission at all, and `employee` has `exams.view` only. This matches Module 7, which only ever mentions "Safety Department" and "Employee," so — unlike the HR/technical-policy gaps found in earlier phases — nothing needed adding to the seeder.
+- **Safety Department's company-wide oversight is scoped narrowly to the exams module**, via an explicit `hasRole('safety-manager') || hasCentralAccess()` check inside `ExamPolicy`/the exam controllers — not by adding `safety-manager` to `User::hasCentralAccess()`, which would incorrectly grant it broad reach into employees/attendance/tasks it has no business rule for.
+- **One `exam_answers` table serves every question type.** A `true_false` question is just two answer rows ("To'g'ri"/"Noto'g'ri") with one `is_correct` — no per-type schema branching, and `multiple_choice` grading is exact-match (the selected answer set must equal the correct set exactly; no partial credit).
+- **A late submission is still accepted and graded**, just flagged (`is_late`) — there's no live server push to force-submit a client at the deadline, so rejecting a slightly-late submit would only lose the employee's work for no benefit.
+- **No "auto-expire abandoned attempts" job.** §37 only asks for reminder notifications; an attempt that's started but never submitted just stays `in_progress` forever and still counts against `attempts_allowed` — simpler than inventing an expiry job the spec doesn't call for.
+- **Every exam question/answer response is one of two Resources depending on audience**: `ExamQuestionResource` (admin authoring, includes `is_correct`) vs. `ExamAttemptQuestionResource` (the employee taking the exam, `is_correct` omitted entirely) — the same "never leak the answer key" boundary `EmployeeDocumentResource` draws around `file_path`.
+- **Frontend: `v-radio-group`'s aggregated `@update:model-value` did not reliably register clicks** when verified in a real browser (confirmed via direct DOM inspection: the underlying native `<input type="radio">` never flipped to `checked`, so every submitted answer came back empty). Fixed by using the same direct-`@click`-computes-new-state pattern already proven to work in the question-authoring form's standalone `v-radio`/`v-checkbox` controls, for both the exam-taking radios and checkboxes — see `ExamAttemptView.vue`.
+
 ## API
 
 All endpoints are versioned under `/api/v1`. Auth is a Bearer token from `POST /api/v1/auth/login`. Standard response envelope:
@@ -156,6 +168,12 @@ All endpoints are versioned under `/api/v1`. Auth is a Bearer token from `POST /
 | POST | `/api/v1/tasks/{id}/cancel` | Creator/manager-in-scope; no hard delete exists |
 | POST/DELETE | `/api/v1/tasks/{id}/comments[/{comment}]` | Anyone who can view the task; delete is author or manager-in-scope |
 | POST/DELETE | `/api/v1/tasks/{id}/attachments[/{attachment}]` | Same visibility rule; `GET .../download` streams the file |
+| GET/POST/PUT | `/api/v1/exams[/{id}]` | `POST`/`PUT` require `exams.manage` (safety-manager/central); `index` doubles as the employee-facing list, each exam annotated with the viewer's own `my_attempt_summary` |
+| GET/POST/PUT/DELETE | `/api/v1/exams/{id}/questions[/{question}]` | Admin authoring only; `POST`/`PUT` take a nested `answers` array, replaced wholesale on update |
+| POST | `/api/v1/exams/{id}/attempts` | Starts (or resumes) the caller's own attempt; 409 once `attempts_allowed` is exhausted or already passed |
+| POST | `/api/v1/exams/{id}/attempts/{attempt}/submit` | `{ answers: [{ question_id, answer_ids: [] }] }`; grades and finalizes |
+| GET | `/api/v1/exams/{id}/attempts/{attempt}` | Review a finished attempt, correctness included |
+| GET | `/api/v1/exams/{id}/results` | Roster + pass/fail/not-taken stats; `exams.evaluate` (safety-manager/central) only |
 
 `php artisan route:list --path=api` is the source of truth as more phases land.
 

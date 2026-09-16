@@ -19,7 +19,7 @@ The API is versioned (`/api/v1`) and mobile-ready by design: authentication is a
 
 See [`backend/README.md`](backend/README.md) and [`frontend/README.md`](frontend/README.md) for stack-specific setup, and the architecture decisions recorded there for *why* things are built this way (Sanctum token mode, `spatie/laravel-permission` instead of hand-rolled tables, organization-scoped Policies, etc.).
 
-## Current status: Phase 4 (Task Management)
+## Current status: Phase 5 (Safety Exams)
 
 **Phase 1 — Foundation:** authentication (login/logout/me/change-password/forgot-reset password, login history), RBAC (9 roles, granular permissions), Organizations (unlimited-depth hierarchy), Departments, Employees, audit logging, and the corresponding Vue admin UI.
 
@@ -29,7 +29,9 @@ See [`backend/README.md`](backend/README.md) and [`frontend/README.md`](frontend
 
 **Phase 4 — Task Management:** managers/department managers/Technical Policy Service/admins create and assign tasks (one or more assignees) with priority/due dates; assignees update their own progress and mark work complete (submitting it for review), and a manager approves or reopens it. Comments, file attachments, and a per-task activity timeline. A daily job reminds assignees 3/1 days before a deadline and on the due date, and automatically flips overdue tasks. Corresponding Vue UI: a Tasks list with a create dialog, a task detail page (progress/complete/approve/reopen/cancel controls, comments, attachments, activity timeline), and a dashboard "My Tasks" widget.
 
-Not yet built (later phases, per the project's phased delivery plan): KPI, safety exams, announcements, business trips/leave workflows, global search, full audit-log coverage, import/export, system settings.
+**Phase 5 — Safety Exams:** the Safety Department creates exams (single/multiple-choice and true/false questions), scoped company-wide or to one organization/department; eligible employees take them within a time limit and attempts allowance, get graded immediately (exact-match scoring, no partial credit for multiple-choice), and see which answers were correct. The Safety Department reviews a pass/fail/not-taken roster and statistics per exam. A daily job reminds employees of upcoming exams and approaching deadlines. Corresponding Vue UI: an Exams page (admin management + question authoring, or an employee's Available/My Results tabs), a timed exam-taking flow, and a results roster page.
+
+Not yet built (later phases, per the project's phased delivery plan): KPI, announcements, business trips/leave workflows, global search, full audit-log coverage, import/export, system settings.
 
 ## Quick start
 
@@ -84,12 +86,12 @@ cd backend
 php artisan test --compact
 ```
 
-The backend test database is a separate MySQL schema (`my_urtg_test`, configured in `phpunit.xml`) — running tests never touches the `my_urtg` development data. Tests cover authentication, RBAC, and — critically — that a user from one organization cannot read or write another organization's data by changing an id (see `tests/Feature/Http/Controllers/Api/V1/EmployeeControllerTest.php`, `AttendanceControllerTest.php`, and `TaskControllerTest.php`).
+The backend test database is a separate MySQL schema (`my_urtg_test`, configured in `phpunit.xml`) — running tests never touches the `my_urtg` development data. Tests cover authentication, RBAC, and — critically — that a user from one organization cannot read or write another organization's data by changing an id (see `tests/Feature/Http/Controllers/Api/V1/EmployeeControllerTest.php`, `AttendanceControllerTest.php`, `TaskControllerTest.php`, and `ExamControllerTest.php`).
 
 ## Deployment notes
 
 - Local/dev uses the `database` queue and cache drivers (no Redis required). Redis is the recommended driver for production/Docker but is not wired up yet.
 - Employee documents, task attachments, and profile photos are stored on the private `local` disk (`storage/app/private`) and served only through authenticated controller endpoints — never a public URL.
-- `php artisan documents:check-expiration` is scheduled daily at 07:00, `php artisan attendance:mark-absentees` daily at 00:30, and `php artisan tasks:check-deadlines` daily at 07:15 (`routes/console.php`); running the scheduler in production requires the standard `* * * * * php artisan schedule:run` cron entry (or `php artisan schedule:work` in development).
+- `php artisan documents:check-expiration` is scheduled daily at 07:00, `php artisan attendance:mark-absentees` daily at 00:30, `php artisan tasks:check-deadlines` daily at 07:15, and `php artisan exams:send-reminders` daily at 07:30 (`routes/console.php`); running the scheduler in production requires the standard `* * * * * php artisan schedule:run` cron entry (or `php artisan schedule:work` in development).
 - To connect a real biometric/attendance device, provision it with `php artisan attendance:create-device {device_id} {name} [--organization_id=]` and configure the device to POST to `/api/v1/integrations/attendance/events` with the printed Bearer token — see `backend/README.md` for the payload shape.
 - CORS currently allows all origins (`config('cors')` defaults) since auth is token-based, not cookie-based; tighten `allowed_origins` to `https://my.urtg.uz` before deploying to production.
