@@ -19,7 +19,7 @@ The API is versioned (`/api/v1`) and mobile-ready by design: authentication is a
 
 See [`backend/README.md`](backend/README.md) and [`frontend/README.md`](frontend/README.md) for stack-specific setup, and the architecture decisions recorded there for *why* things are built this way (Sanctum token mode, `spatie/laravel-permission` instead of hand-rolled tables, organization-scoped Policies, etc.).
 
-## Current status: Phase 8 (Business Trips / Leave Requests)
+## Current status: Phase 9 (Advanced Features — final phase)
 
 **Phase 1 — Foundation:** authentication (login/logout/me/change-password/forgot-reset password, login history), RBAC (9 roles, granular permissions), Organizations (unlimited-depth hierarchy), Departments, Employees, audit logging, and the corresponding Vue admin UI.
 
@@ -37,7 +37,9 @@ See [`backend/README.md`](backend/README.md) and [`frontend/README.md`](frontend
 
 **Phase 8 — Business Trips / Leave Requests:** an employee submits a leave request (vacation, business trip, sick leave, or other) that goes through a two-stage approval — their department manager first, then HR/organization-admin/central — auto-skipping stage 1 when the employee's department has no manager assigned. Approving a vacation/business-trip/sick-leave request (or, independently, HR/admin creating a standalone business-trip record directly) drives the employee's existing status field, the same one Phase 3's attendance already reads — so attendance recognizes the absence automatically, with no attendance-side changes needed. A daily job keeps this in sync as date ranges start and end. Corresponding Vue UI: a Leave Requests page (submit + a review queue whose actions match the viewer's own approval stage), a Business Trips page (HR/admin management, or a read-only list otherwise), and a dashboard "Upcoming business trips" widget.
 
-Not yet built (later phases, per the project's phased delivery plan): global search, full audit-log coverage, import/export, system settings.
+**Phase 9 — Advanced Features (final phase):** a global search bar (app-bar dropdown, top-5-per-type across Employees/Organizations/Departments/Tasks/Announcements/Documents, each reusing that module's own existing authorization/scoping code rather than a parallel search index); an Audit Logs page (filter by user/module/action/date, export as CSV/Excel/PDF) built on the audit-logging infrastructure every prior phase already fed into, plus the two real gaps that infrastructure had — exam-attempt completion and user role changes — are now logged too, the latter via a new central-admin/HR "change role" action on the Employees page; a reusable export action (CSV/native, `.xlsx` via `maatwebsite/excel`, PDF via `barryvdh/laravel-dompdf`) wired into Employees, the Attendance report, and Audit Logs; a stateless preview-then-commit Employee CSV import (organizations/departments resolved by human-readable code, row-level validation, invalid rows skipped and reported individually — never all-or-nothing); real Chart.js bar/pie charts added to the Dashboard (employee distribution, task status), the Attendance report, the KPI report, and Exam results; and a System Settings page (organization details/logo, attendance work hours/grace periods/working days, document upload limits, exam reminder thresholds) backed by a generic key-value `settings` table that falls back to existing `config()` values until an admin actually edits something.
+
+This is the last phase in the project's phased delivery plan (§56) — every module the spec describes now has a working, tested, browser-verified implementation.
 
 ## Quick start
 
@@ -92,7 +94,9 @@ cd backend
 php artisan test --compact
 ```
 
-The backend test database is a separate MySQL schema (`my_urtg_test`, configured in `phpunit.xml`) — running tests never touches the `my_urtg` development data. Tests cover authentication, RBAC, and — critically — that a user from one organization cannot read or write another organization's data by changing an id (see `tests/Feature/Http/Controllers/Api/V1/EmployeeControllerTest.php`, `AttendanceControllerTest.php`, `TaskControllerTest.php`, `ExamControllerTest.php`, `KpiControllerTest.php`, `AnnouncementControllerTest.php`, `LeaveRequestControllerTest.php`, and `BusinessTripControllerTest.php`).
+The backend test database is a separate MySQL schema (`my_urtg_test`, configured in `phpunit.xml`) — running tests never touches the `my_urtg` development data. Tests cover authentication, RBAC, and — critically — that a user from one organization cannot read or write another organization's data by changing an id (see `tests/Feature/Http/Controllers/Api/V1/EmployeeControllerTest.php`, `AttendanceControllerTest.php`, `TaskControllerTest.php`, `ExamControllerTest.php`, `KpiControllerTest.php`, `AnnouncementControllerTest.php`, `LeaveRequestControllerTest.php`, `BusinessTripControllerTest.php`, and `SearchControllerTest.php`).
+
+Note: the `array` cache driver PHPUnit runs under (`phpunit.xml`) doesn't serialize cached values the way the real `.env`'s `database` driver does — a bug that only ever shows up in a real browser/server (see the `Setting` cache note in `backend/README.md`) is a standing reminder that the test suite alone is not sufficient sign-off for anything cache- or driver-dependent.
 
 ## Deployment notes
 
