@@ -77,6 +77,8 @@
     "high": "Высокий",
     "urgent": "Срочный",
     "draft": "Черновик",
+    "published": "Опубликовано",
+    "archived": "В архиве",
     "closed": "Закрыт",
     "passed": "Сдал",
     "failed": "Не сдал",
@@ -294,5 +296,26 @@
     "teamResults": "Результаты команды",
     "report": "Отчёт",
     "averageScore": "Средний балл"
+  },
+  "announcements": {
+    "title": "Заголовок",
+    "reads": "Прочитано",
+    "createAnnouncement": "Создать объявление",
+    "announcementTitle": "Заголовок",
+    "content": "Текст",
+    "target": "Целевая аудитория",
+    "targetValue": "Значение",
+    "everyone": "Все сотрудники",
+    "central": "Центральный офис",
+    "specificEmployee": "Конкретный сотрудник",
+    "specificRole": "Конкретная роль",
+    "publishAt": "Время публикации",
+    "expireAt": "Действует до",
+    "image": "Изображение",
+    "attachment": "Прикреплённый файл",
+    "publishImmediately": "Опубликовать сразу",
+    "publish": "Опубликовать",
+    "archive": "Архивировать",
+    "author": "Автор"
   }
 }

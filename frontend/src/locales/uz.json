@@ -77,6 +77,8 @@
     "high": "Yuqori",
     "urgent": "Shoshilinch",
     "draft": "Qoralama",
+    "published": "Chop etilgan",
+    "archived": "Arxivlangan",
     "closed": "Yopilgan",
     "passed": "O'tdi",
     "failed": "O'ta olmadi",
@@ -294,5 +296,26 @@
     "teamResults": "Jamoa natijalari",
     "report": "Hisobot",
     "averageScore": "O'rtacha ball"
+  },
+  "announcements": {
+    "title": "Sarlavha",
+    "reads": "O'qilgan",
+    "createAnnouncement": "E'lon yaratish",
+    "announcementTitle": "Sarlavha",
+    "content": "Matn",
+    "target": "Qaratilgan auditoriya",
+    "targetValue": "Qiymat",
+    "everyone": "Barcha xodimlar",
+    "central": "Markaziy ofis",
+    "specificEmployee": "Muayyan xodim",
+    "specificRole": "Muayyan rol",
+    "publishAt": "Chop etish vaqti",
+    "expireAt": "Amal qilish muddati",
+    "image": "Rasm",
+    "attachment": "Ilova fayl",
+    "publishImmediately": "Darhol chop etish",
+    "publish": "Chop etish",
+    "archive": "Arxivlash",
+    "author": "Muallif"
   }
 }

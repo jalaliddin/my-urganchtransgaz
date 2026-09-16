@@ -65,6 +65,12 @@ const navItems = computed<NavItem[]>(() =>
       permission: 'kpi.view',
     },
     {
+      title: 'nav.announcements',
+      icon: 'mdi-bullhorn-outline',
+      to: '/announcements',
+      permission: 'announcements.view',
+    },
+    {
       title: 'nav.documents',
       icon: 'mdi-file-document-outline',
       to: '/documents',

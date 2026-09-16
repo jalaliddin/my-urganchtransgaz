@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 
+import { announcementService } from '@/services/announcementService'
 import { attendanceService } from '@/services/attendanceService'
 import { kpiService } from '@/services/kpiService'
 import { profileService, type ProfileCompletion } from '@/services/profileService'
 import { taskService } from '@/services/taskService'
 import { useAuthStore } from '@/stores/auth'
-import type { EmployeeKpi, Task, TodayAttendance } from '@/types/models'
+import type { Announcement, EmployeeKpi, Task, TodayAttendance } from '@/types/models'
 
 const auth = useAuthStore()
 const completion = ref<ProfileCompletion | null>(null)
@@ -58,12 +59,23 @@ async function loadMyKpi() {
   latestKpi.value = result.data[0] ?? null
 }
 
+// Creators/reviewers get their own management list on the Announcements
+// page instead — this widget is the personal feed, so it's only shown to
+// plain audience members to avoid surfacing an admin's own drafts here.
+const showAnnouncements = computed(() => !!auth.user?.employee && !auth.can('announcements.create'))
+const latestAnnouncements = ref<Announcement[]>([])
+async function loadAnnouncements() {
+  const result = await announcementService.list({ per_page: 3 })
+  latestAnnouncements.value = result.data
+}
+
 onMounted(async () => {
   if (auth.user?.employee) {
     completion.value = await profileService.completion()
     await loadToday()
     await loadMyTasks()
     await loadMyKpi()
+    if (showAnnouncements.value) await loadAnnouncements()
   }
 })
 </script>
@@ -190,6 +202,30 @@ onMounted(async () => {
           <div class="text-body-2 text-medium-emphasis mb-3">{{ latestKpi.indicator?.name }} · {{ latestKpi.period?.name }}</div>
           <router-link :to="{ name: 'kpi' }" class="text-body-2 d-inline-block">
             {{ $t('nav.kpi') }} →
+          </router-link>
+        </v-card-text>
+      </v-card>
+    </v-col>
+
+    <v-col v-if="showAnnouncements && latestAnnouncements.length" cols="12" md="6" lg="4">
+      <v-card>
+        <v-card-text>
+          <div class="text-subtitle-2 text-medium-emphasis mb-2">{{ $t('nav.announcements') }}</div>
+          <v-list density="compact" class="pa-0">
+            <v-list-item
+              v-for="announcement in latestAnnouncements"
+              :key="announcement.id"
+              :title="announcement.title"
+              class="px-0"
+              :to="{ name: 'announcement-detail', params: { id: announcement.id } }"
+            >
+              <template #prepend>
+                <v-icon v-if="!announcement.is_read" color="primary" icon="mdi-circle-medium" />
+              </template>
+            </v-list-item>
+          </v-list>
+          <router-link :to="{ name: 'announcements' }" class="text-body-2 d-inline-block mt-2">
+            {{ $t('nav.announcements') }} →
           </router-link>
         </v-card-text>
       </v-card>

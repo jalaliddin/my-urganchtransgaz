@@ -77,6 +77,8 @@
     "high": "High",
     "urgent": "Urgent",
     "draft": "Draft",
+    "published": "Published",
+    "archived": "Archived",
     "closed": "Closed",
     "passed": "Passed",
     "failed": "Failed",
@@ -294,5 +296,26 @@
     "teamResults": "Team results",
     "report": "Report",
     "averageScore": "Average score"
+  },
+  "announcements": {
+    "title": "Title",
+    "reads": "Reads",
+    "createAnnouncement": "Create announcement",
+    "announcementTitle": "Title",
+    "content": "Content",
+    "target": "Audience",
+    "targetValue": "Value",
+    "everyone": "Everyone",
+    "central": "Central office",
+    "specificEmployee": "Specific employee",
+    "specificRole": "Specific role",
+    "publishAt": "Publish at",
+    "expireAt": "Expires at",
+    "image": "Image",
+    "attachment": "Attachment",
+    "publishImmediately": "Publish immediately",
+    "publish": "Publish",
+    "archive": "Archive",
+    "author": "Author"
   }
 }

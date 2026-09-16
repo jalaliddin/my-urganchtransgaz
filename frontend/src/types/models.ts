@@ -415,6 +415,42 @@ export interface KpiReportRow {
   average_score: number
 }
 
+export interface Role {
+  id: number
+  name: string
+}
+
+export type AnnouncementStatus = 'draft' | 'published' | 'archived'
+export type AnnouncementTargetType = 'everyone' | 'central' | 'organization' | 'department' | 'employee' | 'role'
+
+export interface AnnouncementTarget {
+  id: number
+  target_type: AnnouncementTargetType
+  target_id: number | null
+  label: string
+}
+
+export interface Announcement {
+  id: number
+  title: string
+  content: string
+  has_image: boolean
+  has_attachment: boolean
+  attachment_name: string | null
+  author_id: number
+  author_name: string | null
+  priority: TaskPriority
+  status: AnnouncementStatus
+  publish_at: string | null
+  expire_at: string | null
+  is_live: boolean
+  targets?: AnnouncementTarget[]
+  is_read?: boolean
+  reads_count?: number
+  created_at: string
+  updated_at: string
+}
+
 export interface AppNotification {
   id: string
   type: string

@@ -36,6 +36,8 @@ const colorMap: Record<string, string> = {
   urgent: 'error',
   draft: 'default',
   closed: 'default',
+  published: 'success',
+  archived: 'default',
   passed: 'success',
   failed: 'error',
   not_taken: 'default',
