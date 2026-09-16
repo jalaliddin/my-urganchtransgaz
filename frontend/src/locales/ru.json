@@ -65,7 +65,17 @@
     "present": "Пришёл",
     "late": "Опоздал",
     "early_leave": "Ушёл раньше",
-    "absent": "Отсутствовал"
+    "absent": "Отсутствовал",
+    "new": "Новая",
+    "in_progress": "В процессе",
+    "waiting": "Ожидает подтверждения",
+    "completed": "Выполнена",
+    "cancelled": "Отменена",
+    "overdue": "Просрочена",
+    "low": "Низкий",
+    "normal": "Обычный",
+    "high": "Высокий",
+    "urgent": "Срочный"
   },
   "organizations": {
     "title": "Организации",
@@ -175,6 +185,26 @@
     "markAllRead": "Отметить всё как прочитанное",
     "noNotifications": "Нет уведомлений",
     "viewAll": "Смотреть все"
+  },
+  "tasks": {
+    "taskTitle": "Название",
+    "description": "Описание",
+    "createTask": "Создать задачу",
+    "assignees": "Исполнители",
+    "priority": "Приоритет",
+    "dueDate": "Срок",
+    "progress": "Выполнение",
+    "updateProgress": "Обновить",
+    "result": "Результат",
+    "markComplete": "Отметить выполненной",
+    "approve": "Утвердить",
+    "reopen": "Открыть заново",
+    "cancel": "Отменить",
+    "comments": "Комментарии",
+    "addComment": "Написать комментарий",
+    "attachments": "Файлы",
+    "creator": "Создатель",
+    "activity": "История"
   },
   "attendance": {
     "tabToday": "Сегодня",

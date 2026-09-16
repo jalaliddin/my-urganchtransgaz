@@ -47,6 +47,12 @@ const navItems = computed<NavItem[]>(() =>
       permission: 'attendance.view',
     },
     {
+      title: 'nav.tasks',
+      icon: 'mdi-clipboard-check-multiple-outline',
+      to: '/tasks',
+      permission: 'tasks.view',
+    },
+    {
       title: 'nav.documents',
       icon: 'mdi-file-document-outline',
       to: '/documents',

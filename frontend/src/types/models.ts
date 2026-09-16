@@ -15,6 +15,8 @@ export type AttendanceStatus =
   | 'vacation'
   | 'sick_leave'
 export type AttendanceSource = 'biometric' | 'manual' | 'mobile' | 'web' | 'api' | 'system'
+export type TaskPriority = 'low' | 'normal' | 'high' | 'urgent'
+export type TaskStatus = 'new' | 'in_progress' | 'waiting' | 'completed' | 'cancelled' | 'overdue'
 
 export interface Organization {
   id: number
@@ -181,6 +183,65 @@ export interface AttendanceReportRow {
   late_count: number
   absent_count: number
   early_leave_count: number
+}
+
+export interface TaskComment {
+  id: number
+  task_id: number
+  user_id: number
+  user_name: string | null
+  body: string
+  created_at: string
+}
+
+export interface TaskActivity {
+  id: number
+  action: string
+  description: string
+  causer_name: string | null
+  created_at: string
+}
+
+export interface TaskAttachment {
+  id: number
+  task_id: number
+  uploaded_by: number
+  original_name: string
+  mime_type: string
+  file_size: number
+  download_url: string
+  created_at: string
+}
+
+export interface Task {
+  id: number
+  title: string
+  description: string | null
+  creator_id: number
+  creator_name: string | null
+  organization_id: number | null
+  organization?: Organization | null
+  department_id: number | null
+  department?: Department | null
+
+  assignees?: Employee[]
+
+  priority: TaskPriority
+  status: TaskStatus
+
+  start_date: string | null
+  due_date: string | null
+  completed_at: string | null
+
+  progress: number
+  result: string | null
+
+  comments?: TaskComment[]
+  activities?: TaskActivity[]
+  attachments?: TaskAttachment[]
+
+  created_at: string
+  updated_at: string
 }
 
 export interface AppNotification {

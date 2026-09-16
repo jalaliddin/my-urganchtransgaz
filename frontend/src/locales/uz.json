@@ -65,7 +65,17 @@
     "present": "Keldi",
     "late": "Kechikdi",
     "early_leave": "Erta ketdi",
-    "absent": "Kelmadi"
+    "absent": "Kelmadi",
+    "new": "Yangi",
+    "in_progress": "Jarayonda",
+    "waiting": "Tasdiqlash kutilmoqda",
+    "completed": "Bajarildi",
+    "cancelled": "Bekor qilindi",
+    "overdue": "Muddati o'tgan",
+    "low": "Past",
+    "normal": "O'rtacha",
+    "high": "Yuqori",
+    "urgent": "Shoshilinch"
   },
   "organizations": {
     "title": "Tashkilotlar",
@@ -175,6 +185,26 @@
     "markAllRead": "Barchasini o'qilgan deb belgilash",
     "noNotifications": "Bildirishnomalar yo'q",
     "viewAll": "Barchasini ko'rish"
+  },
+  "tasks": {
+    "taskTitle": "Sarlavha",
+    "description": "Tavsif",
+    "createTask": "Topshiriq yaratish",
+    "assignees": "Bajaruvchilar",
+    "priority": "Muhimlik",
+    "dueDate": "Muddati",
+    "progress": "Bajarilishi",
+    "updateProgress": "Yangilash",
+    "result": "Natija",
+    "markComplete": "Bajarildi deb belgilash",
+    "approve": "Tasdiqlash",
+    "reopen": "Qayta ochish",
+    "cancel": "Bekor qilish",
+    "comments": "Izohlar",
+    "addComment": "Izoh yozing",
+    "attachments": "Fayllar",
+    "creator": "Yaratuvchi",
+    "activity": "Tarix"
   },
   "attendance": {
     "tabToday": "Bugun",

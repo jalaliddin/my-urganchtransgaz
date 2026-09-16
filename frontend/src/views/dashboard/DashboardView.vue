@@ -3,11 +3,23 @@ import { computed, onMounted, ref } from 'vue'
 
 import { attendanceService } from '@/services/attendanceService'
 import { profileService, type ProfileCompletion } from '@/services/profileService'
+import { taskService } from '@/services/taskService'
 import { useAuthStore } from '@/stores/auth'
-import type { TodayAttendance } from '@/types/models'
+import type { Task, TodayAttendance } from '@/types/models'
 
 const auth = useAuthStore()
 const completion = ref<ProfileCompletion | null>(null)
+
+const myTasks = ref<Task[]>([])
+const myOpenTasksCount = computed(
+  () => myTasks.value.filter((t) => !['completed', 'cancelled'].includes(t.status)).length,
+)
+const myOverdueTasksCount = computed(() => myTasks.value.filter((t) => t.status === 'overdue').length)
+
+async function loadMyTasks() {
+  const result = await taskService.list({ per_page: 100 })
+  myTasks.value = result.data.filter((t) => t.assignees?.some((a) => a.id === auth.user?.employee?.id))
+}
 
 const today = ref<TodayAttendance[]>([])
 const checkingInOut = ref(false)
@@ -43,6 +55,7 @@ onMounted(async () => {
   if (auth.user?.employee) {
     completion.value = await profileService.completion()
     await loadToday()
+    await loadMyTasks()
   }
 })
 </script>
@@ -135,6 +148,27 @@ onMounted(async () => {
           </div>
           <router-link :to="{ name: 'attendance' }" class="text-body-2 d-inline-block mt-3">
             {{ $t('nav.attendance') }} →
+          </router-link>
+        </v-card-text>
+      </v-card>
+    </v-col>
+
+    <v-col v-if="auth.user?.employee" cols="12" md="6" lg="4">
+      <v-card>
+        <v-card-text>
+          <div class="text-subtitle-2 text-medium-emphasis mb-2">{{ $t('nav.tasks') }}</div>
+          <div class="d-flex ga-4 mb-3">
+            <div>
+              <div class="text-h6 font-weight-bold">{{ myOpenTasksCount }}</div>
+              <div class="text-caption text-medium-emphasis">{{ $t('status.in_progress') }}</div>
+            </div>
+            <div>
+              <div class="text-h6 font-weight-bold text-error">{{ myOverdueTasksCount }}</div>
+              <div class="text-caption text-medium-emphasis">{{ $t('status.overdue') }}</div>
+            </div>
+          </div>
+          <router-link :to="{ name: 'tasks' }" class="text-body-2 d-inline-block">
+            {{ $t('nav.tasks') }} →
           </router-link>
         </v-card-text>
       </v-card>

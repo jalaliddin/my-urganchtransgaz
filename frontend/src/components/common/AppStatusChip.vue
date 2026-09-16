@@ -24,6 +24,16 @@ const colorMap: Record<string, string> = {
   late: 'warning',
   early_leave: 'warning',
   absent: 'error',
+  new: 'info',
+  in_progress: 'primary',
+  waiting: 'warning',
+  completed: 'success',
+  cancelled: 'default',
+  overdue: 'error',
+  low: 'default',
+  normal: 'info',
+  high: 'warning',
+  urgent: 'error',
 }
 
 const color = computed(() => colorMap[props.status] ?? 'default')

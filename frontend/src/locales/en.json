@@ -65,7 +65,17 @@
     "present": "Present",
     "late": "Late",
     "early_leave": "Left early",
-    "absent": "Absent"
+    "absent": "Absent",
+    "new": "New",
+    "in_progress": "In progress",
+    "waiting": "Awaiting approval",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "overdue": "Overdue",
+    "low": "Low",
+    "normal": "Normal",
+    "high": "High",
+    "urgent": "Urgent"
   },
   "organizations": {
     "title": "Organizations",
@@ -175,6 +185,26 @@
     "markAllRead": "Mark all as read",
     "noNotifications": "No notifications",
     "viewAll": "View all"
+  },
+  "tasks": {
+    "taskTitle": "Title",
+    "description": "Description",
+    "createTask": "Create task",
+    "assignees": "Assignees",
+    "priority": "Priority",
+    "dueDate": "Due date",
+    "progress": "Progress",
+    "updateProgress": "Update",
+    "result": "Result",
+    "markComplete": "Mark complete",
+    "approve": "Approve",
+    "reopen": "Reopen",
+    "cancel": "Cancel",
+    "comments": "Comments",
+    "addComment": "Write a comment",
+    "attachments": "Attachments",
+    "creator": "Creator",
+    "activity": "History"
   },
   "attendance": {
     "tabToday": "Today",
