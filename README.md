@@ -19,7 +19,7 @@ The API is versioned (`/api/v1`) and mobile-ready by design: authentication is a
 
 See [`backend/README.md`](backend/README.md) and [`frontend/README.md`](frontend/README.md) for stack-specific setup, and the architecture decisions recorded there for *why* things are built this way (Sanctum token mode, `spatie/laravel-permission` instead of hand-rolled tables, organization-scoped Policies, etc.).
 
-## Current status: Phase 7 (Announcements)
+## Current status: Phase 8 (Business Trips / Leave Requests)
 
 **Phase 1 — Foundation:** authentication (login/logout/me/change-password/forgot-reset password, login history), RBAC (9 roles, granular permissions), Organizations (unlimited-depth hierarchy), Departments, Employees, audit logging, and the corresponding Vue admin UI.
 
@@ -35,7 +35,9 @@ See [`backend/README.md`](backend/README.md) and [`frontend/README.md`](frontend
 
 **Phase 7 — Announcements:** organization-admins/HR compose announcement drafts targeted at everyone, the central office, a specific organization/department/employee, or a specific role (an employee sees an announcement the moment any one of its targets applies to them); only a central-admin can actually publish or archive one, a deliberate centralized-editorial-control split. Publishing computes the audience and notifies every targeted employee; a scheduled command auto-publishes a draft once its chosen `publish_at` time arrives and auto-archives one past its `expire_at`. Read/unread is tracked per employee, separate from the notification bell. Corresponding Vue UI: an Announcements page (admin management + targeting, or an employee's read/unread feed), a detail page with image/attachment support, and a dashboard "Latest announcements" widget.
 
-Not yet built (later phases, per the project's phased delivery plan): business trips/leave workflows, global search, full audit-log coverage, import/export, system settings.
+**Phase 8 — Business Trips / Leave Requests:** an employee submits a leave request (vacation, business trip, sick leave, or other) that goes through a two-stage approval — their department manager first, then HR/organization-admin/central — auto-skipping stage 1 when the employee's department has no manager assigned. Approving a vacation/business-trip/sick-leave request (or, independently, HR/admin creating a standalone business-trip record directly) drives the employee's existing status field, the same one Phase 3's attendance already reads — so attendance recognizes the absence automatically, with no attendance-side changes needed. A daily job keeps this in sync as date ranges start and end. Corresponding Vue UI: a Leave Requests page (submit + a review queue whose actions match the viewer's own approval stage), a Business Trips page (HR/admin management, or a read-only list otherwise), and a dashboard "Upcoming business trips" widget.
+
+Not yet built (later phases, per the project's phased delivery plan): global search, full audit-log coverage, import/export, system settings.
 
 ## Quick start
 
@@ -90,7 +92,7 @@ cd backend
 php artisan test --compact
 ```
 
-The backend test database is a separate MySQL schema (`my_urtg_test`, configured in `phpunit.xml`) — running tests never touches the `my_urtg` development data. Tests cover authentication, RBAC, and — critically — that a user from one organization cannot read or write another organization's data by changing an id (see `tests/Feature/Http/Controllers/Api/V1/EmployeeControllerTest.php`, `AttendanceControllerTest.php`, `TaskControllerTest.php`, `ExamControllerTest.php`, `KpiControllerTest.php`, and `AnnouncementControllerTest.php`).
+The backend test database is a separate MySQL schema (`my_urtg_test`, configured in `phpunit.xml`) — running tests never touches the `my_urtg` development data. Tests cover authentication, RBAC, and — critically — that a user from one organization cannot read or write another organization's data by changing an id (see `tests/Feature/Http/Controllers/Api/V1/EmployeeControllerTest.php`, `AttendanceControllerTest.php`, `TaskControllerTest.php`, `ExamControllerTest.php`, `KpiControllerTest.php`, `AnnouncementControllerTest.php`, `LeaveRequestControllerTest.php`, and `BusinessTripControllerTest.php`).
 
 ## Deployment notes
 
