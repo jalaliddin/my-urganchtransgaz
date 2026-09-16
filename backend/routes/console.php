@@ -12,3 +12,4 @@ Schedule::command('documents:check-expiration')->dailyAt('07:00');
 Schedule::command('attendance:mark-absentees')->dailyAt('00:30');
 Schedule::command('tasks:check-deadlines')->dailyAt('07:15');
 Schedule::command('exams:send-reminders')->dailyAt('07:30');
+Schedule::command('announcements:process-schedule')->everyFiveMinutes();
