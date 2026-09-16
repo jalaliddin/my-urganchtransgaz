@@ -86,6 +86,11 @@ class Employee extends Model
         return $this->belongsToMany(Task::class, 'task_assignees')->withTimestamps();
     }
 
+    public function examAttempts(): HasMany
+    {
+        return $this->hasMany(ExamAttempt::class);
+    }
+
     public function fullName(): string
     {
         return trim("{$this->last_name} {$this->first_name} {$this->middle_name}");
