@@ -12,6 +12,8 @@
     "kpi": "KPI",
     "exams": "Xavfsizlik imtihonlari",
     "announcements": "E'lonlar",
+    "leaveRequests": "Ta'til so'rovlari",
+    "businessTrips": "Xizmat safarlari",
     "documents": "Hujjatlar",
     "changeRequests": "So'rovlar",
     "notifications": "Bildirishnomalar",
@@ -60,8 +62,10 @@
     "central": "Markaziy",
     "subordinate": "Bo'ysunuvchi",
     "pending": "Kutilmoqda",
+    "department_approved": "Bo'lim tomonidan tasdiqlangan",
     "approved": "Tasdiqlangan",
     "rejected": "Rad etilgan",
+    "scheduled": "Rejalashtirilgan",
     "present": "Keldi",
     "late": "Kechikdi",
     "early_leave": "Erta ketdi",
@@ -317,5 +321,27 @@
     "publish": "Chop etish",
     "archive": "Arxivlash",
     "author": "Muallif"
+  },
+  "leaveRequests": {
+    "type": "Turi",
+    "dates": "Sanalar",
+    "me": "Men",
+    "createRequest": "So'rov yuborish",
+    "reason": "Sabab",
+    "approve": "Tasdiqlash",
+    "reject": "Rad etish",
+    "types": {
+      "vacation": "Ta'til",
+      "business_trip": "Xizmat safari",
+      "sick_leave": "Bemor varaqasi",
+      "other": "Boshqa"
+    }
+  },
+  "businessTrips": {
+    "destination": "Manzil",
+    "purpose": "Maqsad",
+    "orderNumber": "Buyruq raqami",
+    "createTrip": "Xizmat safari yaratish",
+    "upcoming": "Xizmat safarlari"
   }
 }

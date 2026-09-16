@@ -71,6 +71,18 @@ const navItems = computed<NavItem[]>(() =>
       permission: 'announcements.view',
     },
     {
+      title: 'nav.leaveRequests',
+      icon: 'mdi-calendar-remove-outline',
+      to: '/leave-requests',
+      permission: 'leave_requests.view',
+    },
+    {
+      title: 'nav.businessTrips',
+      icon: 'mdi-airplane',
+      to: '/business-trips',
+      permission: 'business_trips.view',
+    },
+    {
       title: 'nav.documents',
       icon: 'mdi-file-document-outline',
       to: '/documents',

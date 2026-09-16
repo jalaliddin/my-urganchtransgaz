@@ -12,6 +12,8 @@
     "kpi": "KPI",
     "exams": "Экзамены по охране труда",
     "announcements": "Объявления",
+    "leaveRequests": "Заявки на отпуск",
+    "businessTrips": "Командировки",
     "documents": "Документы",
     "changeRequests": "Запросы",
     "notifications": "Уведомления",
@@ -60,8 +62,10 @@
     "central": "Центральный",
     "subordinate": "Подведомственный",
     "pending": "На рассмотрении",
+    "department_approved": "Утверждено отделом",
     "approved": "Утверждено",
     "rejected": "Отклонено",
+    "scheduled": "Запланировано",
     "present": "Пришёл",
     "late": "Опоздал",
     "early_leave": "Ушёл раньше",
@@ -317,5 +321,27 @@
     "publish": "Опубликовать",
     "archive": "Архивировать",
     "author": "Автор"
+  },
+  "leaveRequests": {
+    "type": "Тип",
+    "dates": "Даты",
+    "me": "Я",
+    "createRequest": "Отправить заявку",
+    "reason": "Причина",
+    "approve": "Утвердить",
+    "reject": "Отклонить",
+    "types": {
+      "vacation": "Отпуск",
+      "business_trip": "Командировка",
+      "sick_leave": "Больничный",
+      "other": "Другое"
+    }
+  },
+  "businessTrips": {
+    "destination": "Место назначения",
+    "purpose": "Цель",
+    "orderNumber": "Номер приказа",
+    "createTrip": "Создать командировку",
+    "upcoming": "Командировки"
   }
 }

@@ -451,6 +451,44 @@ export interface Announcement {
   updated_at: string
 }
 
+export type LeaveRequestType = 'vacation' | 'business_trip' | 'sick_leave' | 'other'
+export type LeaveRequestStatus = 'pending' | 'department_approved' | 'approved' | 'rejected' | 'cancelled'
+
+export interface LeaveRequest {
+  id: number
+  employee_id: number
+  employee?: Employee
+  type: LeaveRequestType
+  start_date: string
+  end_date: string
+  reason: string | null
+  status: LeaveRequestStatus
+  department_reviewed_by: number | null
+  department_reviewed_at: string | null
+  hr_reviewed_by: number | null
+  hr_reviewed_at: string | null
+  rejection_reason: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type BusinessTripStatus = 'scheduled' | 'completed' | 'cancelled'
+
+export interface BusinessTrip {
+  id: number
+  employee_id: number
+  employee?: Employee
+  destination: string
+  purpose: string | null
+  start_date: string
+  end_date: string
+  order_number: string | null
+  has_order_file: boolean
+  status: BusinessTripStatus
+  created_at: string
+  updated_at: string
+}
+
 export interface AppNotification {
   id: string
   type: string

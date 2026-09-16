@@ -12,6 +12,8 @@
     "kpi": "KPI",
     "exams": "Safety Exams",
     "announcements": "Announcements",
+    "leaveRequests": "Leave Requests",
+    "businessTrips": "Business Trips",
     "documents": "Documents",
     "changeRequests": "Requests",
     "notifications": "Notifications",
@@ -60,8 +62,10 @@
     "central": "Central",
     "subordinate": "Subordinate",
     "pending": "Pending",
+    "department_approved": "Approved by department",
     "approved": "Approved",
     "rejected": "Rejected",
+    "scheduled": "Scheduled",
     "present": "Present",
     "late": "Late",
     "early_leave": "Left early",
@@ -317,5 +321,27 @@
     "publish": "Publish",
     "archive": "Archive",
     "author": "Author"
+  },
+  "leaveRequests": {
+    "type": "Type",
+    "dates": "Dates",
+    "me": "Me",
+    "createRequest": "Submit request",
+    "reason": "Reason",
+    "approve": "Approve",
+    "reject": "Reject",
+    "types": {
+      "vacation": "Vacation",
+      "business_trip": "Business trip",
+      "sick_leave": "Sick leave",
+      "other": "Other"
+    }
+  },
+  "businessTrips": {
+    "destination": "Destination",
+    "purpose": "Purpose",
+    "orderNumber": "Order number",
+    "createTrip": "Create business trip",
+    "upcoming": "Business trips"
   }
 }
