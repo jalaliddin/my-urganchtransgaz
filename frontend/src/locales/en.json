@@ -18,6 +18,7 @@
     "changeRequests": "Requests",
     "notifications": "Notifications",
     "settings": "Settings",
+    "auditLogs": "Audit Logs",
     "myProfile": "My Profile",
     "myDocuments": "My Documents",
     "logout": "Logout"
@@ -136,7 +137,8 @@
     "genderFemale": "Female",
     "passportNumber": "Passport number",
     "pinfl": "PINFL",
-    "changeOnlyHint": "Enter to change"
+    "changeOnlyHint": "Enter to change",
+    "changeRole": "Change role"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -343,5 +345,61 @@
     "orderNumber": "Order number",
     "createTrip": "Create business trip",
     "upcoming": "Business trips"
+  },
+  "search": {
+    "placeholder": "Search...",
+    "noResults": "No results found",
+    "types": {
+      "employees": "Employees",
+      "organizations": "Organizations",
+      "departments": "Departments",
+      "tasks": "Tasks",
+      "announcements": "Announcements",
+      "documents": "Documents"
+    }
+  },
+  "auditLogs": {
+    "date": "Date",
+    "user": "User",
+    "action": "Action",
+    "module": "Module",
+    "entity": "Entity"
+  },
+  "export": {
+    "export": "Export"
+  },
+  "import": {
+    "import": "Import",
+    "importEmployees": "Import employees",
+    "downloadTemplate": "Download template",
+    "file": "File",
+    "preview": "Preview",
+    "confirmImport": "Import",
+    "previewSummary": "{count} record(s) ready to import (not yet saved).",
+    "importedSummary": "{count} employee(s) imported.",
+    "row": "Row"
+  },
+  "settings": {
+    "organization": "Organization details",
+    "orgName": "Organization name",
+    "contactEmail": "Contact email",
+    "contactPhone": "Contact phone",
+    "address": "Address",
+    "logo": "Logo",
+    "documentsAndExams": "Documents & exams",
+    "maxUploadKb": "Max upload size (KB)",
+    "examReminderThresholds": "Exam reminder days",
+    "examReminderThresholdsHint": "Comma-separated days, e.g. 3, 1",
+    "attendance": "Attendance",
+    "workStart": "Work start",
+    "workEnd": "Work end",
+    "lateGraceMinutes": "Late grace (minutes)",
+    "earlyLeaveGraceMinutes": "Early leave grace (minutes)",
+    "workingDays": "Working days",
+    "timezone": "Timezone"
+  },
+  "reports": {
+    "employeeDistribution": "Employee distribution",
+    "taskStatusBreakdown": "Task status breakdown"
   }
 }

@@ -4,10 +4,10 @@ import { useI18n } from 'vue-i18n'
 
 import { usePaginatedResource } from '@/composables/usePaginatedResource'
 import { departmentService } from '@/services/departmentService'
-import { employeeService } from '@/services/employeeService'
+import { employeeImportService, employeeService } from '@/services/employeeService'
 import { organizationService } from '@/services/organizationService'
 import { useAuthStore } from '@/stores/auth'
-import type { Department, Employee, Organization } from '@/types/models'
+import type { Department, Employee, ImportResult, Organization } from '@/types/models'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -151,11 +151,90 @@ async function confirmDelete() {
     deleting.value = false
   }
 }
+
+// ---- Export ----
+const exporting = ref(false)
+async function exportAs(format: 'csv' | 'xlsx' | 'pdf') {
+  exporting.value = true
+  try {
+    await employeeService.export(format, { 'filter[search]': search.value || undefined })
+  } finally {
+    exporting.value = false
+  }
+}
+
+// ---- Role change ----
+const roleTarget = ref<Employee | null>(null)
+const roleForm = ref('employee')
+const changingRole = ref(false)
+
+function openRoleDialog(employee: Employee) {
+  roleTarget.value = employee
+  roleForm.value = 'employee'
+}
+
+async function submitRoleChange() {
+  if (!roleTarget.value) return
+  changingRole.value = true
+  try {
+    await employeeService.updateRole(roleTarget.value.id, roleForm.value)
+    roleTarget.value = null
+    await reload()
+  } finally {
+    changingRole.value = false
+  }
+}
+
+// ---- Import ----
+const importDialogOpen = ref(false)
+const importFile = ref<File | null>(null)
+const importPreview = ref<ImportResult | null>(null)
+const importing = ref(false)
+
+function openImportDialog() {
+  importFile.value = null
+  importPreview.value = null
+  importDialogOpen.value = true
+}
+
+async function previewImport() {
+  if (!importFile.value) return
+  importing.value = true
+  try {
+    importPreview.value = await employeeImportService.upload(importFile.value, true)
+  } finally {
+    importing.value = false
+  }
+}
+
+async function confirmImport() {
+  if (!importFile.value) return
+  importing.value = true
+  try {
+    importPreview.value = await employeeImportService.upload(importFile.value, false)
+    await reload()
+  } finally {
+    importing.value = false
+  }
+}
 </script>
 
 <template>
   <AppPageHeader :title="$t('employees.title')">
     <template #actions>
+      <v-menu>
+        <template #activator="{ props }">
+          <v-btn v-bind="props" variant="tonal" prepend-icon="mdi-download" :loading="exporting">{{ $t('export.export') }}</v-btn>
+        </template>
+        <v-list>
+          <v-list-item title="CSV" @click="exportAs('csv')" />
+          <v-list-item title="Excel" @click="exportAs('xlsx')" />
+          <v-list-item title="PDF" @click="exportAs('pdf')" />
+        </v-list>
+      </v-menu>
+      <v-btn v-if="auth.can('employees.create')" variant="tonal" prepend-icon="mdi-upload" @click="openImportDialog">
+        {{ $t('import.import') }}
+      </v-btn>
       <v-btn
         v-if="auth.can('employees.create')"
         color="primary"
@@ -194,6 +273,13 @@ async function confirmDelete() {
         variant="text"
         size="small"
         @click="openEdit(item)"
+      />
+      <v-btn
+        v-if="auth.can('users.update') && item.user_id"
+        icon="mdi-account-key-outline"
+        variant="text"
+        size="small"
+        @click="openRoleDialog(item)"
       />
       <v-btn
         v-if="auth.can('employees.delete')"
@@ -324,4 +410,65 @@ async function confirmDelete() {
     @update:model-value="(value: boolean) => !value && (deleteTarget = null)"
     @confirm="confirmDelete"
   />
+
+  <v-dialog :model-value="roleTarget !== null" max-width="420" @update:model-value="(v: boolean) => !v && (roleTarget = null)">
+    <v-card>
+      <v-card-title>{{ $t('employees.changeRole') }}</v-card-title>
+      <v-card-text>
+        <v-select v-model="roleForm" :items="assignableRoles" :label="$t('employees.role')" />
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="roleTarget = null">{{ $t('common.cancel') }}</v-btn>
+        <v-btn color="primary" variant="flat" :loading="changingRole" @click="submitRoleChange">{{ $t('common.save') }}</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="importDialogOpen" max-width="640">
+    <v-card>
+      <v-card-title>{{ $t('import.importEmployees') }}</v-card-title>
+      <v-card-text>
+        <v-btn variant="text" prepend-icon="mdi-download" class="mb-4" @click="employeeImportService.downloadTemplate()">
+          {{ $t('import.downloadTemplate') }}
+        </v-btn>
+
+        <AppFileUpload v-model="importFile" :label="$t('import.file')" accept=".csv,.xlsx,.xls" />
+
+        <div v-if="importPreview" class="mt-4">
+          <p class="text-body-2 mb-2">
+            {{ importPreview.dry_run ? $t('import.previewSummary', { count: importPreview.imported_count }) : $t('import.importedSummary', { count: importPreview.imported_count }) }}
+          </p>
+
+          <v-alert v-if="importPreview.invalid.length" type="error" variant="tonal" density="compact" class="mb-2">
+            <div v-for="(row, index) in importPreview.invalid" :key="index" class="text-caption">
+              {{ $t('import.row') }} {{ row.row }}: {{ (row.errors ?? []).join(', ') || row.error }}
+            </div>
+          </v-alert>
+
+          <v-alert v-if="importPreview.skipped.length" type="warning" variant="tonal" density="compact">
+            <div v-for="(row, index) in importPreview.skipped" :key="index" class="text-caption">
+              {{ $t('import.row') }} {{ row.row }}: {{ row.error }}
+            </div>
+          </v-alert>
+        </div>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="importDialogOpen = false">{{ $t('common.close') }}</v-btn>
+        <v-btn variant="tonal" :disabled="!importFile" :loading="importing" @click="previewImport">
+          {{ $t('import.preview') }}
+        </v-btn>
+        <v-btn
+          color="primary"
+          variant="flat"
+          :disabled="!importFile || !importPreview?.dry_run"
+          :loading="importing"
+          @click="confirmImport"
+        >
+          {{ $t('import.confirmImport') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>

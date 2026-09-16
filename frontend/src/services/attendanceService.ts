@@ -47,4 +47,17 @@ export const attendanceService = {
     const { data } = await http.get<ApiSuccessResponse<AttendanceReportRow[]>>('/attendance/report', { params })
     return data.data
   },
+
+  async exportReport(format: 'csv' | 'xlsx' | 'pdf', params: AttendanceReportParams): Promise<void> {
+    const response = await http.get('/attendance/report', {
+      params: { ...params, export: format },
+      responseType: 'blob',
+    })
+    const url = URL.createObjectURL(response.data as Blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `attendance-report.${format}`
+    link.click()
+    URL.revokeObjectURL(url)
+  },
 }

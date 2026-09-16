@@ -140,6 +140,16 @@ async function loadReport() {
   }
 }
 
+const exportingReport = ref(false)
+async function exportReport(format: 'csv' | 'xlsx' | 'pdf') {
+  exportingReport.value = true
+  try {
+    await attendanceService.exportReport(format, reportFilters.value)
+  } finally {
+    exportingReport.value = false
+  }
+}
+
 function formatMinutes(minutes: number): string {
   const hours = Math.floor(minutes / 60)
   const mins = minutes % 60
@@ -256,6 +266,25 @@ onMounted(() => {
           <v-btn color="primary" variant="flat" :loading="loadingReport" @click="loadReport">
             {{ $t('common.search') }}
           </v-btn>
+          <v-spacer />
+          <v-menu>
+            <template #activator="{ props }">
+              <v-btn v-bind="props" variant="tonal" prepend-icon="mdi-download" :loading="exportingReport">
+                {{ $t('export.export') }}
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item title="CSV" @click="exportReport('csv')" />
+              <v-list-item title="Excel" @click="exportReport('xlsx')" />
+              <v-list-item title="PDF" @click="exportReport('pdf')" />
+            </v-list>
+          </v-menu>
+        </v-card-text>
+      </v-card>
+
+      <v-card v-if="reportRows.length" class="mb-4">
+        <v-card-text>
+          <AppChart type="bar" :labels="reportRows.map((r) => r.label)" :data="reportRows.map((r) => r.total_days)" :label="$t('attendance.totalDays')" />
         </v-card-text>
       </v-card>
 

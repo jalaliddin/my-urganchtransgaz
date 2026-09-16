@@ -489,6 +489,72 @@ export interface BusinessTrip {
   updated_at: string
 }
 
+export interface AuditLog {
+  id: number
+  user_id: number | null
+  user_name: string | null
+  action: string
+  module: string
+  entity_type: string | null
+  entity_id: number | null
+  old_values: Record<string, unknown> | null
+  new_values: Record<string, unknown> | null
+  ip_address: string | null
+  user_agent: string | null
+  created_at: string
+}
+
+export interface SettingsValues {
+  'organization.name': string | null
+  'organization.contact_email': string | null
+  'organization.contact_phone': string | null
+  'organization.address': string | null
+  'attendance.work_start': string
+  'attendance.work_end': string
+  'attendance.late_grace_minutes': number
+  'attendance.early_leave_grace_minutes': number
+  'attendance.working_days': number[]
+  'documents.max_upload_kb': number
+  'exams.reminder_thresholds': number[]
+}
+
+export interface SettingsResponse {
+  values: SettingsValues
+  timezone: string
+  has_logo: boolean
+}
+
+export interface SearchResultItem {
+  id: number
+  title: string
+  subtitle: string | null
+}
+
+export interface SearchGroup {
+  type: 'employees' | 'organizations' | 'departments' | 'tasks' | 'announcements' | 'documents'
+  results: SearchResultItem[]
+}
+
+export interface ReportOverview {
+  employees_by_organization: { label: string; total: number }[]
+  tasks_by_status: { status: string; total: number }[]
+}
+
+export interface ImportRowError {
+  row: number
+  attribute?: string
+  errors?: string[]
+  error?: string
+}
+
+export interface ImportResult {
+  dry_run: boolean
+  imported_count: number
+  imported_ids: number[]
+  invalid: ImportRowError[]
+  skipped: ImportRowError[]
+}
+
 export interface AppNotification {
   id: string
   type: string

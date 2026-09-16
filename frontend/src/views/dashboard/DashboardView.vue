@@ -6,9 +6,10 @@ import { attendanceService } from '@/services/attendanceService'
 import { businessTripService } from '@/services/businessTripService'
 import { kpiService } from '@/services/kpiService'
 import { profileService, type ProfileCompletion } from '@/services/profileService'
+import { reportService } from '@/services/settingsService'
 import { taskService } from '@/services/taskService'
 import { useAuthStore } from '@/stores/auth'
-import type { Announcement, BusinessTrip, EmployeeKpi, Task, TodayAttendance } from '@/types/models'
+import type { Announcement, BusinessTrip, EmployeeKpi, ReportOverview, Task, TodayAttendance } from '@/types/models'
 
 const auth = useAuthStore()
 const completion = ref<ProfileCompletion | null>(null)
@@ -75,6 +76,25 @@ async function loadUpcomingTrips() {
   upcomingTrips.value = await businessTripService.upcoming()
 }
 
+// Company-wide charts (§31 "Employee distribution"/task status) — mirrors
+// the backend's hasCentralAccess() gate on ReportController::overview()
+// (super-admin/central-admin/hr/technical-policy).
+const showOverview = computed(
+  () =>
+    auth.hasRole('super-admin') ||
+    auth.hasRole('central-admin') ||
+    auth.hasRole('hr') ||
+    auth.hasRole('technical-policy'),
+)
+const overview = ref<ReportOverview | null>(null)
+async function loadOverview() {
+  try {
+    overview.value = await reportService.overview()
+  } catch {
+    overview.value = null
+  }
+}
+
 onMounted(async () => {
   if (auth.user?.employee) {
     completion.value = await profileService.completion()
@@ -84,6 +104,7 @@ onMounted(async () => {
     await loadUpcomingTrips()
     if (showAnnouncements.value) await loadAnnouncements()
   }
+  if (showOverview.value) await loadOverview()
 })
 </script>
 
@@ -254,6 +275,33 @@ onMounted(async () => {
           <router-link :to="{ name: 'business-trips' }" class="text-body-2 d-inline-block mt-2">
             {{ $t('nav.businessTrips') }} →
           </router-link>
+        </v-card-text>
+      </v-card>
+    </v-col>
+
+    <v-col v-if="overview?.employees_by_organization.length" cols="12" md="6">
+      <v-card>
+        <v-card-text>
+          <div class="text-subtitle-2 text-medium-emphasis mb-2">{{ $t('reports.employeeDistribution') }}</div>
+          <AppChart
+            type="bar"
+            :labels="overview.employees_by_organization.map((r) => r.label)"
+            :data="overview.employees_by_organization.map((r) => r.total)"
+            :label="$t('employees.title')"
+          />
+        </v-card-text>
+      </v-card>
+    </v-col>
+
+    <v-col v-if="overview?.tasks_by_status.length" cols="12" md="6">
+      <v-card>
+        <v-card-text>
+          <div class="text-subtitle-2 text-medium-emphasis mb-2">{{ $t('reports.taskStatusBreakdown') }}</div>
+          <AppChart
+            type="pie"
+            :labels="overview.tasks_by_status.map((r) => $t(`status.${r.status}`))"
+            :data="overview.tasks_by_status.map((r) => r.total)"
+          />
         </v-card-text>
       </v-card>
     </v-col>

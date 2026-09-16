@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import { useRouter } from 'vue-router'
 
+import { searchService } from '@/services/settingsService'
 import { useAuthStore } from '@/stores/auth'
+import type { SearchGroup } from '@/types/models'
 
 interface NavItem {
   title: string
@@ -93,12 +95,66 @@ const navItems = computed<NavItem[]>(() =>
       to: '/change-requests',
       permission: 'employees.update',
     },
+    {
+      title: 'nav.auditLogs',
+      icon: 'mdi-history',
+      to: '/audit-logs',
+      permission: 'audit_logs.view',
+    },
+    {
+      title: 'nav.settings',
+      icon: 'mdi-cog-outline',
+      to: '/settings',
+      permission: 'settings.manage',
+    },
   ].filter((item) => !item.permission || auth.can(item.permission)),
 )
 
 async function handleLogout() {
   await auth.logout()
   router.push({ name: 'login' })
+}
+
+// ---- Global search ----
+const searchQuery = ref('')
+const searchResults = ref<SearchGroup[]>([])
+const searchMenuOpen = ref(false)
+const searching = ref(false)
+let searchDebounce: ReturnType<typeof setTimeout> | undefined
+
+const routeByType: Record<SearchGroup['type'], string> = {
+  employees: 'employees',
+  organizations: 'organizations',
+  departments: 'departments',
+  tasks: 'tasks',
+  announcements: 'announcements',
+  documents: 'documents',
+}
+
+watch(searchQuery, (value) => {
+  clearTimeout(searchDebounce)
+
+  if (value.trim().length < 2) {
+    searchResults.value = []
+    searchMenuOpen.value = false
+    return
+  }
+
+  searchDebounce = setTimeout(async () => {
+    searching.value = true
+    try {
+      searchResults.value = await searchService.search(value.trim())
+      searchMenuOpen.value = true
+    } finally {
+      searching.value = false
+    }
+  }, 350)
+})
+
+function goToResult(type: SearchGroup['type']) {
+  searchMenuOpen.value = false
+  searchQuery.value = ''
+  router.push({ name: routeByType[type] })
 }
 </script>
 
@@ -154,6 +210,41 @@ async function handleLogout() {
       <v-app-bar-nav-icon
         @click="mobile ? (drawer = !drawer) : (rail = !rail)"
       />
+
+      <v-menu v-model="searchMenuOpen" :close-on-content-click="false" location="bottom start" min-width="360">
+        <template #activator="{ props: menuProps }">
+          <v-text-field
+            v-bind="menuProps"
+            v-model="searchQuery"
+            :placeholder="$t('search.placeholder')"
+            prepend-inner-icon="mdi-magnify"
+            density="compact"
+            variant="solo-filled"
+            flat
+            hide-details
+            single-line
+            :loading="searching"
+            class="ml-2 d-none d-sm-block"
+            style="max-width: 360px"
+          />
+        </template>
+        <v-list v-if="searchResults.length">
+          <template v-for="group in searchResults" :key="group.type">
+            <v-list-subheader>{{ $t(`search.types.${group.type}`) }}</v-list-subheader>
+            <v-list-item
+              v-for="result in group.results"
+              :key="result.id"
+              :title="result.title"
+              :subtitle="result.subtitle ?? undefined"
+              @click="goToResult(group.type)"
+            />
+          </template>
+        </v-list>
+        <v-card v-else>
+          <v-card-text class="text-body-2 text-medium-emphasis">{{ $t('search.noResults') }}</v-card-text>
+        </v-card>
+      </v-menu>
+
       <v-spacer />
       <NotificationBell />
       <v-menu>

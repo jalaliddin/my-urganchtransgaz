@@ -54,6 +54,17 @@ function goBack() {
     </v-card-text>
   </v-card>
 
+  <v-card v-if="rows.length" class="mb-4">
+    <v-card-text>
+      <AppChart
+        type="bar"
+        :labels="rows.map((r) => r.department_name)"
+        :data="rows.map((r) => r.average_score)"
+        :label="$t('kpi.averageScore')"
+      />
+    </v-card-text>
+  </v-card>
+
   <v-card>
     <v-table>
       <thead>

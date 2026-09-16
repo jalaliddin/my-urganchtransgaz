@@ -68,6 +68,16 @@ function goBack() {
       </v-col>
     </v-row>
 
+    <v-card v-if="stats.total_eligible" class="mb-4">
+      <v-card-text>
+        <AppChart
+          type="pie"
+          :labels="[$t('status.passed'), $t('status.failed'), $t('exams.notTaken')]"
+          :data="[stats.passed, stats.failed, stats.not_taken]"
+        />
+      </v-card-text>
+    </v-card>
+
     <v-card>
       <v-table>
         <thead>

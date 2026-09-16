@@ -18,6 +18,7 @@
     "changeRequests": "Запросы",
     "notifications": "Уведомления",
     "settings": "Настройки",
+    "auditLogs": "Журнал аудита",
     "myProfile": "Мой профиль",
     "myDocuments": "Мои документы",
     "logout": "Выйти"
@@ -136,7 +137,8 @@
     "genderFemale": "Женский",
     "passportNumber": "Номер паспорта",
     "pinfl": "ПИНФЛ",
-    "changeOnlyHint": "Введите, чтобы изменить"
+    "changeOnlyHint": "Введите, чтобы изменить",
+    "changeRole": "Изменить роль"
   },
   "dashboard": {
     "title": "Панель управления",
@@ -343,5 +345,61 @@
     "orderNumber": "Номер приказа",
     "createTrip": "Создать командировку",
     "upcoming": "Командировки"
+  },
+  "search": {
+    "placeholder": "Поиск...",
+    "noResults": "Результатов не найдено",
+    "types": {
+      "employees": "Сотрудники",
+      "organizations": "Организации",
+      "departments": "Отделы",
+      "tasks": "Задачи",
+      "announcements": "Объявления",
+      "documents": "Документы"
+    }
+  },
+  "auditLogs": {
+    "date": "Дата",
+    "user": "Пользователь",
+    "action": "Действие",
+    "module": "Модуль",
+    "entity": "Объект"
+  },
+  "export": {
+    "export": "Экспорт"
+  },
+  "import": {
+    "import": "Импорт",
+    "importEmployees": "Импорт сотрудников",
+    "downloadTemplate": "Скачать шаблон",
+    "file": "Файл",
+    "preview": "Проверить",
+    "confirmImport": "Импортировать",
+    "previewSummary": "Готово к импорту: {count} записей (пока не сохранено).",
+    "importedSummary": "Импортировано сотрудников: {count}.",
+    "row": "Строка"
+  },
+  "settings": {
+    "organization": "Данные организации",
+    "orgName": "Название организации",
+    "contactEmail": "Контактный email",
+    "contactPhone": "Контактный телефон",
+    "address": "Адрес",
+    "logo": "Логотип",
+    "documentsAndExams": "Документы и экзамены",
+    "maxUploadKb": "Лимит размера файла (КБ)",
+    "examReminderThresholds": "Дни напоминания об экзамене",
+    "examReminderThresholdsHint": "Дни через запятую, например: 3, 1",
+    "attendance": "Посещаемость",
+    "workStart": "Начало рабочего дня",
+    "workEnd": "Конец рабочего дня",
+    "lateGraceMinutes": "Допуск опоздания (мин)",
+    "earlyLeaveGraceMinutes": "Допуск раннего ухода (мин)",
+    "workingDays": "Рабочие дни",
+    "timezone": "Часовой пояс"
+  },
+  "reports": {
+    "employeeDistribution": "Распределение сотрудников",
+    "taskStatusBreakdown": "Статусы задач"
   }
 }

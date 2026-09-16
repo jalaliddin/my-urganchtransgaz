@@ -18,6 +18,7 @@
     "changeRequests": "So'rovlar",
     "notifications": "Bildirishnomalar",
     "settings": "Sozlamalar",
+    "auditLogs": "Audit jurnali",
     "myProfile": "Mening profilim",
     "myDocuments": "Mening hujjatlarim",
     "logout": "Tizimdan chiqish"
@@ -136,7 +137,8 @@
     "genderFemale": "Ayol",
     "passportNumber": "Passport raqami",
     "pinfl": "PINFL",
-    "changeOnlyHint": "O'zgartirish uchun kiriting"
+    "changeOnlyHint": "O'zgartirish uchun kiriting",
+    "changeRole": "Rolni o'zgartirish"
   },
   "dashboard": {
     "title": "Boshqaruv paneli",
@@ -343,5 +345,61 @@
     "orderNumber": "Buyruq raqami",
     "createTrip": "Xizmat safari yaratish",
     "upcoming": "Xizmat safarlari"
+  },
+  "search": {
+    "placeholder": "Qidirish...",
+    "noResults": "Natija topilmadi",
+    "types": {
+      "employees": "Xodimlar",
+      "organizations": "Tashkilotlar",
+      "departments": "Bo'limlar",
+      "tasks": "Topshiriqlar",
+      "announcements": "E'lonlar",
+      "documents": "Hujjatlar"
+    }
+  },
+  "auditLogs": {
+    "date": "Sana",
+    "user": "Foydalanuvchi",
+    "action": "Amal",
+    "module": "Modul",
+    "entity": "Obyekt"
+  },
+  "export": {
+    "export": "Eksport"
+  },
+  "import": {
+    "import": "Import",
+    "importEmployees": "Xodimlarni import qilish",
+    "downloadTemplate": "Andozani yuklab olish",
+    "file": "Fayl",
+    "preview": "Tekshirish",
+    "confirmImport": "Import qilish",
+    "previewSummary": "{count} ta yozuv tayyor (hali saqlanmagan).",
+    "importedSummary": "{count} ta xodim import qilindi.",
+    "row": "Qator"
+  },
+  "settings": {
+    "organization": "Tashkilot ma'lumotlari",
+    "orgName": "Tashkilot nomi",
+    "contactEmail": "Aloqa uchun email",
+    "contactPhone": "Aloqa uchun telefon",
+    "address": "Manzil",
+    "logo": "Logotip",
+    "documentsAndExams": "Hujjatlar va imtihonlar",
+    "maxUploadKb": "Fayl hajmi chegarasi (KB)",
+    "examReminderThresholds": "Imtihon eslatma kunlari",
+    "examReminderThresholdsHint": "Vergul bilan ajratilgan kunlar, masalan: 3, 1",
+    "attendance": "Davomat",
+    "workStart": "Ish boshlanishi",
+    "workEnd": "Ish tugashi",
+    "lateGraceMinutes": "Kechikish uchun ruxsat (daqiqa)",
+    "earlyLeaveGraceMinutes": "Erta ketish uchun ruxsat (daqiqa)",
+    "workingDays": "Ish kunlari",
+    "timezone": "Vaqt mintaqasi"
+  },
+  "reports": {
+    "employeeDistribution": "Xodimlar taqsimoti",
+    "taskStatusBreakdown": "Topshiriqlar holati"
   }
 }
