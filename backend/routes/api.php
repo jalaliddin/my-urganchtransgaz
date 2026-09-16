@@ -19,6 +19,8 @@ Route::prefix('v1')->group(function () {
         require base_path('routes/api/exams.php');
         require base_path('routes/api/kpi.php');
         require base_path('routes/api/announcements.php');
+        require base_path('routes/api/leave-requests.php');
+        require base_path('routes/api/business-trips.php');
     });
 
     // Biometric/integration device webhook — its own token scheme
