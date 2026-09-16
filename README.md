@@ -19,7 +19,7 @@ The API is versioned (`/api/v1`) and mobile-ready by design: authentication is a
 
 See [`backend/README.md`](backend/README.md) and [`frontend/README.md`](frontend/README.md) for stack-specific setup, and the architecture decisions recorded there for *why* things are built this way (Sanctum token mode, `spatie/laravel-permission` instead of hand-rolled tables, organization-scoped Policies, etc.).
 
-## Current status: Phase 5 (Safety Exams)
+## Current status: Phase 6 (KPI System)
 
 **Phase 1 — Foundation:** authentication (login/logout/me/change-password/forgot-reset password, login history), RBAC (9 roles, granular permissions), Organizations (unlimited-depth hierarchy), Departments, Employees, audit logging, and the corresponding Vue admin UI.
 
@@ -31,7 +31,9 @@ See [`backend/README.md`](backend/README.md) and [`frontend/README.md`](frontend
 
 **Phase 5 — Safety Exams:** the Safety Department creates exams (single/multiple-choice and true/false questions), scoped company-wide or to one organization/department; eligible employees take them within a time limit and attempts allowance, get graded immediately (exact-match scoring, no partial credit for multiple-choice), and see which answers were correct. The Safety Department reviews a pass/fail/not-taken roster and statistics per exam. A daily job reminds employees of upcoming exams and approaching deadlines. Corresponding Vue UI: an Exams page (admin management + question authoring, or an employee's Available/My Results tabs), a timed exam-taking flow, and a results roster page.
 
-Not yet built (later phases, per the project's phased delivery plan): KPI, announcements, business trips/leave workflows, global search, full audit-log coverage, import/export, system settings.
+**Phase 6 — KPI System:** organization-admins (and central roles) define reusable KPI templates scoped company-wide or to one organization/department, each holding indicators (name, weight, target, measurement unit, calculation type, cadence). A "Generate" action bulk-creates one draft result per eligible employee per indicator for a given period, idempotently. Admins enter each employee's actual value and approve it — approval computes the score (calculation-type-dispatched: percentage/quantity/rating score against target, manual/formula take the entered value directly, all clamped 0–100), stamps the approval, and notifies the employee. Employees only ever see their own approved results (a deliberately narrower rule than other modules' broad org-wide visibility, per the spec); managers/department-managers additionally see their team's results. A department-ranking report aggregates approved scores per period. Corresponding Vue UI: a KPI page (admin template/indicator/period management + results entry, or an employee's/manager's results tabs), a dashboard "My KPI" widget, and a report page.
+
+Not yet built (later phases, per the project's phased delivery plan): announcements, business trips/leave workflows, global search, full audit-log coverage, import/export, system settings.
 
 ## Quick start
 
@@ -86,7 +88,7 @@ cd backend
 php artisan test --compact
 ```
 
-The backend test database is a separate MySQL schema (`my_urtg_test`, configured in `phpunit.xml`) — running tests never touches the `my_urtg` development data. Tests cover authentication, RBAC, and — critically — that a user from one organization cannot read or write another organization's data by changing an id (see `tests/Feature/Http/Controllers/Api/V1/EmployeeControllerTest.php`, `AttendanceControllerTest.php`, `TaskControllerTest.php`, and `ExamControllerTest.php`).
+The backend test database is a separate MySQL schema (`my_urtg_test`, configured in `phpunit.xml`) — running tests never touches the `my_urtg` development data. Tests cover authentication, RBAC, and — critically — that a user from one organization cannot read or write another organization's data by changing an id (see `tests/Feature/Http/Controllers/Api/V1/EmployeeControllerTest.php`, `AttendanceControllerTest.php`, `TaskControllerTest.php`, `ExamControllerTest.php`, and `KpiControllerTest.php`).
 
 ## Deployment notes
 

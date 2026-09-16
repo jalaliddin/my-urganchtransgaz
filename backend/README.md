@@ -124,6 +124,18 @@ Deliberate substitutions/choices made while implementing the spec — recorded h
 - **Every exam question/answer response is one of two Resources depending on audience**: `ExamQuestionResource` (admin authoring, includes `is_correct`) vs. `ExamAttemptQuestionResource` (the employee taking the exam, `is_correct` omitted entirely) — the same "never leak the answer key" boundary `EmployeeDocumentResource` draws around `file_path`.
 - **Frontend: `v-radio-group`'s aggregated `@update:model-value` did not reliably register clicks** when verified in a real browser (confirmed via direct DOM inspection: the underlying native `<input type="radio">` never flipped to `checked`, so every submitted answer came back empty). Fixed by using the same direct-`@click`-computes-new-state pattern already proven to work in the question-authoring form's standalone `v-radio`/`v-checkbox` controls, for both the exam-taking radios and checkboxes — see `ExamAttemptView.vue`.
 
+**Phase 6:**
+
+- **`kpi_templates` is a named, reusable group of indicators; the field list in the spec (weight/target/unit/calculation type/period) belongs to `kpi_indicators`, not the template.** §21 lists both tables separately and warns against duplicating data, so a template only carries its own scope (`organization_id`/`department_id`, both nullable — null means company-wide, the same convention as `Exam`) and each indicator underneath it carries the per-metric mechanics.
+- **`kpi_periods` are actual date-bounded instances** (e.g. "2026-Sentabr", `start_date`/`end_date`), company-wide with no scope of their own — a period is just a calendar window. An indicator's own `period` field is its cadence (monthly/quarterly/semiannual/annual), saying which kind of `kpi_periods` row it's evaluated against.
+- **"Do not hard-code KPI formulas" is satisfied by one calculation-type-dispatched action (`App\Actions\Kpi\CalculateKpiScore`), not a formula DSL.** `manual` and `formula` both take the entered value as the score directly; `percentage`/`quantity`/`rating` all score as `clamp(actual/target*100, 0, 100)`. A safe arbitrary-formula evaluator (parsing + sandboxed eval) is a substantial, security-sensitive feature the spec gives no syntax for, so it's out of scope for this phase — building it later only touches this one action.
+- **No hard delete for templates/indicators/periods**, matching Tasks/Exams' lifecycle philosophy — an `active`/`inactive` status field instead of a destroy endpoint. `employee_kpis` rows aren't deleted either; a mis-entered value is corrected via update before approval.
+- **`approved_at`/`approved_by` on `employee_kpis` is the "publish" step.** An admin enters `actual_value` first (a draft, invisible to the employee); approving it computes the score, stamps the approver, and fires `KpiPublished` to the employee. Before approval, a result is visible only to `kpi.manage` holders — the same pending-queue precedent documents and change requests already established.
+- **`POST /kpi/generate` bulk-creates draft results, idempotently.** Given a period and a template, it creates one `employee_kpis` row per (eligible employee in the template's scope × each of the template's indicators whose cadence matches the period's type), pre-filling `target_value` from the indicator and skipping any combination that already exists. Running it twice never duplicates rows — this is what makes the module usable for an actual evaluation round instead of one-row-at-a-time entry.
+- **Employees see only their own KPI results — a deliberately narrower rule than every other module's broad org-wide visibility precedent** (documents/attendance/tasks all let a base `employee` holding a `.view` permission see org-wide data). Module 11 explicitly says "Employees should see their own KPI results," so `EmployeeKpiPolicy::view()` gates the "see a coworker's record" branch behind an `isSupervisor()` role check (`manager`/`department-manager`/`organization-admin` or `hasCentralAccess()`) rather than the plain `kpi.view` permission alone. Caught in review before running tests, since a first draft would have let any `kpi.view` holder — including a plain employee — read a scoped-but-published coworker's record.
+- **Verified in the live seeder before designing scope**: `kpi.manage` is granted only to `organization-admin` (+ central via `*`); `kpi.view` reaches `organization-admin`, `department-manager`, `manager`, and `employee`. `hr`/`safety-manager`/`technical-policy` have no KPI permission at all — Module 11 only ever mentions "Managers," "Employees," and "Central administrators," so (unlike Phases 2 and 4) nothing needed adding to `hasCentralAccess()` or the seeder this phase.
+- **The report endpoint aggregates only approved (published) results, in SQL** (`GROUP BY department`, `AVG(score)`), the same never-loop-summing-in-PHP convention as `AttendanceController::report()` — a department with only draft, unapproved results correctly shows no row until at least one result there is published.
+
 ## API
 
 All endpoints are versioned under `/api/v1`. Auth is a Bearer token from `POST /api/v1/auth/login`. Standard response envelope:
@@ -174,6 +186,14 @@ All endpoints are versioned under `/api/v1`. Auth is a Bearer token from `POST /
 | POST | `/api/v1/exams/{id}/attempts/{attempt}/submit` | `{ answers: [{ question_id, answer_ids: [] }] }`; grades and finalizes |
 | GET | `/api/v1/exams/{id}/attempts/{attempt}` | Review a finished attempt, correctness included |
 | GET | `/api/v1/exams/{id}/results` | Roster + pass/fail/not-taken stats; `exams.evaluate` (safety-manager/central) only |
+| GET/POST/PUT | `/api/v1/kpi-templates[/{id}]` | `kpi.manage` only; nullable `organization_id`/`department_id` (null = company-wide) |
+| GET/POST/PUT | `/api/v1/kpi-templates/{id}/indicators[/{indicator}]` | `kpi.manage` only; `calculation_type`, `period` (cadence), `weight`, `target`, `measurement_unit` |
+| GET/POST/PUT | `/api/v1/kpi/periods[/{id}]` | `kpi.manage` only; date-bounded, company-wide |
+| POST | `/api/v1/kpi/generate` | `{ kpi_period_id, kpi_template_id }`; bulk-creates draft results, idempotent |
+| GET/POST/PUT | `/api/v1/kpi[/{id}]` | `index`/`store` scoped like other modules; `PUT` sets `actual_value`/`comment` before approval |
+| GET | `/api/v1/kpi/my` | The authenticated employee's own results across periods |
+| GET | `/api/v1/kpi/report` | `?kpi_period_id=`; SQL-aggregated department ranking, approved results only |
+| POST | `/api/v1/kpi/{id}/approve` | Computes the score, stamps the approver, fires `KpiPublished`; 409 if already approved |
 
 `php artisan route:list --path=api` is the source of truth as more phases land.
 
