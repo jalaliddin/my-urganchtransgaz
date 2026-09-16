@@ -91,6 +91,11 @@ class Employee extends Model
         return $this->hasMany(ExamAttempt::class);
     }
 
+    public function kpis(): HasMany
+    {
+        return $this->hasMany(EmployeeKpi::class);
+    }
+
     public function fullName(): string
     {
         return trim("{$this->last_name} {$this->first_name} {$this->middle_name}");
