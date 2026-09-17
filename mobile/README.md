@@ -48,9 +48,17 @@ refresh instead of anything push-based.
   `fromJson` — no `freezed`/`build_runner`, since every response shape
   was read directly from the actual `Api\V1\*Resource` classes rather
   than guessed.
-- **i18n:** `uz` (default), `ru`, `en` via `.arb` files
-  (`lib/l10n/`), ported from `frontend/src/locales/*.json`'s existing,
-  already-approved translations.
+- **i18n:** `uz` (default) and `ru` via `.arb` files (`lib/l10n/`),
+  ported from `frontend/src/locales/*.json`'s existing, already-approved
+  translations — no English, by design: the target audience is this
+  company's own Uzbekistan-based workforce, not an international one,
+  unlike the web app which also serves an `en` locale for completeness.
+- **App name:** "My Urganchtransgaz" everywhere the app identifies
+  itself — the home-screen icon label (Android `android:label`, iOS
+  `CFBundleDisplayName`), the browser tab title, and the in-app login
+  screen (`AppLocalizations.appName`) — kept as one fixed brand name
+  across both locales rather than grammatically translated per
+  language (the same "My X" pattern many branded apps use).
 - **Theme:** Material 3, seeded from the same brand colors Vuetify
   uses (`frontend/src/plugins/vuetify.ts`): `#1E3A5F` primary in light
   mode, `#3B6EA5` in dark mode.

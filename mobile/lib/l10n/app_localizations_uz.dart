@@ -10,7 +10,7 @@ class AppLocalizationsUz extends AppLocalizations {
   AppLocalizationsUz([String locale = 'uz']) : super(locale);
 
   @override
-  String get appName => 'URTG Xodimlar';
+  String get appName => 'My Urganchtransgaz';
 
   @override
   String get commonRetry => 'Qayta urinish';
