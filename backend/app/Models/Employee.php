@@ -96,16 +96,6 @@ class Employee extends Model
         return $this->hasMany(EmployeeKpi::class);
     }
 
-    public function leaveRequests(): HasMany
-    {
-        return $this->hasMany(LeaveRequest::class);
-    }
-
-    public function businessTrips(): HasMany
-    {
-        return $this->hasMany(BusinessTrip::class);
-    }
-
     public function fullName(): string
     {
         return trim("{$this->last_name} {$this->first_name} {$this->middle_name}");

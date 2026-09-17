@@ -29,8 +29,7 @@ class RolePermissionSeeder extends Seeder
         'exams' => ['view', 'create', 'manage', 'evaluate'],
         'kpi' => ['view', 'manage'],
         'announcements' => ['view', 'create', 'publish'],
-        'leave_requests' => ['view', 'review', 'approve'],
-        'business_trips' => ['view', 'manage'],
+        'issues' => ['create', 'view', 'resolve'],
         'audit_logs' => ['view'],
         'settings' => ['manage'],
     ];
@@ -54,8 +53,6 @@ class RolePermissionSeeder extends Seeder
             'tasks.view', 'tasks.create', 'tasks.update', 'tasks.assign',
             'kpi.view', 'kpi.manage',
             'announcements.view', 'announcements.create',
-            'leave_requests.view', 'leave_requests.approve',
-            'business_trips.view', 'business_trips.manage',
         ],
         'department-manager' => [
             'organizations.view', 'departments.view',
@@ -64,8 +61,7 @@ class RolePermissionSeeder extends Seeder
             'tasks.view', 'tasks.create', 'tasks.update', 'tasks.assign',
             'kpi.view',
             'announcements.view',
-            'leave_requests.view', 'leave_requests.review',
-            'business_trips.view',
+            'issues.create', 'issues.view',
         ],
         'hr' => [
             'organizations.view', 'departments.view',
@@ -74,22 +70,17 @@ class RolePermissionSeeder extends Seeder
             'documents.view', 'documents.upload', 'documents.approve', 'documents.delete',
             'attendance.view', 'attendance.manage',
             'announcements.view', 'announcements.create',
-            'leave_requests.view', 'leave_requests.approve',
-            'business_trips.view', 'business_trips.manage',
         ],
         'safety-manager' => [
             'organizations.view', 'departments.view', 'employees.view',
             'exams.view', 'exams.create', 'exams.manage', 'exams.evaluate',
             'announcements.view',
-            'leave_requests.view',
-            'business_trips.view',
         ],
         'technical-policy' => [
             'organizations.view', 'departments.view', 'employees.view',
             'tasks.view', 'tasks.create', 'tasks.update', 'tasks.assign',
             'announcements.view',
-            'leave_requests.view',
-            'business_trips.view',
+            'issues.create', 'issues.view', 'issues.resolve',
         ],
         'manager' => [
             'departments.view', 'employees.view',
@@ -97,8 +88,6 @@ class RolePermissionSeeder extends Seeder
             'tasks.view', 'tasks.create', 'tasks.update', 'tasks.assign',
             'kpi.view',
             'announcements.view',
-            'leave_requests.view',
-            'business_trips.view',
         ],
         'employee' => [
             'documents.view', 'documents.upload',
@@ -107,8 +96,6 @@ class RolePermissionSeeder extends Seeder
             'exams.view',
             'kpi.view',
             'announcements.view',
-            'leave_requests.view',
-            'business_trips.view',
         ],
     ];
 

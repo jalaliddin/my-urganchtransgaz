@@ -2,15 +2,15 @@
 
 namespace App\Notifications;
 
-use App\Models\LeaveRequest;
+use App\Models\Issue;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
-class LeaveRequestApproved extends Notification
+class IssueReported extends Notification
 {
     use Queueable;
 
-    public function __construct(private readonly LeaveRequest $leaveRequest)
+    public function __construct(private readonly Issue $issue)
     {
         //
     }
@@ -33,9 +33,9 @@ class LeaveRequestApproved extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => 'So\'rovingiz tasdiqlandi',
-            'message' => "{$this->leaveRequest->start_date->format('Y-m-d')} — {$this->leaveRequest->end_date->format('Y-m-d')} oralig'idagi so'rovingiz to'liq tasdiqlandi.",
-            'leave_request_id' => $this->leaveRequest->id,
+            'title' => 'Yangi muammo',
+            'message' => "\"{$this->issue->title}\" muammosi qayd etildi.",
+            'issue_id' => $this->issue->id,
         ];
     }
 }
