@@ -103,14 +103,14 @@ const router = createRouter({
           component: () => import('@/views/announcements/AnnouncementDetailView.vue'),
         },
         {
-          path: 'leave-requests',
-          name: 'leave-requests',
-          component: () => import('@/views/leave-requests/LeaveRequestsView.vue'),
+          path: 'issues',
+          name: 'issues',
+          component: () => import('@/views/issues/IssuesView.vue'),
         },
         {
-          path: 'business-trips',
-          name: 'business-trips',
-          component: () => import('@/views/business-trips/BusinessTripsView.vue'),
+          path: 'issues/:id',
+          name: 'issue-detail',
+          component: () => import('@/views/issues/IssueDetailView.vue'),
         },
         {
           path: 'documents',

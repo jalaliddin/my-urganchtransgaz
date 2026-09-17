@@ -12,8 +12,7 @@
     "kpi": "KPI",
     "exams": "Safety Exams",
     "announcements": "Announcements",
-    "leaveRequests": "Leave Requests",
-    "businessTrips": "Business Trips",
+    "issues": "Issues",
     "documents": "Documents",
     "changeRequests": "Requests",
     "notifications": "Notifications",
@@ -87,7 +86,9 @@
     "closed": "Closed",
     "passed": "Passed",
     "failed": "Failed",
-    "not_taken": "Not taken"
+    "not_taken": "Not taken",
+    "open": "Open",
+    "resolved": "Resolved"
   },
   "organizations": {
     "title": "Organizations",
@@ -324,27 +325,27 @@
     "archive": "Archive",
     "author": "Author"
   },
-  "leaveRequests": {
-    "type": "Type",
-    "dates": "Dates",
-    "me": "Me",
-    "createRequest": "Submit request",
-    "reason": "Reason",
-    "approve": "Approve",
-    "reject": "Reject",
-    "types": {
-      "vacation": "Vacation",
-      "business_trip": "Business trip",
-      "sick_leave": "Sick leave",
-      "other": "Other"
-    }
-  },
-  "businessTrips": {
-    "destination": "Destination",
-    "purpose": "Purpose",
-    "orderNumber": "Order number",
-    "createTrip": "Create business trip",
-    "upcoming": "Business trips"
+  "issues": {
+    "title": "Issues",
+    "reportIssue": "Report issue",
+    "issueTitle": "Title",
+    "description": "Description",
+    "objectName": "Site/object name",
+    "location": "Location",
+    "mapPickHint": "Click on the map to set the location",
+    "reporter": "Reported by",
+    "department": "Department",
+    "status": "Status",
+    "filterOpen": "Open",
+    "filterAll": "All",
+    "timeline": "Timeline",
+    "comments": "Comments",
+    "addComment": "Write a comment",
+    "resolve": "Resolve",
+    "resolutionNote": "Response (to resolve)",
+    "resolvedBy": "Resolved by",
+    "resolvedAt": "Resolved at",
+    "noIssues": "No issues found"
   },
   "search": {
     "placeholder": "Search...",

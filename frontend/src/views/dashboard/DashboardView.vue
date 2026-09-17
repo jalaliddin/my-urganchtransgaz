@@ -3,13 +3,12 @@ import { computed, onMounted, ref } from 'vue'
 
 import { announcementService } from '@/services/announcementService'
 import { attendanceService } from '@/services/attendanceService'
-import { businessTripService } from '@/services/businessTripService'
 import { kpiService } from '@/services/kpiService'
 import { profileService, type ProfileCompletion } from '@/services/profileService'
 import { reportService } from '@/services/settingsService'
 import { taskService } from '@/services/taskService'
 import { useAuthStore } from '@/stores/auth'
-import type { Announcement, BusinessTrip, EmployeeKpi, ReportOverview, Task, TodayAttendance } from '@/types/models'
+import type { Announcement, EmployeeKpi, ReportOverview, Task, TodayAttendance } from '@/types/models'
 
 const auth = useAuthStore()
 const completion = ref<ProfileCompletion | null>(null)
@@ -71,11 +70,6 @@ async function loadAnnouncements() {
   latestAnnouncements.value = result.data
 }
 
-const upcomingTrips = ref<BusinessTrip[]>([])
-async function loadUpcomingTrips() {
-  upcomingTrips.value = await businessTripService.upcoming()
-}
-
 // Company-wide charts (§31 "Employee distribution"/task status) — mirrors
 // the backend's hasCentralAccess() gate on ReportController::overview()
 // (super-admin/central-admin/hr/technical-policy).
@@ -101,7 +95,6 @@ onMounted(async () => {
     await loadToday()
     await loadMyTasks()
     await loadMyKpi()
-    await loadUpcomingTrips()
     if (showAnnouncements.value) await loadAnnouncements()
   }
   if (showOverview.value) await loadOverview()
@@ -254,26 +247,6 @@ onMounted(async () => {
           </v-list>
           <router-link :to="{ name: 'announcements' }" class="text-body-2 d-inline-block mt-2">
             {{ $t('nav.announcements') }} →
-          </router-link>
-        </v-card-text>
-      </v-card>
-    </v-col>
-
-    <v-col v-if="upcomingTrips.length" cols="12" md="6" lg="4">
-      <v-card>
-        <v-card-text>
-          <div class="text-subtitle-2 text-medium-emphasis mb-2">{{ $t('businessTrips.upcoming') }}</div>
-          <v-list density="compact" class="pa-0">
-            <v-list-item
-              v-for="trip in upcomingTrips"
-              :key="trip.id"
-              :title="trip.destination"
-              :subtitle="`${trip.start_date} — ${trip.end_date}`"
-              class="px-0"
-            />
-          </v-list>
-          <router-link :to="{ name: 'business-trips' }" class="text-body-2 d-inline-block mt-2">
-            {{ $t('nav.businessTrips') }} →
           </router-link>
         </v-card-text>
       </v-card>

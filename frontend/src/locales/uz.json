@@ -12,8 +12,7 @@
     "kpi": "KPI",
     "exams": "Xavfsizlik imtihonlari",
     "announcements": "E'lonlar",
-    "leaveRequests": "Ta'til so'rovlari",
-    "businessTrips": "Xizmat safarlari",
+    "issues": "Muammolar",
     "documents": "Hujjatlar",
     "changeRequests": "So'rovlar",
     "notifications": "Bildirishnomalar",
@@ -87,7 +86,9 @@
     "closed": "Yopilgan",
     "passed": "O'tdi",
     "failed": "O'ta olmadi",
-    "not_taken": "Topshirilmagan"
+    "not_taken": "Topshirilmagan",
+    "open": "Ochiq",
+    "resolved": "Bartaraf etilgan"
   },
   "organizations": {
     "title": "Tashkilotlar",
@@ -324,27 +325,27 @@
     "archive": "Arxivlash",
     "author": "Muallif"
   },
-  "leaveRequests": {
-    "type": "Turi",
-    "dates": "Sanalar",
-    "me": "Men",
-    "createRequest": "So'rov yuborish",
-    "reason": "Sabab",
-    "approve": "Tasdiqlash",
-    "reject": "Rad etish",
-    "types": {
-      "vacation": "Ta'til",
-      "business_trip": "Xizmat safari",
-      "sick_leave": "Bemor varaqasi",
-      "other": "Boshqa"
-    }
-  },
-  "businessTrips": {
-    "destination": "Manzil",
-    "purpose": "Maqsad",
-    "orderNumber": "Buyruq raqami",
-    "createTrip": "Xizmat safari yaratish",
-    "upcoming": "Xizmat safarlari"
+  "issues": {
+    "title": "Muammolar",
+    "reportIssue": "Yangi muammo",
+    "issueTitle": "Sarlavha",
+    "description": "Tavsif",
+    "objectName": "Obyekt/hudud nomi",
+    "location": "Joylashuv",
+    "mapPickHint": "Xaritada joyni bosib belgilang",
+    "reporter": "Xabar bergan",
+    "department": "Bo'lim",
+    "status": "Holat",
+    "filterOpen": "Ochiq",
+    "filterAll": "Barchasi",
+    "timeline": "Tarix",
+    "comments": "Izohlar",
+    "addComment": "Izoh yozing",
+    "resolve": "Hal qilish",
+    "resolutionNote": "Javob (bartaraf etish uchun)",
+    "resolvedBy": "Bartaraf etdi",
+    "resolvedAt": "Bartaraf etilgan vaqt",
+    "noIssues": "Muammolar topilmadi"
   },
   "search": {
     "placeholder": "Qidirish...",

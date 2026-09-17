@@ -12,8 +12,7 @@
     "kpi": "KPI",
     "exams": "Экзамены по охране труда",
     "announcements": "Объявления",
-    "leaveRequests": "Заявки на отпуск",
-    "businessTrips": "Командировки",
+    "issues": "Проблемы",
     "documents": "Документы",
     "changeRequests": "Запросы",
     "notifications": "Уведомления",
@@ -87,7 +86,9 @@
     "closed": "Закрыт",
     "passed": "Сдал",
     "failed": "Не сдал",
-    "not_taken": "Не пройден"
+    "not_taken": "Не пройден",
+    "open": "Открыта",
+    "resolved": "Устранена"
   },
   "organizations": {
     "title": "Организации",
@@ -324,27 +325,27 @@
     "archive": "Архивировать",
     "author": "Автор"
   },
-  "leaveRequests": {
-    "type": "Тип",
-    "dates": "Даты",
-    "me": "Я",
-    "createRequest": "Отправить заявку",
-    "reason": "Причина",
-    "approve": "Утвердить",
-    "reject": "Отклонить",
-    "types": {
-      "vacation": "Отпуск",
-      "business_trip": "Командировка",
-      "sick_leave": "Больничный",
-      "other": "Другое"
-    }
-  },
-  "businessTrips": {
-    "destination": "Место назначения",
-    "purpose": "Цель",
-    "orderNumber": "Номер приказа",
-    "createTrip": "Создать командировку",
-    "upcoming": "Командировки"
+  "issues": {
+    "title": "Проблемы",
+    "reportIssue": "Новая проблема",
+    "issueTitle": "Заголовок",
+    "description": "Описание",
+    "objectName": "Название объекта/участка",
+    "location": "Местоположение",
+    "mapPickHint": "Отметьте место на карте",
+    "reporter": "Кто сообщил",
+    "department": "Отдел",
+    "status": "Статус",
+    "filterOpen": "Открытые",
+    "filterAll": "Все",
+    "timeline": "История",
+    "comments": "Комментарии",
+    "addComment": "Написать комментарий",
+    "resolve": "Устранить",
+    "resolutionNote": "Ответ (для устранения)",
+    "resolvedBy": "Устранил",
+    "resolvedAt": "Время устранения",
+    "noIssues": "Проблемы не найдены"
   },
   "search": {
     "placeholder": "Поиск...",

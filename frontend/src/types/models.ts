@@ -451,40 +451,45 @@ export interface Announcement {
   updated_at: string
 }
 
-export type LeaveRequestType = 'vacation' | 'business_trip' | 'sick_leave' | 'other'
-export type LeaveRequestStatus = 'pending' | 'department_approved' | 'approved' | 'rejected' | 'cancelled'
+export type IssueStatus = 'open' | 'resolved'
 
-export interface LeaveRequest {
+export interface IssueActivity {
   id: number
-  employee_id: number
-  employee?: Employee
-  type: LeaveRequestType
-  start_date: string
-  end_date: string
-  reason: string | null
-  status: LeaveRequestStatus
-  department_reviewed_by: number | null
-  department_reviewed_at: string | null
-  hr_reviewed_by: number | null
-  hr_reviewed_at: string | null
-  rejection_reason: string | null
+  action: string
+  description: string
+  causer_name: string | null
   created_at: string
-  updated_at: string
 }
 
-export type BusinessTripStatus = 'scheduled' | 'completed' | 'cancelled'
-
-export interface BusinessTrip {
+export interface IssueComment {
   id: number
-  employee_id: number
-  employee?: Employee
-  destination: string
-  purpose: string | null
-  start_date: string
-  end_date: string
-  order_number: string | null
-  has_order_file: boolean
-  status: BusinessTripStatus
+  issue_id: number
+  user_id: number
+  user_name: string | null
+  body: string
+  created_at: string
+}
+
+export interface Issue {
+  id: number
+  reporter_employee_id: number
+  reporter?: Employee
+  organization_id: number
+  organization?: Organization
+  department_id: number | null
+  department?: Department
+  title: string
+  description: string | null
+  object_name: string | null
+  latitude: number
+  longitude: number
+  status: IssueStatus
+  resolution_note: string | null
+  resolved_by: number | null
+  resolved_by_name: string | null
+  resolved_at: string | null
+  comments?: IssueComment[]
+  activities?: IssueActivity[]
   created_at: string
   updated_at: string
 }
