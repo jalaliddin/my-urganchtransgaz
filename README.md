@@ -7,17 +7,18 @@ Domain (production): `https://my.urtg.uz`
 ## Architecture
 
 ```
-Web SPA (Vue 3 + Vuetify)  ─┐
-                             ├──►  Laravel REST API (/api/v1/...)  ──►  MySQL
-Future mobile apps          ─┘         (Sanctum token auth)
+Web SPA (Vue 3 + Vuetify)   ─┐
+Mobile app (Flutter)        ─┼──►  Laravel REST API (/api/v1/...)  ──►  MySQL
+                             ─┘         (Sanctum token auth)
 ```
 
 - **backend/** — Laravel 13 API (PHP 8.3), token-based auth via Sanctum, RBAC via `spatie/laravel-permission`, MySQL.
 - **frontend/** — Vue 3 + TypeScript + Vuetify SPA (Vite), consuming the API over HTTP only. No business logic lives in the frontend.
+- **mobile/** — Flutter app covering employee self-service essentials (attendance, tasks, documents, KPI, exams, leave requests, announcements, notifications). Admin/HR/management screens stay web-only. See [`mobile/README.md`](mobile/README.md) for scope and setup.
 
-The API is versioned (`/api/v1`) and mobile-ready by design: authentication is a Bearer token (not a browser session/cookie), so a future native or Flutter/React Native app can reuse the same backend without changes.
+The API is versioned (`/api/v1`) and mobile-ready by design: authentication is a Bearer token (not a browser session/cookie), so the Flutter app (and any future native client) reuses the exact same backend, with zero API changes.
 
-See [`backend/README.md`](backend/README.md) and [`frontend/README.md`](frontend/README.md) for stack-specific setup, and the architecture decisions recorded there for *why* things are built this way (Sanctum token mode, `spatie/laravel-permission` instead of hand-rolled tables, organization-scoped Policies, etc.).
+See [`backend/README.md`](backend/README.md), [`frontend/README.md`](frontend/README.md), and [`mobile/README.md`](mobile/README.md) for stack-specific setup, and the architecture decisions recorded there for *why* things are built this way (Sanctum token mode, `spatie/laravel-permission` instead of hand-rolled tables, organization-scoped Policies, etc.).
 
 ## Current status: Phase 9 (Advanced Features — final phase)
 
@@ -40,6 +41,8 @@ See [`backend/README.md`](backend/README.md) and [`frontend/README.md`](frontend
 **Phase 9 — Advanced Features (final phase):** a global search bar (app-bar dropdown, top-5-per-type across Employees/Organizations/Departments/Tasks/Announcements/Documents, each reusing that module's own existing authorization/scoping code rather than a parallel search index); an Audit Logs page (filter by user/module/action/date, export as CSV/Excel/PDF) built on the audit-logging infrastructure every prior phase already fed into, plus the two real gaps that infrastructure had — exam-attempt completion and user role changes — are now logged too, the latter via a new central-admin/HR "change role" action on the Employees page; a reusable export action (CSV/native, `.xlsx` via `maatwebsite/excel`, PDF via `barryvdh/laravel-dompdf`) wired into Employees, the Attendance report, and Audit Logs; a stateless preview-then-commit Employee CSV import (organizations/departments resolved by human-readable code, row-level validation, invalid rows skipped and reported individually — never all-or-nothing); real Chart.js bar/pie charts added to the Dashboard (employee distribution, task status), the Attendance report, the KPI report, and Exam results; and a System Settings page (organization details/logo, attendance work hours/grace periods/working days, document upload limits, exam reminder thresholds) backed by a generic key-value `settings` table that falls back to existing `config()` values until an admin actually edits something.
 
 This is the last phase in the project's phased delivery plan (§56) — every module the spec describes now has a working, tested, browser-verified implementation.
+
+**Mobile app:** a Flutter client covering employee self-service essentials — login, dashboard, attendance check-in/out + history, profile (view/edit + photo + pending change-request status), documents, tasks, KPI results, safety exams (take + results), leave requests, announcements, and notifications — built entirely against the existing API with no backend changes. Admin/HR/management screens (org/employee/KPI-template/exam authoring, settings, audit logs, etc.) are deliberately web-only; see [`mobile/README.md`](mobile/README.md) for the full scope, setup, and architecture notes.
 
 ## Quick start
 
@@ -64,7 +67,7 @@ npm install
 npm run dev                 # http://localhost:5173
 ```
 
-Open `http://localhost:5173` and sign in with any of the seeded demo accounts (see below) — password `password` for all of them.
+Open `http://localhost:5173` and sign in with any of the seeded demo accounts (see below) — password `password` for all of them. To run the mobile app instead (or alongside), see [`mobile/README.md`](mobile/README.md) — it needs a Flutter SDK install and points at the same backend.
 
 ### Demo accounts (seeded, clearly for local development only)
 
@@ -85,6 +88,7 @@ Open `http://localhost:5173` and sign in with any of the seeded demo accounts (s
 ```
 backend/    Laravel 13 API
 frontend/   Vue 3 + Vuetify SPA
+mobile/     Flutter app (employee self-service)
 ```
 
 ## Testing
@@ -97,6 +101,13 @@ php artisan test --compact
 The backend test database is a separate MySQL schema (`my_urtg_test`, configured in `phpunit.xml`) — running tests never touches the `my_urtg` development data. Tests cover authentication, RBAC, and — critically — that a user from one organization cannot read or write another organization's data by changing an id (see `tests/Feature/Http/Controllers/Api/V1/EmployeeControllerTest.php`, `AttendanceControllerTest.php`, `TaskControllerTest.php`, `ExamControllerTest.php`, `KpiControllerTest.php`, `AnnouncementControllerTest.php`, `LeaveRequestControllerTest.php`, `BusinessTripControllerTest.php`, and `SearchControllerTest.php`).
 
 Note: the `array` cache driver PHPUnit runs under (`phpunit.xml`) doesn't serialize cached values the way the real `.env`'s `database` driver does — a bug that only ever shows up in a real browser/server (see the `Setting` cache note in `backend/README.md`) is a standing reminder that the test suite alone is not sufficient sign-off for anything cache- or driver-dependent.
+
+```bash
+cd mobile
+flutter test
+```
+
+The mobile app's own test suite (model-parsing tests against real API response shapes, plus a handful of widget tests) is a separate `flutter test` run — see [`mobile/README.md`](mobile/README.md)'s Verification section, including a router bug it caught during real-browser verification that unit tests alone did not.
 
 ## Deployment notes
 
