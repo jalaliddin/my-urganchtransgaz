@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 import { searchService } from '@/services/settingsService'
 import { useAuthStore } from '@/stores/auth'
 import type { SearchGroup } from '@/types/models'
+import logoMarkUrl from '@/assets/logo-mark.png'
 
 interface NavItem {
   title: string
@@ -165,7 +166,7 @@ function goToResult(type: SearchGroup['type']) {
     >
       <div class="d-flex align-center pa-4 ga-2">
         <v-avatar color="sidebar-active" size="36">
-          <span class="text-body-1 font-weight-bold">UTG</span>
+          <img :src="logoMarkUrl" alt="" width="24" height="24" />
         </v-avatar>
         <span v-if="!rail" class="text-subtitle-1 font-weight-bold text-white text-truncate">
           {{ $t('app.name') }}

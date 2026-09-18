@@ -1,6 +1,23 @@
 {
   "app": {
-    "name": "Urganchtransgaz Employee Portal"
+    "name": "Urganchtransgaz Corporate Portal"
+  },
+  "privacyPolicy": {
+    "title": "Privacy Policy",
+    "updated": "Last updated: September 18, 2026",
+    "intro": "The \"My Urganchtransgaz\" mobile app and the Urganchtransgaz Corporate Portal (web app) are an internal corporate system built exclusively for the employees of \"Urganchtransgaz\" LLC. Only employees registered by the organization can access the app, using their own login and password.",
+    "dataCollectedTitle": "What data is collected",
+    "dataCollected": "An employee's full name, position, department, contact details (phone, email), photo, attendance records, tasks, KPI results, safety exam results, and uploaded documents (passport, contract, etc.) — all processed by the employer for HR purposes.",
+    "locationTitle": "Location data",
+    "location": "When a department manager or a Technical Policy Service employee reports a problem in the \"Issues\" module, the app may request the current location (GPS) solely to mark that issue's geographic point on a map. This data is only collected when the user themselves taps \"Use current location\" and grants permission; it is never tracked in the background or without the user's knowledge, and is stored only together with that issue's record.",
+    "storageTitle": "Where data is stored",
+    "storage": "All data is stored on the organization's own server (my.urtg.uz). Data is never shared with or sold to third parties, advertising companies, or analytics services.",
+    "accessTitle": "Who can access it",
+    "access": "Each employee sees only their own data; department managers see it within their own department; central management and HR see it organization-wide within the scope of their job duties, per the company's internal permission system.",
+    "retentionTitle": "Retention period",
+    "retention": "An employee's data is retained for the duration of their employment and afterward for the archival period required by law.",
+    "contactTitle": "Contact",
+    "contact": "For questions about your data or this policy, please contact your employer's HR or IT department."
   },
   "nav": {
     "dashboard": "Dashboard",

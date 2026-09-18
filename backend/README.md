@@ -1,4 +1,4 @@
-# Urganchtransgaz Employee Portal — API
+# Urganchtransgaz Korporativ Portali — API
 
 Laravel 13 (PHP 8.3) REST API for the employee portal. See the [project root README](../README.md) for the full-stack overview.
 

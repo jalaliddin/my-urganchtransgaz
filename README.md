@@ -1,6 +1,6 @@
-# Urganchtransgaz Employee Portal (my-urtg)
+# Urganchtransgaz Korporativ Portali (my-urtg)
 
-Enterprise employee self-service and HR administration portal for **"Urganchtransgaz" MCHJ** — a central office plus an unlimited number of subordinate organizations (14 seeded for demo purposes).
+Enterprise employee self-service and HR administration portal for **"Urganchtransgaz" MCHJ** — a central office plus an unlimited number of subordinate organizations (14 seeded for demo purposes). The web app is branded "Urganchtransgaz Korporativ Portali"; the mobile app keeps its own separate name, "My Urganchtransgaz" (see [`mobile/README.md`](mobile/README.md)'s "App name" note). Both share the same corporate flame logo (`logo.svg` at the repo root — the parent "Uztransgaz" group mark, used as-is since "Urganchtransgaz" is one of its regional divisions).
 
 Domain (production): `https://my.urtg.uz`
 
@@ -42,7 +42,7 @@ See [`backend/README.md`](backend/README.md), [`frontend/README.md`](frontend/RE
 
 This is the last phase in the project's phased delivery plan (§56) — every module the spec describes now has a working, tested, browser-verified implementation.
 
-**Mobile app:** a Flutter client covering employee self-service essentials — login, dashboard, attendance check-in/out + history, profile (view/edit + photo + pending change-request status), documents, tasks, KPI results, safety exams (take + results), location-based issue reporting (flutter_map + geolocator, mirroring the web's Leaflet map), announcements, and notifications — built entirely against the existing API with no backend changes. Admin/HR/management screens (org/employee/KPI-template/exam authoring, settings, audit logs, etc.) are deliberately web-only; see [`mobile/README.md`](mobile/README.md) for the full scope, setup, and architecture notes.
+**Mobile app:** a Flutter client covering employee self-service essentials — login, dashboard, attendance check-in/out + history, profile (view/edit + photo + pending change-request status), documents, tasks, KPI results, safety exams (take + results), location-based issue reporting (flutter_map + geolocator, mirroring the web's Leaflet map), announcements, and notifications — built entirely against the existing API with no backend changes. Admin/HR/management screens (org/employee/KPI-template/exam authoring, settings, audit logs, etc.) are deliberately web-only. It ships in Uzbek and Russian only (no English — its audience is this company's own workforce), carries a Material 3 theme refresh (brand colors pulled from the corporate logo, Google Fonts "Inter" typography, softer rounded styling) on top of the original Phase-1 design, and is prepared for Google Play Console submission (production API default, generated app icon/splash, release signing scaffold, a public `/privacy-policy` page on the web app for the location-permission disclosure). See [`mobile/README.md`](mobile/README.md) for the full scope, setup, Play Store steps, and architecture notes.
 
 ## Quick start
 

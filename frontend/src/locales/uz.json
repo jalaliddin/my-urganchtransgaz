@@ -1,6 +1,23 @@
 {
   "app": {
-    "name": "Urganchtransgaz Xodimlar Portali"
+    "name": "Urganchtransgaz Korporativ Portali"
+  },
+  "privacyPolicy": {
+    "title": "Maxfiylik siyosati",
+    "updated": "Oxirgi yangilanish: 2026-yil 18-sentabr",
+    "intro": "\"My Urganchtransgaz\" mobil ilovasi va Urganchtransgaz Korporativ Portali (veb-ilova) faqat \"Urganchtransgaz\" MCHJ xodimlari uchun mo'ljallangan ichki korporativ tizimdir. Ilovadan faqat tashkilot tomonidan ro'yxatga olingan xodimlar o'z login va paroli orqali foydalanishi mumkin.",
+    "dataCollectedTitle": "Qanday ma'lumotlar to'planadi",
+    "dataCollected": "Xodimning F.I.Sh., lavozimi, bo'limi, aloqa ma'lumotlari (telefon, elektron pochta), fotosurati, davomat yozuvlari, topshiriqlar, KPI natijalari, xavfsizlik bo'yicha imtihon natijalari va yuklangan hujjatlar (pasport, shartnoma va h.k.) — bularning barchasi ish beruvchi tomonidan HR maqsadlarida qayta ishlanadi.",
+    "locationTitle": "Joylashuv (lokatsiya) ma'lumotlari",
+    "location": "\"Muammolar\" bo'limi orqali bo'lim boshlig'i yoki texnik siyosat xizmati xodimi muammoni qayd etganda, faqat o'sha muammoning geografik nuqtasini xaritada belgilash uchun joriy joylashuv (GPS) so'ralishi mumkin. Bu ma'lumot faqat foydalanuvchi \"Joriy joylashuvdan foydalanish\" tugmasini bosib, unga ruxsat berganda olinadi; fon rejimida yoki foydalanuvchi bilmagan holda hech qachon kuzatilmaydi va faqat tegishli muammo yozuvi bilan birga saqlanadi.",
+    "storageTitle": "Ma'lumotlar qayerda saqlanadi",
+    "storage": "Barcha ma'lumotlar tashkilotning o'z serverida (my.urtg.uz) saqlanadi. Ma'lumotlar uchinchi shaxslarga, reklama kompaniyalariga yoki tahlil (analitika) xizmatlariga hech qachon berilmaydi yoki sotilmaydi.",
+    "accessTitle": "Kimlar ko'ra oladi",
+    "access": "Har bir xodim faqat o'ziga tegishli ma'lumotlarni ko'radi; bo'lim boshliqlari — o'z bo'limi doirasida; markaziy boshqaruv va HR xizmati — ish vazifasi doirasida butun tashkilot bo'yicha, korxonaning ichki ruxsatlar tizimiga muvofiq.",
+    "retentionTitle": "Saqlash muddati",
+    "retention": "Xodim ma'lumotlari uning mehnat faoliyati davomida va undan keyin qonunchilikda belgilangan arxivlash muddatigacha saqlanadi.",
+    "contactTitle": "Bog'lanish",
+    "contact": "Ma'lumotlaringiz yoki ushbu siyosat yuzasidan savollaringiz bo'lsa, ish beruvchi tashkilotingizning HR yoki IT bo'limiga murojaat qiling."
   },
   "nav": {
     "dashboard": "Boshqaruv paneli",

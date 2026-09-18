@@ -1,4 +1,4 @@
-# Urganchtransgaz Employee Portal — Frontend
+# Urganchtransgaz Korporativ Portali — Frontend
 
 Vue 3 + TypeScript + Vuetify SPA (Vite). See the [project root README](../README.md) for the full-stack overview and demo accounts.
 
@@ -53,3 +53,9 @@ Uzbek (`uz`) is the default and most complete locale; Russian and English are fu
 ## Session restoration
 
 A stored auth token only proves a session *existed*; on every fresh page load, `main.ts` re-fetches the current user (`/auth/me`) **before** mounting the app, so a direct URL visit or a reload doesn't transiently show a logged-out-looking UI (empty permissions, hidden nav) while still holding a valid token. If that fetch fails (expired/revoked token), the session is cleared and the router's guard sends the user to `/login`.
+
+## Branding
+
+`src/assets/logo.svg` and `src/assets/logo-mark.png` are copies of the shared `logo.svg` at the repo root (the corporate "Uztransgaz" flame mark + wordmark) — the full logo appears on the login card and browser favicon (`public/favicon.svg`), while the small square `logo-mark.png` (a cropped, rasterized version of just the flame, generated once for the mobile app icon — see `mobile/README.md`) fills the compact sidebar avatar, since the full wide logo doesn't read well at 36px. If the source logo is ever replaced, regenerate `logo-mark.png` the same way rather than squashing the new full logo into a square.
+
+A public, unauthenticated `/privacy-policy` route (`views/legal/PrivacyPolicyView.vue`) exists specifically to give Google Play Console a real URL to link to, since the mobile app requests device location for the Issues module — content lives in each locale file's `privacyPolicy` section. Linked from the login page footer.

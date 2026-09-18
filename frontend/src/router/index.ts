@@ -6,6 +6,11 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
+      path: '/privacy-policy',
+      name: 'privacy-policy',
+      component: () => import('@/views/legal/PrivacyPolicyView.vue'),
+    },
+    {
       path: '/',
       component: () => import('@/layouts/AuthLayout.vue'),
       meta: { guestOnly: true },
