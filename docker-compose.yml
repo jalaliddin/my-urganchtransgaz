@@ -1,0 +1,111 @@
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-my_urtg}
+      MYSQL_USER: ${DB_USERNAME:-my_urtg}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: ./backend
+      target: fpm
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+    volumes:
+      - backend-storage:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+
+  backend-nginx:
+    build:
+      context: ./backend
+      target: nginx
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  # One-off container for artisan commands that must never run silently on
+  # every boot — migrations chief among them. Does nothing by default
+  # (`profiles` keeps it out of `docker compose up`); invoke explicitly:
+  #   docker compose run --rm artisan migrate --force
+  #   docker compose run --rm artisan db:seed --force   (first deploy only)
+  artisan:
+    build:
+      context: ./backend
+      target: fpm-tools
+    profiles: ["tools"]
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+    volumes:
+      - backend-storage:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: ["php", "artisan"]
+
+  # Runs the five scheduled commands from routes/console.php
+  # (attendance:mark-absentees, tasks:check-deadlines, etc.) — `schedule:work`
+  # is a long-running foreground process that sleeps and checks each minute,
+  # so no system cron is needed inside the container.
+  scheduler:
+    build:
+      context: ./backend
+      target: fpm
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+    volumes:
+      - backend-storage:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: ["entrypoint.sh"]
+    command: ["php", "artisan", "schedule:work"]
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://my.urtg.uz/api/v1}
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      # Host port is configurable (HTTP_PORT, default 8090) rather than a
+      # hardcoded 80 — on a shared host running other projects, something
+      # else (a system nginx, another compose stack) usually already owns
+      # :80/:443 and reverse-proxies each project's own port by domain.
+      # Point that existing proxy at HTTP_PORT for my.urtg.uz, or set
+      # HTTP_PORT=80 in .env if this stack gets a dedicated host instead.
+      - "${HTTP_PORT:-8090}:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # - ./docker/certbot/www:/var/www/certbot:ro
+      # - ./docker/certbot/conf:/etc/letsencrypt:ro
+    depends_on:
+      - backend-nginx
+      - frontend
+
+volumes:
+  db-data:
+  backend-storage:

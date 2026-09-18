@@ -111,8 +111,51 @@ The mobile app's own test suite (model-parsing tests against real API response s
 
 ## Deployment notes
 
-- Local/dev uses the `database` queue and cache drivers (no Redis required). Redis is the recommended driver for production/Docker but is not wired up yet.
+- Both local/dev and the Docker setup below use the `database` queue and cache drivers — no Redis container exists or is needed, since nothing in the app actually queues a job (`grep -r ShouldQueue app/` is empty) or benefits from a faster cache backend than one already-required MySQL table.
 - Employee documents, task attachments, and profile photos are stored on the private `local` disk (`storage/app/private`) and served only through authenticated controller endpoints — never a public URL.
-- `php artisan documents:check-expiration` is scheduled daily at 07:00, `php artisan attendance:mark-absentees` daily at 00:30, `php artisan tasks:check-deadlines` daily at 07:15, and `php artisan exams:send-reminders` daily at 07:30 (`routes/console.php`); running the scheduler in production requires the standard `* * * * * php artisan schedule:run` cron entry (or `php artisan schedule:work` in development).
+- `php artisan documents:check-expiration` is scheduled daily at 07:00, `php artisan attendance:mark-absentees` daily at 00:30, `php artisan tasks:check-deadlines` daily at 07:15, `php artisan exams:send-reminders` daily at 07:30, and `php artisan announcements:process-schedule` every 5 minutes (`routes/console.php`). The Docker setup runs these via a dedicated `scheduler` container (`php artisan schedule:work`, a long-running foreground process); outside Docker, use the standard `* * * * * php artisan schedule:run` cron entry instead.
 - To connect a real biometric/attendance device, provision it with `php artisan attendance:create-device {device_id} {name} [--organization_id=]` and configure the device to POST to `/api/v1/integrations/attendance/events` with the printed Bearer token — see `backend/README.md` for the payload shape.
 - CORS currently allows all origins (`config('cors')` defaults) since auth is token-based, not cookie-based; tighten `allowed_origins` to `https://my.urtg.uz` before deploying to production.
+
+## Docker deployment
+
+A production-oriented `docker-compose.yml` lives at the repo root: MySQL, the Laravel API (a `backend` php-fpm container plus a `backend-nginx` container serving it), the Vue SPA (`frontend`, static files on nginx), a `scheduler` container for the cron-equivalent commands above, a one-off `artisan` tooling container for migrations/seeding, and a `nginx` reverse proxy that's the stack's single public entry point (routes `/api/*` to the backend, everything else to the frontend). Verified end-to-end in this environment: built every image, ran migrations + seeders, brought up all six containers, and confirmed login worked through the full reverse-proxy → backend-nginx → php-fpm → MySQL chain.
+
+```bash
+# 1. Configure
+cp .env.docker.example .env
+# Edit .env: set DB_PASSWORD and MYSQL_ROOT_PASSWORD to real values, and
+# generate APP_KEY (needs a build first, since it runs inside the container):
+docker compose build
+docker compose run --rm artisan key:generate --show   # paste the base64:... result into .env as APP_KEY
+
+# 2. Bring up the database and set up the schema
+docker compose up -d db
+docker compose run --rm artisan migrate --force
+
+# 3. Seed real reference data — NOT the full demo dataset (see note below)
+docker compose run --rm artisan db:seed --class=RolePermissionSeeder --force
+docker compose run --rm artisan db:seed --class=DocumentTypeSeeder --force
+
+# 4. Bring up everything else
+docker compose up -d
+```
+
+The stack listens on `${HTTP_PORT:-8090}` (host port), not `:80` directly — on a host that already runs other projects behind their own reverse proxy (as this one does), point that existing proxy's `my.urtg.uz` server block at `127.0.0.1:${HTTP_PORT}` instead of exposing this stack's own `nginx` service to the internet directly. Set `HTTP_PORT=80` in `.env` instead if this stack gets a dedicated host.
+
+**Seeding note:** `RolePermissionSeeder` and `DocumentTypeSeeder` are real, required setup (roles/permissions, document-category reference data). `OrganizationSeeder`/`DepartmentSeeder`/`PositionSeeder`/`EmployeeSeeder` (what a plain `db:seed --force` would also run) encode this company's actual district structure but via Eloquent factories — fine for local dev/staging/demos, but skip them for a real production database and create the real org/department/employee records through the app itself (or the CSV import feature) instead. If you do want the full demo dataset (e.g. for a staging environment), `docker compose run --rm artisan db:seed --force` works too — the `artisan` service's image includes dev dependencies specifically so this works (see `backend/Dockerfile`'s `vendor-dev`/`fpm-tools` stages), unlike the lean `backend`/`scheduler` runtime images.
+
+**First admin account:** no seeder creates one in the real (non-demo) path above — create your first organization, department, and super-admin employee/user once via `docker compose run --rm artisan tinker`, then manage everything else through the web app from there.
+
+**HTTPS:** the bundled `docker/nginx/default.conf` is plain HTTP, meant to sit behind whatever already terminates TLS on this host (as with the other projects here). If this stack ever gets its own dedicated host instead, add a certbot container (webroot method — `docker/nginx/default.conf` already has the `/.well-known/acme-challenge/` location prepared for it) and a second `server` block for `:443`.
+
+**Redeploying after a code change:**
+
+```bash
+git pull
+docker compose build
+docker compose run --rm artisan migrate --force   # only if new migrations exist
+docker compose up -d
+```
+
+**Logs:** `docker compose logs -f backend` (or `scheduler`, `nginx`, etc.). **Persistent data:** the `db-data` (MySQL) and `backend-storage` (uploaded documents/photos) named volumes survive `docker compose down`; only `docker compose down -v` removes them.
