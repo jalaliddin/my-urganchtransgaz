@@ -89,6 +89,7 @@ class AnnouncementDetailScreen extends ConsumerWidget {
     String? fileName,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
 
     try {
       final bytes = await repository.downloadAttachment(announcementId);
@@ -97,7 +98,7 @@ class AnnouncementDetailScreen extends ConsumerWidget {
       await file.writeAsBytes(bytes);
       await OpenFilex.open(file.path);
     } catch (_) {
-      messenger.showSnackBar(const SnackBar(content: Text('Faylni ochib bo\'lmadi.')));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.commonFileOpenError)));
     }
   }
 }

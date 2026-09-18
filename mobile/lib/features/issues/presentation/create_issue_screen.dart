@@ -54,7 +54,7 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
       final position = await Geolocator.getCurrentPosition();
       setState(() => _pickedLocation = LatLng(position.latitude, position.longitude));
     } catch (_) {
-      setState(() => _locationError = 'GPS');
+      setState(() => _locationError = AppLocalizations.of(context).issuesLocationError);
     } finally {
       setState(() => _locating = false);
     }

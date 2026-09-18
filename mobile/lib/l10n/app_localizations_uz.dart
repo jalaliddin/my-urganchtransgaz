@@ -37,6 +37,9 @@ class AppLocalizationsUz extends AppLocalizations {
   String get commonErrorGeneric => 'Xatolik yuz berdi. Qayta urinib ko\'ring.';
 
   @override
+  String get commonFileOpenError => 'Faylni ochib bo\'lmadi.';
+
+  @override
   String get commonLogout => 'Tizimdan chiqish';
 
   @override
@@ -486,6 +489,10 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get issuesMapPickHint => 'Xaritada joyni bosib belgilang';
+
+  @override
+  String get issuesLocationError =>
+      'Joylashuvni aniqlab bo\'lmadi. GPS yoqilganini tekshiring.';
 
   @override
   String get issuesReporter => 'Xabar bergan';

@@ -152,6 +152,12 @@ abstract class AppLocalizations {
   /// **'Xatolik yuz berdi. Qayta urinib ko\'ring.'**
   String get commonErrorGeneric;
 
+  /// No description provided for @commonFileOpenError.
+  ///
+  /// In uz, this message translates to:
+  /// **'Faylni ochib bo\'lmadi.'**
+  String get commonFileOpenError;
+
   /// No description provided for @commonLogout.
   ///
   /// In uz, this message translates to:
@@ -1027,6 +1033,12 @@ abstract class AppLocalizations {
   /// In uz, this message translates to:
   /// **'Xaritada joyni bosib belgilang'**
   String get issuesMapPickHint;
+
+  /// No description provided for @issuesLocationError.
+  ///
+  /// In uz, this message translates to:
+  /// **'Joylashuvni aniqlab bo\'lmadi. GPS yoqilganini tekshiring.'**
+  String get issuesLocationError;
 
   /// No description provided for @issuesReporter.
   ///

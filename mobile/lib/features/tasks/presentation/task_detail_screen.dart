@@ -221,6 +221,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
 
   Future<void> _openAttachment(String downloadUrl, String fileName) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
 
     try {
       final bytes = await ref.read(tasksRepositoryProvider).downloadAttachment(downloadUrl);
@@ -229,7 +230,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
       await file.writeAsBytes(bytes);
       await OpenFilex.open(file.path);
     } catch (_) {
-      messenger.showSnackBar(const SnackBar(content: Text('Faylni ochib bo\'lmadi.')));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.commonFileOpenError)));
     }
   }
 
