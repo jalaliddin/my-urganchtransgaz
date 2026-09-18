@@ -166,6 +166,7 @@ $dept = \App\Models\Department::create([
 ]);
 
 $user = \App\Models\User::create([
+    'name' => 'Super Admin',
     'username' => 'superadmin',
     'email' => 'admin@my.urtg.uz',
     'password' => bcrypt('KUCHLI-PAROL-BU-YERGA'),
@@ -179,7 +180,6 @@ $user->assignRole('super-admin');
     'employee_number' => 'EMP00001',
     'first_name' => 'Super',
     'last_name' => 'Admin',
-    'position' => 'Administrator',
     'hire_date' => now(),
     'status' => 'active',
 ]);
