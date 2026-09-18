@@ -1,6 +1,9 @@
 {
   "app": {
-    "name": "Urganchtransgaz Korporativ Portali"
+    "name": "Urganchtransgaz Korporativ Portali",
+    "tagline": "Xodimlar uchun yagona korporativ platforma",
+    "taglineSubtitle": "Davomat, topshiriqlar, hujjatlar va boshqa barcha xizmatlar — bir joyda.",
+    "credit": "Axborot texnologiyalari xizmati J.S. Saidov"
   },
   "privacyPolicy": {
     "title": "Maxfiylik siyosati",

@@ -1,6 +1,9 @@
 {
   "app": {
-    "name": "Urganchtransgaz Corporate Portal"
+    "name": "Urganchtransgaz Corporate Portal",
+    "tagline": "A single corporate platform for employees",
+    "taglineSubtitle": "Attendance, tasks, documents, and every other service — all in one place.",
+    "credit": "Information Technology Service, J.S. Saidov"
   },
   "privacyPolicy": {
     "title": "Privacy Policy",
