@@ -13,6 +13,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get appName => 'My Urganchtransgaz';
 
   @override
+  String get appCorporatePortal => 'Корпоративный портал Ургенчтрансгаз';
+
+  @override
   String get commonRetry => 'Повторить';
 
   @override

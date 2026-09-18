@@ -1,6 +1,7 @@
 {
   "@@locale": "ru",
   "appName": "My Urganchtransgaz",
+  "appCorporatePortal": "Корпоративный портал Ургенчтрансгаз",
   "commonRetry": "Повторить",
   "commonCancel": "Отмена",
   "commonSave": "Сохранить",

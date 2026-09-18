@@ -1,4 +1,4 @@
-# Urganchtransgaz Employee Portal — mobile app
+# My Urganchtransgaz — mobile app
 
 Flutter client covering **employee self-service essentials** — the
 day-to-day things a rank-and-file employee does on their phone. See the
@@ -63,10 +63,24 @@ push-based.
   `CFBundleDisplayName`), the browser tab title, and the in-app login
   screen (`AppLocalizations.appName`) — kept as one fixed brand name
   across both locales rather than grammatically translated per
-  language (the same "My X" pattern many branded apps use).
+  language (the same "My X" pattern many branded apps use). The web
+  app was separately renamed to "Urganchtransgaz Korporativ Portali";
+  the mobile app's own name deliberately did **not** follow that
+  rename — instead the login screen shows "Urganchtransgaz Korporativ
+  Portali" as a small subtitle under the unchanged "My Urganchtransgaz"
+  app name (`l10n.appCorporatePortal`), so both names stay visible
+  without the app itself being renamed.
 - **Theme:** Material 3, seeded from the same brand colors Vuetify
   uses (`frontend/src/plugins/vuetify.ts`): `#1E3A5F` primary in light
-  mode, `#3B6EA5` in dark mode.
+  mode, `#3B6EA5` in dark mode, plus a `#9ACC48` tertiary green pulled
+  from the corporate logo's flame mark. Typography is Google Fonts
+  "Inter" (`google_fonts` package — it covers Cyrillic, needed for the
+  `ru` locale) rather than the Material default, with larger corner
+  radii (12–20px), softer card/list styling, and gradient welcome
+  banners on the Dashboard and More screens — a deliberate visual
+  refresh pass (`lib/core/theme/app_theme.dart`) layered on top of the
+  original Phase-1 theme rather than a per-screen redesign, so every
+  screen picks up the same look automatically.
 
 ## Project layout
 
@@ -95,10 +109,17 @@ Flutter 3.35+ (stable channel), and a running instance of `backend/`
 The API base URL is resolved per-platform by default
 (`lib/core/network/api_config.dart`):
 
-| Target | Default |
-| --- | --- |
-| Android emulator | `http://10.0.2.2:8000/api/v1` |
-| iOS simulator / desktop / web | `http://127.0.0.1:8000/api/v1` |
+| Build | Target | Default |
+| --- | --- | --- |
+| Release (`flutter build`/`--release`) | any | `https://my.urtg.uz/api/v1` (production) |
+| Debug/profile | Android emulator | `http://10.0.2.2:8000/api/v1` |
+| Debug/profile | iOS simulator / desktop / web | `http://127.0.0.1:8000/api/v1` |
+
+A release build must work the moment someone installs it from Google
+Play with no `--dart-define` and no manual setup, which is why release
+mode always defaults to the real production server regardless of
+platform — the emulator/localhost convenience defaults only apply to
+local development builds.
 
 Override it at build/run time for a real device on the same network as
 the backend (find the backend machine's LAN IP, and start it with
@@ -144,9 +165,9 @@ management, etc.) simply have no mobile equivalent.
 
 ## Verification
 
-This was built and verified inside a container with no Android
-SDK/NDK and no macOS/Xcode — so an actual Android/iOS build could not
-be produced or run here. What *was* verified for real:
+An Android SDK is present in this environment (unlike earlier phases),
+so real Android builds could be produced and checked directly — no
+macOS/Xcode is available, so iOS still could not be built or run here.
 
 - `flutter analyze` — clean.
 - `flutter test` — unit tests for every model's `fromJson` (matched
@@ -154,23 +175,127 @@ be produced or run here. What *was* verified for real:
   plus widget tests for the login form, the task list, and the
   today-attendance card (login/session-restore, empty states, and
   button enablement all covered).
+- `flutter build appbundle --release` — a real, full release build,
+  producing an installable `app-release.aab` (~60MB) signed with the
+  debug-signing fallback (no real upload keystore exists in this
+  environment — see "Google Play Console" above for the one-time setup
+  a maintainer must do locally before actually publishing). This
+  exercised the whole Play-Store-facing pipeline for real: the
+  generated launcher icon/splash screen, R8 minification, resource
+  shrinking, and the release-mode production API default all compiled
+  successfully together. (Flutter printed a "failed to strip debug
+  symbols from native libraries" warning — traced to this sandbox's
+  Android SDK missing the `cmdline-tools` component per `flutter
+  doctor`, not a project issue; the `.aab` still built correctly.)
 - `flutter build web` — a full project compile.
-- The compiled web build, served locally and driven with Playwright
-  against the real local backend: logged in with the seeded `employee`
-  account, checked in for the day (and confirmed the button states
-  update correctly), browsed attendance history with the real resulting
-  record, and opened every other screen (tasks, documents, profile,
-  KPI, exams, issues (report/detail/comment/resolve), announcements,
-  notifications) — all with real data and zero console errors, then
-  logged out.
+- The compiled **release** web build, served locally and driven with
+  Playwright against the real local backend (via the login screen's
+  server-address override, confirming the release build's production
+  default is otherwise `https://my.urtg.uz/api/v1` and not localhost):
+  confirmed the corporate flame logo renders in full color (not the
+  solid-black `flutter_svg`/`<style>` bug described above) on the login
+  screen alongside both the "My Urganchtransgaz" name and the
+  "Urganchtransgaz Korporativ Portali" subtitle, then logged in as
+  `deptmanager` and reviewed the redesigned Dashboard (gradient welcome
+  banner) and More screen (gradient profile header, grouped menu card,
+  logo watermark) — all with real data and zero console errors.
 
 **Before shipping to a real device, run it once for real** — `flutter
 run` on an Android emulator or physical device (or `flutter run -d ios`
 on macOS) — as the final check this pass couldn't cover: native camera/
-file-picker permission prompts, secure-storage behavior on-device, and
-actual touch-target sizing.
+file-picker permission prompts, secure-storage behavior on-device,
+actual touch-target sizing, and the location permission prompt for the
+Issues module.
 
-## Architecture decisions
+## Branding
+
+`assets/images/logo.svg` is a copy of the shared `logo.svg` at the repo
+root (the corporate "Uztransgaz" flame mark + wordmark), rendered with
+`flutter_svg` on the login screen and (small, semi-transparent) at the
+bottom of the More screen.
+
+**The upstream SVG uses a CSS `<style>` block with class selectors
+(`.fil0 { fill: ... }`, `class="fil0"` on each `<path>`) — `flutter_svg`
+doesn't parse `<style>` elements at all** (confirmed by an "unhandled
+element `<style/>`" warning and, worse, the logo silently rendering
+solid black instead of erroring). Browsers render this fine, so the
+issue only showed up here, not on the web app. Fixed once at the
+source: the repo-root `logo.svg` now has each path's fill inlined as a
+plain `fill="#RRGGBB"` attribute instead of a class, which every SVG
+renderer (browsers and `flutter_svg` alike) supports — verified after
+the fix with a real `flutter build web` + Playwright screenshot showing
+the correct blue/green/navy colors, not black.
+
+**App icon and splash screen** are generated from the same source by
+`flutter_launcher_icons`/`flutter_native_splash` (dev dependencies,
+configured in `pubspec.yaml`), not hand-exported per platform/density:
+
+```bash
+dart run flutter_launcher_icons
+dart run flutter_native_splash:create
+```
+
+Both read from `assets/icon/`: `icon-legacy.png` (the flame mark on an
+opaque white square — required for iOS, which rejects a transparent
+icon) and `icon-foreground.png` (the same mark on a transparent square,
+for Android's adaptive icon, composited at runtime over
+`adaptive_icon_background: "#FFFFFF"`). These two PNGs are a rasterized,
+cropped-to-just-the-flame version of `logo.svg` (the full logo's wide
+icon+wordmark aspect ratio doesn't fit a square icon) — regenerate them
+the same way (crop to the flame only, pad into a square, export at
+1024×1024) if the source logo ever changes.
+
+## Google Play Console
+
+**Package identity** (already set, do not change once published — the
+Play Store ties a listing to this permanently): `uz.urtg.urtg_mobile`
+(Android `applicationId`/`namespace`) and `uz.urtg.urtgMobile` (iOS
+`PRODUCT_BUNDLE_IDENTIFIER`).
+
+**Release signing.** `android/app/build.gradle.kts` reads
+`android/key.properties` (gitignored — copy `key.properties.example`
+and fill it in) if present, and only falls back to debug signing when
+it's absent, so a fresh checkout still builds without it. Generate a
+real upload keystore once, and never regenerate it afterward — losing
+it means you can never publish an update to the same Play Store
+listing again, only a brand-new one:
+
+```bash
+keytool -genkeypair -v -keystore android/app/upload-keystore.jks \
+  -alias urtg_upload -keyalg RSA -keysize 2048 -validity 10000
+```
+
+Back up the resulting `.jks` file and the store/key passwords you
+choose somewhere durable (a password manager) — not just this machine.
+Release builds also enable R8 minification and resource shrinking
+(`isMinifyEnabled`/`isShrinkResources` in `build.gradle.kts`).
+
+**Production API default.** A release build always talks to
+`https://my.urtg.uz/api/v1` with no setup needed (see "Server address"
+above) — a Play Store install must work out of the box.
+
+**Privacy policy.** The Issues module requests device location
+(`ACCESS_FINE_LOCATION`/`ACCESS_COARSE_LOCATION`), which Play Console's
+Data Safety section requires a privacy policy URL for. The web app now
+serves one at `/privacy-policy` (`frontend/src/views/legal/PrivacyPolicyView.vue`,
+public, no login required) — once deployed, submit
+`https://my.urtg.uz/privacy-policy` as the listing's privacy policy
+URL.
+
+**Build the release bundle** (what you upload to Play Console):
+
+```bash
+flutter build appbundle --release
+# → build/app/outputs/bundle/release/app-release.aab
+```
+
+**Still manual, outside this repo:** creating the Play Console app
+listing itself, the content rating questionnaire, Data Safety form
+answers, store graphics (screenshots/feature graphic/icon — the launcher
+icon PNG can be reused for the 512×512 store icon), and the actual
+upload/rollout.
+
+## Verification
 
 - **Every endpoint already scoped correctly for a plain `employee`
   role** — verified directly against the controllers, not assumed:

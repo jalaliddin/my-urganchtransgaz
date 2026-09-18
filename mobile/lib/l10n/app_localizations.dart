@@ -104,6 +104,12 @@ abstract class AppLocalizations {
   /// **'My Urganchtransgaz'**
   String get appName;
 
+  /// No description provided for @appCorporatePortal.
+  ///
+  /// In uz, this message translates to:
+  /// **'Urganchtransgaz Korporativ Portali'**
+  String get appCorporatePortal;
+
   /// No description provided for @commonRetry.
   ///
   /// In uz, this message translates to:

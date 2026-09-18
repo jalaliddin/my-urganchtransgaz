@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_providers.dart';
@@ -78,13 +79,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(Icons.badge_outlined, size: 64, color: Theme.of(context).colorScheme.primary),
-                    const SizedBox(height: 12),
+                    SvgPicture.asset('assets/images/logo.svg', height: 84),
+                    const SizedBox(height: 16),
                     Text(
                       l10n.appName,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.appCorporatePortal,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
                     Text(
                       l10n.authWelcomeBack,
                       textAlign: TextAlign.center,

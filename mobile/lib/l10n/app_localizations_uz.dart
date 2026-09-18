@@ -13,6 +13,9 @@ class AppLocalizationsUz extends AppLocalizations {
   String get appName => 'My Urganchtransgaz';
 
   @override
+  String get appCorporatePortal => 'Urganchtransgaz Korporativ Portali';
+
+  @override
   String get commonRetry => 'Qayta urinish';
 
   @override

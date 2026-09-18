@@ -43,7 +43,7 @@ class DashboardScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text('${l10n.dashboardWelcome}, ${user?.employee?.firstName ?? user?.name ?? ''}', style: Theme.of(context).textTheme.titleLarge),
+            _WelcomeBanner(name: user?.employee?.firstName ?? user?.name ?? '', greeting: l10n.dashboardWelcome),
             const SizedBox(height: 16),
             const TodayAttendanceCard(),
             const SizedBox(height: 16),
@@ -117,6 +117,61 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _WelcomeBanner extends StatelessWidget {
+  const _WelcomeBanner({required this.name, required this.greeting});
+
+  final String name;
+  final String greeting;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.85)],
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  greeting,
+                  style: TextStyle(color: colorScheme.onPrimary.withValues(alpha: 0.8), fontSize: 14),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  name,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(color: colorScheme.onPrimary, fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: colorScheme.onPrimary.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(Icons.waving_hand_outlined, color: colorScheme.onPrimary),
+          ),
+        ],
       ),
     );
   }

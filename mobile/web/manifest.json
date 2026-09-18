@@ -3,9 +3,9 @@
     "short_name": "My UTG",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#1E3A5F",
+    "background_color": "#FFFFFF",
     "theme_color": "#1E3A5F",
-    "description": "Urganchtransgaz Employee Portal — mobile self-service app",
+    "description": "Urganchtransgaz — mobile self-service app",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

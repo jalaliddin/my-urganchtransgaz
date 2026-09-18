@@ -1,6 +1,7 @@
 {
   "@@locale": "uz",
   "appName": "My Urganchtransgaz",
+  "appCorporatePortal": "Urganchtransgaz Korporativ Portali",
   "commonRetry": "Qayta urinish",
   "commonCancel": "Bekor qilish",
   "commonSave": "Saqlash",

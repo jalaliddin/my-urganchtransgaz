@@ -50,6 +50,8 @@ dependencies:
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
   geolocator: ^14.0.3
+  flutter_svg: ^2.3.0
+  google_fonts: ^8.2.1
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +63,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.8
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -74,10 +78,35 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/images/
+
+# `dart run flutter_launcher_icons` regenerates every platform's app icon
+# from these sources. icon-legacy.png is the flame mark on an opaque white
+# square (required for iOS, which can't have transparency); icon-foreground.png
+# is the same mark on a transparent square, composited over adaptive_icon_background
+# for Android's adaptive icon so launchers can mask/animate it per-device.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  web:
+    generate: true
+    image_path: assets/icon/icon-legacy.png
+    background_color: "#FFFFFF"
+    theme_color: "#1E3A5F"
+  image_path: assets/icon/icon-legacy.png
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: assets/icon/icon-foreground.png
+  remove_alpha_ios: true
+
+# `dart run flutter_native_splash:create` regenerates the native splash
+# screens (shown while the Flutter engine boots, before any Dart code runs).
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/icon/splash-icon.png
+  android_12:
+    color: "#FFFFFF"
+    image: assets/icon/splash-icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
