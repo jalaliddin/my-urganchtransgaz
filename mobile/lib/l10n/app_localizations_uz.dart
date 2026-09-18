@@ -121,9 +121,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get navExams => 'Imtihonlar';
 
   @override
-  String get navLeaveRequests => 'Ta\'til so\'rovlari';
-
-  @override
   String get navAnnouncements => 'E\'lonlar';
 
   @override
@@ -160,9 +157,6 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get dashboardMyTasks => 'Mening topshiriqlarim';
-
-  @override
-  String get dashboardUpcomingTrip => 'Yaqinlashib kelayotgan xizmat safari';
 
   @override
   String get dashboardNoAnnouncements => 'Hozircha e\'lonlar yo\'q';
@@ -470,40 +464,58 @@ class AppLocalizationsUz extends AppLocalizations {
   String get examsNone => 'Mavjud imtihonlar yo\'q';
 
   @override
-  String get leaveRequestsTitle => 'Ta\'til so\'rovlari';
+  String get issuesTitle => 'Muammolar';
 
   @override
-  String get leaveRequestsType => 'Turi';
+  String get issuesReportIssue => 'Yangi muammo';
 
   @override
-  String get leaveRequestsStartDate => 'Boshlanish sanasi';
+  String get issuesIssueTitle => 'Sarlavha';
 
   @override
-  String get leaveRequestsEndDate => 'Tugash sanasi';
+  String get issuesDescription => 'Tavsif';
 
   @override
-  String get leaveRequestsReason => 'Sabab';
+  String get issuesObjectName => 'Obyekt/hudud nomi';
 
   @override
-  String get leaveRequestsCreate => 'So\'rov yuborish';
+  String get issuesUseMyLocation => 'Joriy joylashuvimdan foydalanish';
 
   @override
-  String get leaveRequestsCancel => 'Bekor qilish';
+  String get issuesMapPickHint => 'Xaritada joyni bosib belgilang';
 
   @override
-  String get leaveRequestsNone => 'So\'rovlar yo\'q';
+  String get issuesReporter => 'Xabar bergan';
 
   @override
-  String get leaveRequestsVacation => 'Ta\'til';
+  String get issuesDepartment => 'Bo\'lim';
 
   @override
-  String get leaveRequestsBusinessTrip => 'Xizmat safari';
+  String get issuesFilterOpen => 'Ochiq';
 
   @override
-  String get leaveRequestsSickLeave => 'Bemor varaqasi';
+  String get issuesFilterAll => 'Barchasi';
 
   @override
-  String get leaveRequestsOther => 'Boshqa';
+  String get issuesTimeline => 'Tarix';
+
+  @override
+  String get issuesComments => 'Izohlar';
+
+  @override
+  String get issuesAddComment => 'Izoh yozing';
+
+  @override
+  String get issuesResolve => 'Hal qilish';
+
+  @override
+  String get issuesResolutionNote => 'Javob (bartaraf etish uchun)';
+
+  @override
+  String get issuesResolvedBy => 'Bartaraf etdi';
+
+  @override
+  String get issuesNone => 'Muammolar topilmadi';
 
   @override
   String get announcementsTitle => 'E\'lonlar';
@@ -594,4 +606,10 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get statusUrgent => 'Shoshilinch';
+
+  @override
+  String get statusOpen => 'Ochiq';
+
+  @override
+  String get statusResolved => 'Bartaraf etilgan';
 }

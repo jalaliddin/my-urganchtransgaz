@@ -314,12 +314,6 @@ abstract class AppLocalizations {
   /// **'Imtihonlar'**
   String get navExams;
 
-  /// No description provided for @navLeaveRequests.
-  ///
-  /// In uz, this message translates to:
-  /// **'Ta\'til so\'rovlari'**
-  String get navLeaveRequests;
-
   /// No description provided for @navAnnouncements.
   ///
   /// In uz, this message translates to:
@@ -385,12 +379,6 @@ abstract class AppLocalizations {
   /// In uz, this message translates to:
   /// **'Mening topshiriqlarim'**
   String get dashboardMyTasks;
-
-  /// No description provided for @dashboardUpcomingTrip.
-  ///
-  /// In uz, this message translates to:
-  /// **'Yaqinlashib kelayotgan xizmat safari'**
-  String get dashboardUpcomingTrip;
 
   /// No description provided for @dashboardNoAnnouncements.
   ///
@@ -992,77 +980,113 @@ abstract class AppLocalizations {
   /// **'Mavjud imtihonlar yo\'q'**
   String get examsNone;
 
-  /// No description provided for @leaveRequestsTitle.
+  /// No description provided for @issuesTitle.
   ///
   /// In uz, this message translates to:
-  /// **'Ta\'til so\'rovlari'**
-  String get leaveRequestsTitle;
+  /// **'Muammolar'**
+  String get issuesTitle;
 
-  /// No description provided for @leaveRequestsType.
+  /// No description provided for @issuesReportIssue.
   ///
   /// In uz, this message translates to:
-  /// **'Turi'**
-  String get leaveRequestsType;
+  /// **'Yangi muammo'**
+  String get issuesReportIssue;
 
-  /// No description provided for @leaveRequestsStartDate.
+  /// No description provided for @issuesIssueTitle.
   ///
   /// In uz, this message translates to:
-  /// **'Boshlanish sanasi'**
-  String get leaveRequestsStartDate;
+  /// **'Sarlavha'**
+  String get issuesIssueTitle;
 
-  /// No description provided for @leaveRequestsEndDate.
+  /// No description provided for @issuesDescription.
   ///
   /// In uz, this message translates to:
-  /// **'Tugash sanasi'**
-  String get leaveRequestsEndDate;
+  /// **'Tavsif'**
+  String get issuesDescription;
 
-  /// No description provided for @leaveRequestsReason.
+  /// No description provided for @issuesObjectName.
   ///
   /// In uz, this message translates to:
-  /// **'Sabab'**
-  String get leaveRequestsReason;
+  /// **'Obyekt/hudud nomi'**
+  String get issuesObjectName;
 
-  /// No description provided for @leaveRequestsCreate.
+  /// No description provided for @issuesUseMyLocation.
   ///
   /// In uz, this message translates to:
-  /// **'So\'rov yuborish'**
-  String get leaveRequestsCreate;
+  /// **'Joriy joylashuvimdan foydalanish'**
+  String get issuesUseMyLocation;
 
-  /// No description provided for @leaveRequestsCancel.
+  /// No description provided for @issuesMapPickHint.
   ///
   /// In uz, this message translates to:
-  /// **'Bekor qilish'**
-  String get leaveRequestsCancel;
+  /// **'Xaritada joyni bosib belgilang'**
+  String get issuesMapPickHint;
 
-  /// No description provided for @leaveRequestsNone.
+  /// No description provided for @issuesReporter.
   ///
   /// In uz, this message translates to:
-  /// **'So\'rovlar yo\'q'**
-  String get leaveRequestsNone;
+  /// **'Xabar bergan'**
+  String get issuesReporter;
 
-  /// No description provided for @leaveRequestsVacation.
+  /// No description provided for @issuesDepartment.
   ///
   /// In uz, this message translates to:
-  /// **'Ta\'til'**
-  String get leaveRequestsVacation;
+  /// **'Bo\'lim'**
+  String get issuesDepartment;
 
-  /// No description provided for @leaveRequestsBusinessTrip.
+  /// No description provided for @issuesFilterOpen.
   ///
   /// In uz, this message translates to:
-  /// **'Xizmat safari'**
-  String get leaveRequestsBusinessTrip;
+  /// **'Ochiq'**
+  String get issuesFilterOpen;
 
-  /// No description provided for @leaveRequestsSickLeave.
+  /// No description provided for @issuesFilterAll.
   ///
   /// In uz, this message translates to:
-  /// **'Bemor varaqasi'**
-  String get leaveRequestsSickLeave;
+  /// **'Barchasi'**
+  String get issuesFilterAll;
 
-  /// No description provided for @leaveRequestsOther.
+  /// No description provided for @issuesTimeline.
   ///
   /// In uz, this message translates to:
-  /// **'Boshqa'**
-  String get leaveRequestsOther;
+  /// **'Tarix'**
+  String get issuesTimeline;
+
+  /// No description provided for @issuesComments.
+  ///
+  /// In uz, this message translates to:
+  /// **'Izohlar'**
+  String get issuesComments;
+
+  /// No description provided for @issuesAddComment.
+  ///
+  /// In uz, this message translates to:
+  /// **'Izoh yozing'**
+  String get issuesAddComment;
+
+  /// No description provided for @issuesResolve.
+  ///
+  /// In uz, this message translates to:
+  /// **'Hal qilish'**
+  String get issuesResolve;
+
+  /// No description provided for @issuesResolutionNote.
+  ///
+  /// In uz, this message translates to:
+  /// **'Javob (bartaraf etish uchun)'**
+  String get issuesResolutionNote;
+
+  /// No description provided for @issuesResolvedBy.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bartaraf etdi'**
+  String get issuesResolvedBy;
+
+  /// No description provided for @issuesNone.
+  ///
+  /// In uz, this message translates to:
+  /// **'Muammolar topilmadi'**
+  String get issuesNone;
 
   /// No description provided for @announcementsTitle.
   ///
@@ -1243,6 +1267,18 @@ abstract class AppLocalizations {
   /// In uz, this message translates to:
   /// **'Shoshilinch'**
   String get statusUrgent;
+
+  /// No description provided for @statusOpen.
+  ///
+  /// In uz, this message translates to:
+  /// **'Ochiq'**
+  String get statusOpen;
+
+  /// No description provided for @statusResolved.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bartaraf etilgan'**
+  String get statusResolved;
 }
 
 class _AppLocalizationsDelegate

@@ -9,7 +9,6 @@ import '../../attendance/presentation/today_attendance_card.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../notifications/presentation/notifications_controller.dart';
 import '../../tasks/presentation/tasks_controller.dart';
-import 'dashboard_controller.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -19,7 +18,6 @@ class DashboardScreen extends ConsumerWidget {
     ref.invalidate(announcementsControllerProvider);
     ref.invalidate(tasksControllerProvider);
     ref.invalidate(unreadNotificationsCountProvider);
-    ref.invalidate(upcomingBusinessTripProvider);
   }
 
   @override
@@ -28,7 +26,6 @@ class DashboardScreen extends ConsumerWidget {
     final user = ref.watch(authControllerProvider).value;
     final announcements = ref.watch(latestAnnouncementsProvider);
     final dueSoonTasks = ref.watch(dueSoonTasksProvider);
-    final upcomingTrip = ref.watch(upcomingBusinessTripProvider);
     final unreadCount = ref.watch(unreadNotificationsCountProvider).value ?? 0;
 
     return Scaffold(
@@ -49,20 +46,6 @@ class DashboardScreen extends ConsumerWidget {
             Text('${l10n.dashboardWelcome}, ${user?.employee?.firstName ?? user?.name ?? ''}', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             const TodayAttendanceCard(),
-            const SizedBox(height: 16),
-            upcomingTrip.when(
-              data: (trip) => trip == null
-                  ? const SizedBox.shrink()
-                  : Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.flight_takeoff),
-                        title: Text(l10n.dashboardUpcomingTrip),
-                        subtitle: Text('${trip.destination} · ${trip.startDate} — ${trip.endDate}'),
-                      ),
-                    ),
-              loading: () => const SizedBox.shrink(),
-              error: (error, stackTrace) => const SizedBox.shrink(),
-            ),
             const SizedBox(height: 16),
             Card(
               child: Padding(

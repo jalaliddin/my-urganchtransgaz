@@ -121,9 +121,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get navExams => 'Экзамены';
 
   @override
-  String get navLeaveRequests => 'Заявки на отпуск';
-
-  @override
   String get navAnnouncements => 'Объявления';
 
   @override
@@ -159,9 +156,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get dashboardMyTasks => 'Мои задачи';
-
-  @override
-  String get dashboardUpcomingTrip => 'Предстоящая командировка';
 
   @override
   String get dashboardNoAnnouncements => 'Пока нет объявлений';
@@ -469,40 +463,58 @@ class AppLocalizationsRu extends AppLocalizations {
   String get examsNone => 'Нет доступных экзаменов';
 
   @override
-  String get leaveRequestsTitle => 'Заявки на отпуск';
+  String get issuesTitle => 'Проблемы';
 
   @override
-  String get leaveRequestsType => 'Тип';
+  String get issuesReportIssue => 'Новая проблема';
 
   @override
-  String get leaveRequestsStartDate => 'Дата начала';
+  String get issuesIssueTitle => 'Заголовок';
 
   @override
-  String get leaveRequestsEndDate => 'Дата окончания';
+  String get issuesDescription => 'Описание';
 
   @override
-  String get leaveRequestsReason => 'Причина';
+  String get issuesObjectName => 'Название объекта/участка';
 
   @override
-  String get leaveRequestsCreate => 'Отправить заявку';
+  String get issuesUseMyLocation => 'Использовать моё местоположение';
 
   @override
-  String get leaveRequestsCancel => 'Отменить';
+  String get issuesMapPickHint => 'Отметьте место на карте';
 
   @override
-  String get leaveRequestsNone => 'Нет заявок';
+  String get issuesReporter => 'Кто сообщил';
 
   @override
-  String get leaveRequestsVacation => 'Отпуск';
+  String get issuesDepartment => 'Отдел';
 
   @override
-  String get leaveRequestsBusinessTrip => 'Командировка';
+  String get issuesFilterOpen => 'Открытые';
 
   @override
-  String get leaveRequestsSickLeave => 'Больничный';
+  String get issuesFilterAll => 'Все';
 
   @override
-  String get leaveRequestsOther => 'Другое';
+  String get issuesTimeline => 'История';
+
+  @override
+  String get issuesComments => 'Комментарии';
+
+  @override
+  String get issuesAddComment => 'Написать комментарий';
+
+  @override
+  String get issuesResolve => 'Устранить';
+
+  @override
+  String get issuesResolutionNote => 'Ответ (для устранения)';
+
+  @override
+  String get issuesResolvedBy => 'Устранил';
+
+  @override
+  String get issuesNone => 'Проблемы не найдены';
 
   @override
   String get announcementsTitle => 'Объявления';
@@ -593,4 +605,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get statusUrgent => 'Срочный';
+
+  @override
+  String get statusOpen => 'Открыта';
+
+  @override
+  String get statusResolved => 'Устранена';
 }

@@ -42,11 +42,12 @@ class MoreScreen extends ConsumerWidget {
             title: Text(l10n.examsTitle),
             onTap: () => context.push('/exams'),
           ),
-          ListTile(
-            leading: const Icon(Icons.event_busy_outlined),
-            title: Text(l10n.leaveRequestsTitle),
-            onTap: () => context.push('/leave-requests'),
-          ),
+          if (user != null && (user.can('issues.view') || user.can('issues.create')))
+            ListTile(
+              leading: const Icon(Icons.map_outlined),
+              title: Text(l10n.issuesTitle),
+              onTap: () => context.push('/issues'),
+            ),
           ListTile(
             leading: const Icon(Icons.campaign_outlined),
             title: Text(l10n.announcementsTitle),
