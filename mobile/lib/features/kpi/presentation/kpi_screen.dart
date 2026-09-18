@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/employee_kpi.dart';
 import 'kpi_controller.dart';
@@ -16,7 +17,8 @@ class KpiScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.kpiTitle)),
-      body: RefreshIndicator(
+      body: ResponsiveBody(
+        child: RefreshIndicator(
         onRefresh: () => ref.read(kpiControllerProvider.notifier).refresh(),
         child: AsyncValueView(
           value: results,
@@ -43,6 +45,7 @@ class KpiScreen extends ConsumerWidget {
             );
           },
         ),
+      ),
       ),
     );
   }

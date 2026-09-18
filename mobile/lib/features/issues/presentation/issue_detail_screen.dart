@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../../../core/models/user.dart';
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/responsive_body.dart';
 import '../../../features/auth/presentation/auth_controller.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/issue.dart';
@@ -79,10 +80,12 @@ class _IssueDetailScreenState extends ConsumerState<IssueDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.issuesTitle)),
-      body: AsyncValueView(
-        value: issueState,
-        onRetry: () => ref.invalidate(issueDetailProvider(widget.id)),
-        data: (context, issue) => _buildBody(context, issue, controller, user, l10n),
+      body: ResponsiveBody(
+        child: AsyncValueView(
+          value: issueState,
+          onRetry: () => ref.invalidate(issueDetailProvider(widget.id)),
+          data: (context, issue) => _buildBody(context, issue, controller, user, l10n),
+        ),
       ),
     );
   }

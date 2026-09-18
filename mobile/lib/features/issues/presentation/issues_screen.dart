@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/issue.dart';
 import 'issue_map.dart';
@@ -40,7 +41,8 @@ class IssuesScreen extends ConsumerWidget {
         onPressed: () => context.push('/issues/new'),
         child: const Icon(Icons.add),
       ),
-      body: RefreshIndicator(
+      body: ResponsiveBody(
+        child: RefreshIndicator(
         onRefresh: controller.refresh,
         child: AsyncValueView(
           value: issues,
@@ -76,6 +78,7 @@ class IssuesScreen extends ConsumerWidget {
             );
           },
         ),
+      ),
       ),
     );
   }

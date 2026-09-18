@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/models/user.dart';
+import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../notifications/presentation/notifications_controller.dart';
@@ -19,7 +20,8 @@ class MoreScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.navMore)),
-      body: ListView(
+      body: ResponsiveBody(
+        child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           if (user != null) _ProfileHeader(user: user),
@@ -89,6 +91,7 @@ class MoreScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
         ],
+      ),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../announcements/presentation/announcements_controller.dart';
 import '../../attendance/presentation/attendance_controller.dart';
@@ -38,11 +39,12 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () => _refresh(ref),
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
+      body: ResponsiveBody(
+        child: RefreshIndicator(
+          onRefresh: () => _refresh(ref),
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
             _WelcomeBanner(name: user?.employee?.firstName ?? user?.name ?? '', greeting: l10n.dashboardWelcome),
             const SizedBox(height: 16),
             const TodayAttendanceCard(),
@@ -117,6 +119,7 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

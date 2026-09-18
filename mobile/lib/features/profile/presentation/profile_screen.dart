@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/models/employee.dart';
 import '../../../core/network/api_providers.dart';
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/change_request.dart';
 import 'profile_controller.dart';
@@ -43,9 +44,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
           tabs: [Tab(text: l10n.profileTabInfo), Tab(text: l10n.profileTabRequests)],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [_ProfileInfoTab(), _ProfileRequestsTab()],
+      body: ResponsiveBody(
+        child: TabBarView(
+          controller: _tabController,
+          children: const [_ProfileInfoTab(), _ProfileRequestsTab()],
+        ),
       ),
     );
   }

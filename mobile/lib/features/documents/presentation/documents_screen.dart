@@ -7,6 +7,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/employee_document.dart';
 import 'documents_controller.dart';
@@ -25,7 +26,8 @@ class DocumentsScreen extends ConsumerWidget {
         onPressed: () => _showUploadSheet(context, ref),
         child: const Icon(Icons.add),
       ),
-      body: RefreshIndicator(
+      body: ResponsiveBody(
+        child: RefreshIndicator(
         onRefresh: () => ref.read(documentsControllerProvider.notifier).refresh(),
         child: AsyncValueView(
           value: documents,
@@ -46,6 +48,7 @@ class DocumentsScreen extends ConsumerWidget {
             );
           },
         ),
+      ),
       ),
     );
   }

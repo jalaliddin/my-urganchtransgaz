@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/attendance_record.dart';
 import 'attendance_controller.dart';
@@ -41,9 +42,11 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> with Single
           tabs: [Tab(text: l10n.attendanceTabToday), Tab(text: l10n.attendanceTabHistory)],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [_TodayTab(), _HistoryTab()],
+      body: ResponsiveBody(
+        child: TabBarView(
+          controller: _tabController,
+          children: const [_TodayTab(), _HistoryTab()],
+        ),
       ),
     );
   }

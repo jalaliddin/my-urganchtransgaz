@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/task.dart';
 import 'tasks_controller.dart';
@@ -17,7 +18,8 @@ class TasksScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.tasksTitle)),
-      body: RefreshIndicator(
+      body: ResponsiveBody(
+        child: RefreshIndicator(
         onRefresh: () => ref.read(tasksControllerProvider.notifier).refresh(),
         child: AsyncValueView(
           value: tasks,
@@ -39,6 +41,7 @@ class TasksScreen extends ConsumerWidget {
             );
           },
         ),
+      ),
       ),
     );
   }

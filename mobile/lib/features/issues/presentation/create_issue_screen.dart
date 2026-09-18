@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import 'issue_map.dart';
 import 'issues_controller.dart';
@@ -99,7 +100,8 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.issuesReportIssue)),
-      body: ListView(
+      body: ResponsiveBody(
+        child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           TextField(controller: _titleController, decoration: InputDecoration(labelText: l10n.issuesIssueTitle)),
@@ -135,6 +137,7 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
                 : Text(l10n.commonSave),
           ),
         ],
+      ),
       ),
     );
   }

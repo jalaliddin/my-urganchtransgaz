@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../core/network/api_providers.dart';
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/announcements_repository.dart';
 import 'announcements_controller.dart';
@@ -25,7 +26,8 @@ class AnnouncementDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.announcementsTitle)),
-      body: AsyncValueView(
+      body: ResponsiveBody(
+        child: AsyncValueView(
         value: detail,
         onRetry: () => ref.invalidate(announcementDetailProvider(id)),
         data: (context, announcement) {
@@ -75,6 +77,7 @@ class AnnouncementDetailScreen extends ConsumerWidget {
             ),
           );
         },
+      ),
       ),
     );
   }

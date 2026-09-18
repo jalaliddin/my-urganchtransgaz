@@ -7,6 +7,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/task.dart';
 import 'tasks_controller.dart';
@@ -37,10 +38,12 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.tasksTitle)),
-      body: AsyncValueView(
-        value: taskState,
-        onRetry: () => ref.invalidate(taskDetailProvider(widget.id)),
-        data: (context, task) => _buildBody(context, task, l10n),
+      body: ResponsiveBody(
+        child: AsyncValueView(
+          value: taskState,
+          onRetry: () => ref.invalidate(taskDetailProvider(widget.id)),
+          data: (context, task) => _buildBody(context, task, l10n),
+        ),
       ),
     );
   }

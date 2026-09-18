@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/announcement.dart';
 import 'announcements_controller.dart';
@@ -17,7 +18,8 @@ class AnnouncementsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.announcementsTitle)),
-      body: RefreshIndicator(
+      body: ResponsiveBody(
+        child: RefreshIndicator(
         onRefresh: () => ref.read(announcementsControllerProvider.notifier).refresh(),
         child: AsyncValueView(
           value: announcements,
@@ -39,6 +41,7 @@ class AnnouncementsScreen extends ConsumerWidget {
             );
           },
         ),
+      ),
       ),
     );
   }

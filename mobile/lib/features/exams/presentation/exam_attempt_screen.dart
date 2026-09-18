@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/exam.dart';
 import 'exams_controller.dart';
@@ -31,10 +32,12 @@ class _ExamAttemptScreenState extends ConsumerState<ExamAttemptScreen> {
       },
       child: Scaffold(
         appBar: AppBar(title: Text(l10n.examsTitle)),
-        body: AsyncValueView(
-          value: attemptState,
-          onRetry: () => ref.invalidate(examAttemptProvider(widget.examId)),
-          data: (context, attempt) => _buildQuiz(context, attempt, l10n),
+        body: ResponsiveBody(
+          child: AsyncValueView(
+            value: attemptState,
+            onRetry: () => ref.invalidate(examAttemptProvider(widget.examId)),
+            data: (context, attempt) => _buildQuiz(context, attempt, l10n),
+          ),
         ),
       ),
     );

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/exam.dart';
 import 'exams_controller.dart';
@@ -42,7 +43,8 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> with SingleTickerProv
           tabs: [Tab(text: l10n.examsTabAvailable), Tab(text: l10n.examsTabResults)],
         ),
       ),
-      body: RefreshIndicator(
+      body: ResponsiveBody(
+        child: RefreshIndicator(
         onRefresh: () => ref.read(examsControllerProvider.notifier).refresh(),
         child: AsyncValueView(
           value: exams,
@@ -60,6 +62,7 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> with SingleTickerProv
             );
           },
         ),
+      ),
       ),
     );
   }
