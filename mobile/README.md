@@ -17,20 +17,20 @@ controllers, not just assumed from the web app's behavior).
 history), profile (view/edit self-service fields, photo, pending
 change-request status), documents (list/upload/download), tasks
 (list/detail/progress/complete/comments/attachments), KPI (my results),
-safety exams (available/take/results), leave requests
-(list/submit/cancel), announcements (feed/detail), notifications
-(list/mark read), plus a read-only "upcoming business trips" line on
-the dashboard.
+safety exams (available/take/results), location-based issue reporting
+("Muammolar" — report/list/detail/comment, and resolve for
+technical-policy), announcements (feed/detail), notifications
+(list/mark read).
 
 **Out (stays on the web app):** all organization/department/employee
 management, KPI template/exam authoring, task assignment/approval,
-leave-request approvals, announcement authoring/publishing, settings,
-audit logs, global search, import/export, business-trip creation. Those
-screens are data-table- and multi-field-form-heavy and suit a wide
-screen better than a phone. There's also no push-notification transport
-here — the backend only has in-app notifications (see the web app's own
-Phase 9 README) — so this app polls the unread-count endpoint on
-refresh instead of anything push-based.
+announcement authoring/publishing, settings, audit logs, global search,
+import/export. Those screens are data-table- and multi-field-form-heavy
+and suit a wide screen better than a phone. There's also no
+push-notification transport here — the backend only has in-app
+notifications (see the web app's own Phase 9 README) — so this app
+polls the unread-count endpoint on refresh instead of anything
+push-based.
 
 ## Stack
 
@@ -48,6 +48,11 @@ refresh instead of anything push-based.
   `fromJson` — no `freezed`/`build_runner`, since every response shape
   was read directly from the actual `Api\V1\*Resource` classes rather
   than guessed.
+- **Maps:** `flutter_map` + `latlong2` (OpenStreetMap tiles, no API key
+  or billing), the Flutter-side equivalent of the web app's Leaflet
+  map — same tile source, same colored-dot marker convention. The
+  Issues module's "use my location" button uses `geolocator` for
+  on-device GPS.
 - **i18n:** `uz` (default) and `ru` via `.arb` files (`lib/l10n/`),
   ported from `frontend/src/locales/*.json`'s existing, already-approved
   translations — no English, by design: the target audience is this
@@ -70,7 +75,7 @@ lib/
   core/            # network client, secure storage, theme, router, shared widgets/models
   features/
     auth/ dashboard/ attendance/ profile/ documents/
-    tasks/ kpi/ exams/ leave_requests/ announcements/
+    tasks/ kpi/ exams/ issues/ announcements/
     notifications/ more/
       data/          # Repository classes (talk to ApiClient)
       domain/        # Plain models
@@ -155,8 +160,9 @@ be produced or run here. What *was* verified for real:
   account, checked in for the day (and confirmed the button states
   update correctly), browsed attendance history with the real resulting
   record, and opened every other screen (tasks, documents, profile,
-  KPI, exams, leave requests, announcements, notifications) — all with
-  real data and zero console errors, then logged out.
+  KPI, exams, issues (report/detail/comment/resolve), announcements,
+  notifications) — all with real data and zero console errors, then
+  logged out.
 
 **Before shipping to a real device, run it once for real** — `flutter
 run` on an Android emulator or physical device (or `flutter run -d ios`
@@ -169,10 +175,20 @@ actual touch-target sizing.
 - **Every endpoint already scoped correctly for a plain `employee`
   role** — verified directly against the controllers, not assumed:
   `TaskController::index()` already restricts a non-central user to
-  tasks they created or are assigned to; `LeaveRequestController::index()`
-  always includes the caller's own requests. No backend change,
-  no extra query parameter, was needed for any of the "my X" screens
-  in this app.
+  tasks they created or are assigned to; `IssueController::index()`
+  scopes a department-manager to their own department and shows
+  leadership roles everything. No backend change, no extra query
+  parameter, was needed for any of the "my X" screens in this app.
+- **Issues module mirrors the web app's design 1:1**: the same
+  `flutter_map`/Leaflet map-first UI, the same two-state
+  (open/resolved) model, the same "only Technical Policy Service's
+  response counts as resolved" rule, and the same single
+  `GET /issues` endpoint serving both a department-manager's own list
+  and the leadership map — there is no separate mobile-only Issues
+  API. See [`backend/README.md`](../backend/README.md)'s Phase 8
+  section for the full design rationale (permission model, why
+  leadership visibility is narrower than `hasCentralAccess()`, why
+  Leave Requests/Business Trips were removed).
 - **`GET /attendance/today` returns a scoped board, not a single "my
   status" record** (it's shared with the web app's HR/manager view) —
   the mobile dashboard/attendance-today screen finds the caller's own
