@@ -29,7 +29,7 @@
       "lead": "Har bir imkoniyat rolga qarab ochiladi: xodim faqat o'zinikini, bo'lim boshlig'i o'z bo'limini, rahbariyat esa butun kompaniyani ko'radi.",
       "issues": {
         "title": "Muammolarni xaritada belgilang",
-        "text": "Bo'lim boshlig'i yoki Texnik siyosat xizmati muammoni aniq joyi bilan qayd etadi. Bartaraf etilmaguncha u rahbariyat xaritasida turadi, yakunlash esa faqat Texnik siyosat xizmatining javobi bilan amalga oshadi.",
+        "text": "Har bir xodim muammoni aniq joyi va ijrochilari bilan qayd etadi. Bartaraf etilmaguncha u rahbariyat xaritasida turadi, yakunlash esa faqat Texnik siyosat xizmatining javobi bilan amalga oshadi.",
         "open": "Ochiq",
         "resolved": "Bartaraf etilgan",
         "timeline1": "Qayd etildi",
@@ -88,7 +88,7 @@
     "dataCollectedTitle": "Qanday ma'lumotlar to'planadi",
     "dataCollected": "Xodimning F.I.Sh., lavozimi, bo'limi, aloqa ma'lumotlari (telefon, elektron pochta), fotosurati, davomat yozuvlari, topshiriqlar, KPI natijalari, xavfsizlik bo'yicha imtihon natijalari va yuklangan hujjatlar (pasport, shartnoma va h.k.) — bularning barchasi ish beruvchi tomonidan HR maqsadlarida qayta ishlanadi.",
     "locationTitle": "Joylashuv (lokatsiya) ma'lumotlari",
-    "location": "\"Muammolar\" bo'limi orqali bo'lim boshlig'i yoki texnik siyosat xizmati xodimi muammoni qayd etganda, faqat o'sha muammoning geografik nuqtasini xaritada belgilash uchun joriy joylashuv (GPS) so'ralishi mumkin. Bu ma'lumot faqat foydalanuvchi \"Joriy joylashuvdan foydalanish\" tugmasini bosib, unga ruxsat berganda olinadi; fon rejimida yoki foydalanuvchi bilmagan holda hech qachon kuzatilmaydi va faqat tegishli muammo yozuvi bilan birga saqlanadi.",
+    "location": "\"Muammolar\" bo'limi orqali xodim muammoni qayd etganda, faqat o'sha muammoning geografik nuqtasini xaritada belgilash uchun joriy joylashuv (GPS) so'ralishi mumkin. Bu ma'lumot faqat foydalanuvchi \"Joriy joylashuvdan foydalanish\" tugmasini bosib, unga ruxsat berganda olinadi; fon rejimida yoki foydalanuvchi bilmagan holda hech qachon kuzatilmaydi va faqat tegishli muammo yozuvi bilan birga saqlanadi.",
     "storageTitle": "Ma'lumotlar qayerda saqlanadi",
     "storage": "Barcha ma'lumotlar tashkilotning o'z serverida (my.urtg.uz) saqlanadi. Ma'lumotlar uchinchi shaxslarga, reklama kompaniyalariga yoki tahlil (analitika) xizmatlariga hech qachon berilmaydi yoki sotilmaydi.",
     "accessTitle": "Kimlar ko'ra oladi",
@@ -116,7 +116,8 @@
     "auditLogs": "Audit jurnali",
     "myProfile": "Mening profilim",
     "myDocuments": "Mening hujjatlarim",
-    "logout": "Tizimdan chiqish"
+    "logout": "Tizimdan chiqish",
+    "issueCategories": "Muammo kategoriyalari"
   },
   "auth": {
     "login": "Kirish",
@@ -443,12 +444,13 @@
     "resolvedAt": "Bartaraf etilgan vaqt",
     "noIssues": "Muammolar topilmadi",
     "category": "Kategoriya",
-    "organization": "Quyi tashkilot",
-    "responsible": "Mas'ul xodim",
-    "responsibleSelf": "Siz o'zingiz mas'ul bo'lasiz",
+    "organization": "Tashkilot",
     "allCategories": "Barcha kategoriyalar",
-    "pickOrganizationFirst": "Avval quyi tashkilotni tanlang",
-    "noCandidates": "Bu tashkilotda mas'ul bo'la oladigan xodim topilmadi"
+    "pickOrganizationFirst": "Avval tashkilotni tanlang",
+    "noCandidates": "Bu tashkilotda ijrochi bo'la oladigan xodim topilmadi",
+    "executors": "Ijrochilar",
+    "selectExecutors": "Bir yoki bir nechta ijrochini tanlang",
+    "noExecutors": "Ijrochi tayinlanmagan"
   },
   "search": {
     "placeholder": "Qidirish...",
@@ -505,5 +507,13 @@
   "reports": {
     "employeeDistribution": "Xodimlar taqsimoti",
     "taskStatusBreakdown": "Topshiriqlar holati"
+  },
+  "issueCategories": {
+    "title": "Muammo kategoriyalari",
+    "name": "Nomi",
+    "sortOrder": "Tartib raqami",
+    "issuesCount": "Muammolar soni",
+    "hint": "Hisobotlarda muammolar shu kategoriyalar bo'yicha guruhlanadi. Muammolarda ishlatilgan kategoriyani o'chirib bo'lmaydi — uni faolsiz qiling.",
+    "deleteUsed": "Bu kategoriya muammolarda ishlatilgan, o'chirib bo'lmaydi. Uni faolsiz qiling."
   }
 }

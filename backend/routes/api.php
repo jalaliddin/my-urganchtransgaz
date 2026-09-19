@@ -20,6 +20,7 @@ Route::prefix('v1')->group(function () {
         require base_path('routes/api/kpi.php');
         require base_path('routes/api/announcements.php');
         require base_path('routes/api/issues.php');
+        require base_path('routes/api/issue-categories.php');
         require base_path('routes/api/settings.php');
         require base_path('routes/api/audit-logs.php');
         require base_path('routes/api/search.php');

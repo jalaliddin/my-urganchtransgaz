@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
 use App\Enums\Gender;
-use App\Enums\UserStatus;
 use Database\Factories\EmployeeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -39,20 +38,15 @@ class Employee extends Model
     }
 
     /**
-     * Employees who can actually be held responsible for an issue: still
-     * working, with an active account that may open the Issues module —
-     * otherwise they'd be named responsible for something they can never
-     * see, comment on, or be notified about.
+     * Anyone still employed can be named an executor — including people
+     * without a login, since the work is done in the field, not in the app.
+     * Only inactive and terminated employees are left out.
      *
      * @param  Builder<Employee>  $query
      */
-    public function scopeIssueHandlers(Builder $query): void
+    public function scopeIssueExecutors(Builder $query): void
     {
-        $query
-            ->whereNotIn('status', [EmployeeStatus::Inactive->value, EmployeeStatus::Terminated->value])
-            ->whereHas('user', fn (Builder $user) => $user
-                ->where('status', UserStatus::Active->value)
-                ->permission('issues.view'));
+        $query->whereNotIn('status', [EmployeeStatus::Inactive->value, EmployeeStatus::Terminated->value]);
     }
 
     public function organization(): BelongsTo
@@ -98,6 +92,11 @@ class Employee extends Model
     public function todayAttendance(): HasOne
     {
         return $this->hasOne(AttendanceRecord::class)->whereDate('date', now()->toDateString());
+    }
+
+    public function assignedIssues(): BelongsToMany
+    {
+        return $this->belongsToMany(Issue::class, 'issue_executors')->withTimestamps();
     }
 
     public function assignedTasks(): BelongsToMany

@@ -80,6 +80,12 @@ const navItems = computed<NavItem[]>(() =>
       permission: 'issues.view',
     },
     {
+      title: 'nav.issueCategories',
+      icon: 'mdi-tag-multiple-outline',
+      to: '/issue-categories',
+      permission: 'issue_categories.manage',
+    },
+    {
       title: 'nav.documents',
       icon: 'mdi-file-document-outline',
       to: '/documents',

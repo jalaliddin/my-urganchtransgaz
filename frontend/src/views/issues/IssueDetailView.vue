@@ -126,7 +126,13 @@ function goBack() {
         <v-card class="mb-4">
           <v-list density="compact">
             <v-list-item :title="issue.reporter?.full_name ?? '—'" :subtitle="$t('issues.reporter')" prepend-icon="mdi-account-outline" />
-            <v-list-item v-if="issue.responsible" :title="issue.responsible.full_name" :subtitle="$t('issues.responsible')" prepend-icon="mdi-account-check-outline" />
+            <v-list-item
+              v-for="executor in issue.executors"
+              :key="executor.id"
+              :title="executor.full_name"
+              :subtitle="$t('issues.executors')"
+              prepend-icon="mdi-account-check-outline"
+            />
             <v-list-item v-if="issue.organization" :title="issue.organization.name" :subtitle="$t('employees.organization')" prepend-icon="mdi-domain" />
             <v-list-item v-if="issue.department" :title="issue.department.name" :subtitle="$t('issues.department')" prepend-icon="mdi-sitemap-outline" />
             <v-list-item v-if="issue.object_name" :title="issue.object_name" :subtitle="$t('issues.objectName')" prepend-icon="mdi-map-marker-outline" />

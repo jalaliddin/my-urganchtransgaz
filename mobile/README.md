@@ -18,8 +18,9 @@ history), profile (view/edit self-service fields, photo, pending
 change-request status), documents (list/upload/download), tasks
 (list/detail/progress/complete/comments/attachments), KPI (my results),
 safety exams (available/take/results), location-based issue reporting
-("Muammolar" — report/list/detail/comment, and resolve for
-technical-policy), announcements (feed/detail), notifications
+("Muammolar" — any employee can report, choosing the organization,
+a category and one or more executors; list/detail/comment, and resolve
+for technical-policy), announcements (feed/detail), notifications
 (list/mark read).
 
 **Out (stays on the web app):** all organization/department/employee

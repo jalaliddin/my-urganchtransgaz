@@ -20,6 +20,9 @@ class IssueCategoryResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'code' => $this->code,
+            'sort_order' => $this->sort_order,
+            'status' => $this->status,
+            'issues_count' => $this->whenCounted('issues'),
         ];
     }
 }

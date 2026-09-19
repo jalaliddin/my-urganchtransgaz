@@ -73,21 +73,21 @@ void main() {
     test('IssueOptions parses organizations, categories and the choose-responsible flag', () {
       final options = IssueOptions.fromJson({
         'organizations': [
-          {'id': 3, 'name': 'Urganch shahar gaz ta\'minoti boshqarmasi', 'code': 'UTG-001'},
+          {'id': 3, 'name': 'Urganch shahar gaz ta\'minoti boshqarmasi', 'code': 'UTG-001', 'type': 'subordinate'},
         ],
         'categories': [
           {'id': 1, 'name': 'Gaz sizib chiqishi', 'code': 'gas_leak'},
         ],
-        'must_choose_responsible': true,
+        'default_executor_id': 7,
       });
 
       expect(options.organizations.single.id, 3);
       expect(options.categories.single.code, 'gas_leak');
-      expect(options.mustChooseResponsible, isTrue);
+      expect(options.defaultExecutorId, 7);
     });
 
-    test('IssueResponsibleCandidate joins position and department into a subtitle', () {
-      final candidate = IssueResponsibleCandidate.fromJson({
+    test('IssueExecutorCandidate joins position and department into a subtitle', () {
+      final candidate = IssueExecutorCandidate.fromJson({
         'id': 9,
         'full_name': 'Valiyev Ali',
         'department': 'Texnik xizmat guruhi',
@@ -97,7 +97,7 @@ void main() {
       expect(candidate.subtitle, 'Bo\'lim boshlig\'i · Texnik xizmat guruhi');
     });
 
-    test('Issue carries its category and responsible employee', () {
+    test('Issue carries its category and every executor', () {
       final issue = Issue.fromJson({
         'id': 4,
         'title': 'Gaz hidi',
@@ -105,14 +105,17 @@ void main() {
         'longitude': 60.6,
         'status': 'open',
         'category': {'id': 1, 'name': 'Gaz sizib chiqishi', 'code': 'gas_leak'},
-        'responsible': {'id': 9, 'employee_number': 'EMP00009', 'first_name': 'Ali', 'last_name': 'Valiyev', 'full_name': 'Valiyev Ali', 'status': 'active'},
+        'executors': [
+          {'id': 9, 'employee_number': 'EMP00009', 'first_name': 'Ali', 'last_name': 'Valiyev', 'full_name': 'Valiyev Ali', 'status': 'active'},
+          {'id': 10, 'employee_number': 'EMP00010', 'first_name': 'Vali', 'last_name': 'Aliyev', 'full_name': 'Aliyev Vali', 'status': 'active'},
+        ],
         'comments': [],
         'activities': [],
         'created_at': '2026-09-19T10:00:00Z',
       });
 
       expect(issue.category?.name, 'Gaz sizib chiqishi');
-      expect(issue.responsible?.fullName, 'Valiyev Ali');
+      expect(issue.executors.map((e) => e.fullName), ['Valiyev Ali', 'Aliyev Vali']);
     });
   });
 }

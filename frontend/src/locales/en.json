@@ -29,7 +29,7 @@
       "lead": "Every feature opens by role: employees see their own records, department heads their department, leadership the whole company.",
       "issues": {
         "title": "Pin problems on a map",
-        "text": "A department head or the Technical Policy Service logs a problem at its exact location. It stays on leadership's map until it is fixed, and only the Technical Policy Service's response can close it.",
+        "text": "Any employee logs a problem at its exact location with the people who will handle it. It stays on leadership's map until it is fixed, and only the Technical Policy Service's response can close it.",
         "open": "Open",
         "resolved": "Resolved",
         "timeline1": "Logged",
@@ -88,7 +88,7 @@
     "dataCollectedTitle": "What data is collected",
     "dataCollected": "An employee's full name, position, department, contact details (phone, email), photo, attendance records, tasks, KPI results, safety exam results, and uploaded documents (passport, contract, etc.) — all processed by the employer for HR purposes.",
     "locationTitle": "Location data",
-    "location": "When a department manager or a Technical Policy Service employee reports a problem in the \"Issues\" module, the app may request the current location (GPS) solely to mark that issue's geographic point on a map. This data is only collected when the user themselves taps \"Use current location\" and grants permission; it is never tracked in the background or without the user's knowledge, and is stored only together with that issue's record.",
+    "location": "When an employee reports a problem in the \"Issues\" module, the app may request the current location (GPS) solely to mark that issue's geographic point on a map. This data is only collected when the user themselves taps \"Use current location\" and grants permission; it is never tracked in the background or without the user's knowledge, and is stored only together with that issue's record.",
     "storageTitle": "Where data is stored",
     "storage": "All data is stored on the organization's own server (my.urtg.uz). Data is never shared with or sold to third parties, advertising companies, or analytics services.",
     "accessTitle": "Who can access it",
@@ -116,7 +116,8 @@
     "auditLogs": "Audit Logs",
     "myProfile": "My Profile",
     "myDocuments": "My Documents",
-    "logout": "Logout"
+    "logout": "Logout",
+    "issueCategories": "Issue categories"
   },
   "auth": {
     "login": "Login",
@@ -443,12 +444,13 @@
     "resolvedAt": "Resolved at",
     "noIssues": "No issues found",
     "category": "Category",
-    "organization": "Subordinate organization",
-    "responsible": "Responsible employee",
-    "responsibleSelf": "You will be the responsible person",
+    "organization": "Organization",
     "allCategories": "All categories",
     "pickOrganizationFirst": "Select an organization first",
-    "noCandidates": "No employee in this organization can be made responsible"
+    "noCandidates": "No employee in this organization can be made an executor",
+    "executors": "Executors",
+    "selectExecutors": "Pick one or more executors",
+    "noExecutors": "No executor assigned"
   },
   "search": {
     "placeholder": "Search...",
@@ -505,5 +507,13 @@
   "reports": {
     "employeeDistribution": "Employee distribution",
     "taskStatusBreakdown": "Task status breakdown"
+  },
+  "issueCategories": {
+    "title": "Issue categories",
+    "name": "Name",
+    "sortOrder": "Order",
+    "issuesCount": "Issues",
+    "hint": "Reports group issues by these categories. A category already used by issues can't be deleted — deactivate it instead.",
+    "deleteUsed": "This category is used by issues and can't be deleted. Deactivate it instead."
   }
 }

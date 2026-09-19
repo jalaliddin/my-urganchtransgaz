@@ -12,9 +12,9 @@ final issueOptionsProvider = FutureProvider.autoDispose<IssueOptions>((ref) {
   return ref.watch(issuesRepositoryProvider).options();
 });
 
-final responsibleCandidatesProvider =
-    FutureProvider.autoDispose.family<List<IssueResponsibleCandidate>, int>((ref, organizationId) {
-  return ref.watch(issuesRepositoryProvider).responsibleCandidates(organizationId);
+final executorCandidatesProvider =
+    FutureProvider.autoDispose.family<List<IssueExecutorCandidate>, int>((ref, organizationId) {
+  return ref.watch(issuesRepositoryProvider).executorCandidates(organizationId);
 });
 
 /// Defaults to open-only — "shown on the map until resolved" is the

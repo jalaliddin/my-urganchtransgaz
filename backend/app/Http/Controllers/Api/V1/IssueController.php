@@ -53,21 +53,35 @@ class IssueController extends Controller
         $user = request()->user();
 
         $query = QueryBuilder::for(Issue::class)
-            ->with(['reporter', 'organization', 'department', 'category', 'responsible'])
+            ->with(['reporter', 'organization', 'department', 'category', 'executors'])
             ->allowedFilters(
                 AllowedFilter::exact('status'),
                 AllowedFilter::exact('issue_category_id'),
                 AllowedFilter::exact('organization_id'),
-                AllowedFilter::exact('responsible_employee_id'),
+                AllowedFilter::exact('executor_id', 'executors.id'),
             )
             ->defaultSort('-created_at');
 
-        // Everyone below leadership sees their own department's issues,
-        // plus any issue they were named responsible for.
         if (! $this->isLeadership($user)) {
-            $query->where(fn ($scope) => $scope
-                ->where('department_id', $user->employee?->department_id ?? 0)
-                ->orWhere('responsible_employee_id', $user->employee?->id ?? 0));
+            $employee = $user->employee;
+
+            // Below leadership: what you reported or are executing — plus,
+            // for a department-manager, what their department raised or is
+            // executing, and for an organization-admin their whole
+            // organization. `IssuePolicy::view()` mirrors this exactly.
+            $query->where(function ($scope) use ($user, $employee) {
+                $scope->where('reporter_employee_id', $employee?->id ?? 0)
+                    ->orWhereHas('executors', fn ($executors) => $executors->whereKey($employee?->id ?? 0));
+
+                if ($user->hasRole('organization-admin') && $employee) {
+                    $scope->orWhere('organization_id', $employee->organization_id);
+                }
+
+                if ($user->hasRole('department-manager') && $employee?->department_id) {
+                    $scope->orWhere('department_id', $employee->department_id)
+                        ->orWhereHas('executors', fn ($executors) => $executors->where('employees.department_id', $employee->department_id));
+                }
+            });
         }
 
         $issues = $query->paginate(request()->integer('per_page', 50));
@@ -76,64 +90,67 @@ class IssueController extends Controller
     }
 
     /**
-     * What the "report an issue" form needs: the categories, the
-     * organizations this user may file against (every active subordinate
-     * organization for Technical Policy Service and central roles; only their
-     * own for a department-manager), and whether they must name a
-     * responsible employee (a department-manager is responsible for what
-     * they report themselves). Computed here so every client applies the
-     * same rules instead of each re-deriving them from roles.
+     * What the "report an issue" form needs: the categories, and the
+     * organizations this user may file against — every active organization
+     * (head office and subordinates) for roles with company-wide reach,
+     * only their own for everyone else. A department-manager gets
+     * themselves as the suggested executor. Computed here so every client
+     * applies the same rules instead of each re-deriving them from roles.
      */
     public function options(Request $request): JsonResponse
     {
         Gate::authorize('create', Issue::class);
 
         $user = $request->user();
-        $mustChooseResponsible = $user->mustChooseIssueResponsible();
 
         $organizations = Organization::query()
             ->where('status', ActiveStatus::Active)
             ->when(
-                $mustChooseResponsible,
-                fn ($query) => $query->where('type', OrganizationType::Subordinate),
+                $user->hasCentralAccess(),
+                fn ($query) => $query->orderByRaw('type = ? desc', [OrganizationType::Central->value]),
                 fn ($query) => $query->whereKey($user->employee?->organization_id),
             )
             ->orderBy('name')
-            ->get(['id', 'name', 'code']);
+            ->get(['id', 'name', 'code', 'type']);
 
         $categories = IssueCategory::where('status', ActiveStatus::Active)->orderBy('sort_order')->get();
 
         return $this->success([
             'organizations' => $organizations,
             'categories' => IssueCategoryResource::collection($categories),
-            'must_choose_responsible' => $mustChooseResponsible,
+            'default_executor_id' => $user->hasRole('department-manager') ? $user->employee?->id : null,
         ]);
     }
 
     /**
-     * Employees who can be named responsible for an issue in the given
-     * organization — see `Employee::scopeIssueHandlers()`. Only asked for
-     * by users who must choose one.
+     * Everyone who can be named an executor in the given organization — all
+     * of its current employees (see `Employee::scopeIssueExecutors()`). A
+     * user may only look inside their own organization unless they have
+     * company-wide reach, so this can't be used to enumerate another
+     * organization's staff.
      */
-    public function responsibleCandidates(Request $request): JsonResponse
+    public function executorCandidates(Request $request): JsonResponse
     {
         Gate::authorize('create', Issue::class);
 
-        abort_unless($request->user()->mustChooseIssueResponsible(), 403);
+        $user = $request->user();
 
-        $organizationId = $request->validate([
+        $organizationId = (int) $request->validate([
             'organization_id' => ['required', 'integer', 'exists:organizations,id'],
         ])['organization_id'];
 
-        $employees = Employee::issueHandlers()
+        abort_unless($user->hasCentralAccess() || $user->employee?->organization_id === $organizationId, 403);
+
+        $employees = Employee::issueExecutors()
             ->where('organization_id', $organizationId)
             ->with(['department', 'position'])
             ->orderBy('last_name')
+            ->orderBy('first_name')
             ->get();
 
         return $this->success($employees->map(fn (Employee $employee) => [
             'id' => $employee->id,
-            'full_name' => $employee->full_name,
+            'full_name' => $employee->fullName(),
             'department' => $employee->department?->name,
             'position' => $employee->position?->title,
         ])->values());
@@ -147,18 +164,14 @@ class IssueController extends Controller
         $user = $request->user();
         $data = $request->validated();
 
-        // A department-manager is responsible for what they report;
-        // everyone else names someone (already validated as eligible).
-        $responsible = $user->mustChooseIssueResponsible()
-            ? Employee::findOrFail($data['responsible_employee_id'])
-            : $user->employee;
-
         $issue = Issue::create([
             'reporter_employee_id' => $user->employee->id,
             'organization_id' => $request->targetOrganizationId(),
-            'department_id' => $responsible->department_id,
+            // The department that raised it (the reporter's own) — what a
+            // department-manager's list is scoped by. The executors may
+            // belong to other departments of the organization.
+            'department_id' => $user->employee->department_id,
             'issue_category_id' => $data['issue_category_id'],
-            'responsible_employee_id' => $responsible->id,
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'object_name' => $data['object_name'] ?? null,
@@ -167,23 +180,36 @@ class IssueController extends Controller
             'status' => IssueStatus::Open,
         ]);
 
+        $issue->executors()->attach(array_unique($data['executor_ids']));
+        $issue->load('executors.user');
+
         $this->recordActivity->handle($issue, $user, 'created', "{$user->name} muammoni qayd etdi.");
+        $this->recordActivity->handle(
+            $issue,
+            $user,
+            'assigned',
+            'Ijrochilar: '.$issue->executors->map->fullName()->join(', ').'.'
+        );
 
         Notification::send(User::role('technical-policy')->get(), new IssueReported($issue));
 
-        if ($responsible->id !== $user->employee->id) {
-            $this->recordActivity->handle($issue, $user, 'assigned', "Mas'ul xodim: {$responsible->full_name}.");
-            $responsible->user?->notify(new IssueAssigned($issue));
-        }
+        // Executors are told they were assigned — except the reporter, who
+        // already knows (a department-manager typically names themselves).
+        $assignees = $issue->executors
+            ->where('id', '!=', $user->employee->id)
+            ->map->user
+            ->filter();
+
+        Notification::send($assignees, new IssueAssigned($issue));
 
         $this->auditLog->log('created', 'issues', $issue, newValues: [
             'title' => $issue->title,
             'issue_category_id' => $issue->issue_category_id,
-            'responsible_employee_id' => $issue->responsible_employee_id,
+            'executor_ids' => $issue->executors->pluck('id')->all(),
         ]);
 
         return $this->success(
-            new IssueResource($issue->load(['reporter', 'organization', 'department', 'category', 'responsible'])),
+            new IssueResource($issue->load(['reporter', 'organization', 'department', 'category', 'executors'])),
             'Muammo qayd etildi.',
             201
         );
@@ -197,7 +223,7 @@ class IssueController extends Controller
         Gate::authorize('view', $issue);
 
         $issue->load([
-            'reporter', 'organization', 'department', 'category', 'responsible', 'resolvedBy',
+            'reporter', 'organization', 'department', 'category', 'executors', 'resolvedBy',
             'comments.user', 'activities.causer',
         ]);
 
@@ -228,12 +254,19 @@ class IssueController extends Controller
 
         $this->recordActivity->handle($issue, $user, 'resolved', "{$user->name} muammoni bartaraf etdi.");
 
-        $issue->reporter->user?->notify(new IssueResolved($issue));
+        // The reporter and everyone working on it hear the outcome.
+        $issue->load('executors.user');
+        $recipients = $issue->executors->map->user
+            ->push($issue->reporter->user)
+            ->filter()
+            ->unique('id');
+
+        Notification::send($recipients, new IssueResolved($issue));
 
         $this->auditLog->log('resolved', 'issues', $issue, newValues: ['resolution_note' => $issue->resolution_note]);
 
         return $this->success(
-            new IssueResource($issue->load(['reporter', 'organization', 'department', 'category', 'responsible', 'resolvedBy'])),
+            new IssueResource($issue->load(['reporter', 'organization', 'department', 'category', 'executors', 'resolvedBy'])),
             'Muammo bartaraf etildi.'
         );
     }

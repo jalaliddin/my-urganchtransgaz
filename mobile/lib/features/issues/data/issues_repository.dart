@@ -36,15 +36,15 @@ class IssuesRepository {
     }
   }
 
-  Future<List<IssueResponsibleCandidate>> responsibleCandidates(int organizationId) async {
+  Future<List<IssueExecutorCandidate>> executorCandidates(int organizationId) async {
     try {
       final response = await _client.dio.get<Map<String, dynamic>>(
-        '/issues/responsible-candidates',
+        '/issues/executor-candidates',
         queryParameters: {'organization_id': organizationId},
       );
       final data = response.data!['data'] as List<dynamic>;
 
-      return data.map((e) => IssueResponsibleCandidate.fromJson(e as Map<String, dynamic>)).toList();
+      return data.map((e) => IssueExecutorCandidate.fromJson(e as Map<String, dynamic>)).toList();
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }
@@ -64,9 +64,9 @@ class IssuesRepository {
     required String title,
     String? description,
     String? objectName,
-    int? organizationId,
+    required int organizationId,
     required int categoryId,
-    int? responsibleEmployeeId,
+    required List<int> executorIds,
     required double latitude,
     required double longitude,
   }) async {
@@ -75,9 +75,9 @@ class IssuesRepository {
         'title': title,
         'description': ?description,
         'object_name': ?objectName,
-        'organization_id': ?organizationId,
+        'organization_id': organizationId,
         'issue_category_id': categoryId,
-        'responsible_employee_id': ?responsibleEmployeeId,
+        'executor_ids': executorIds,
         'latitude': latitude,
         'longitude': longitude,
       });

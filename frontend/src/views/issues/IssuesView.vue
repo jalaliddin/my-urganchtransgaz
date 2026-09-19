@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router'
 import LeafletMap, { type MapMarker } from '@/components/issues/LeafletMap.vue'
 import { issueService } from '@/services/issueService'
 import { useAuthStore } from '@/stores/auth'
-import type { Issue, IssueCategory, IssueOptions, IssueResponsibleCandidate } from '@/types/models'
+import type { Issue, IssueCategory, IssueExecutorCandidate, IssueOptions } from '@/types/models'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -58,7 +58,7 @@ const headers = computed(() => [
   { title: t('issues.issueTitle'), key: 'title' },
   { title: t('issues.category'), key: 'category' },
   { title: t('issues.organization'), key: 'organization' },
-  { title: t('issues.responsible'), key: 'responsible' },
+  { title: t('issues.executors'), key: 'executors', sortable: false },
   { title: t('issues.status'), key: 'status' },
 ])
 
@@ -74,10 +74,10 @@ const form = ref({
   object_name: '',
   organization_id: null as number | null,
   issue_category_id: null as number | null,
-  responsible_employee_id: null as number | null,
+  executor_ids: [] as number[],
 })
 const options = ref<IssueOptions | null>(null)
-const candidates = ref<IssueResponsibleCandidate[]>([])
+const candidates = ref<IssueExecutorCandidate[]>([])
 const loadingCandidates = ref(false)
 const pickedLocation = ref<{ lat: number; lng: number } | null>(null)
 const formErrors = ref<Record<string, string[]>>({})
@@ -90,7 +90,7 @@ async function openCreate() {
     object_name: '',
     organization_id: null,
     issue_category_id: null,
-    responsible_employee_id: null,
+    executor_ids: [],
   }
   pickedLocation.value = null
   candidates.value = []
@@ -100,26 +100,32 @@ async function openCreate() {
   options.value = await issueService.options()
   categories.value = options.value.categories
 
-  // A department-manager only ever has their own organization to pick from
-  // — preselect it rather than making them choose from a list of one.
+  // Someone who can only file against their own organization has exactly
+  // one to pick from — preselect it rather than making them choose from a
+  // list of one.
   if (options.value.organizations.length === 1) {
     form.value.organization_id = options.value.organizations[0].id
     await loadCandidates()
   }
 }
 
-// The responsible employee must belong to the chosen organization, so the
-// candidate list follows the organization select and the old choice is
-// dropped whenever it changes.
+// Executors must belong to the chosen organization, so the candidate list
+// follows the organization select and the old selection is dropped whenever
+// it changes. A department-manager is offered themselves as the starting
+// executor (they're normally the one handling what they report).
 async function loadCandidates() {
-  form.value.responsible_employee_id = null
+  form.value.executor_ids = []
   candidates.value = []
 
-  if (!options.value?.must_choose_responsible || !form.value.organization_id) return
+  if (!form.value.organization_id) return
 
   loadingCandidates.value = true
   try {
-    candidates.value = await issueService.responsibleCandidates(form.value.organization_id)
+    candidates.value = await issueService.executorCandidates(form.value.organization_id)
+    const suggested = options.value?.default_executor_id
+    if (suggested && candidates.value.some((candidate) => candidate.id === suggested)) {
+      form.value.executor_ids = [suggested]
+    }
   } finally {
     loadingCandidates.value = false
   }
@@ -140,7 +146,7 @@ async function save() {
       object_name: form.value.object_name || null,
       organization_id: form.value.organization_id,
       issue_category_id: form.value.issue_category_id as number,
-      responsible_employee_id: form.value.responsible_employee_id,
+      executor_ids: form.value.executor_ids,
       latitude: pickedLocation.value.lat,
       longitude: pickedLocation.value.lng,
     })
@@ -193,7 +199,13 @@ async function save() {
       </template>
       <template #item.category="{ item }">{{ item.category?.name ?? '—' }}</template>
       <template #item.organization="{ item }">{{ item.organization?.name ?? '—' }}</template>
-      <template #item.responsible="{ item }">{{ item.responsible?.full_name ?? '—' }}</template>
+      <template #item.executors="{ item }">
+        <span v-if="!item.executors?.length">—</span>
+        <template v-else>
+          {{ item.executors[0].full_name }}
+          <v-chip v-if="item.executors.length > 1" size="x-small" class="ml-1" variant="tonal">+{{ item.executors.length - 1 }}</v-chip>
+        </template>
+      </template>
       <template #item.status="{ item }">
         <AppStatusChip :status="item.status" />
       </template>
@@ -224,24 +236,25 @@ async function save() {
           :label="$t('issues.category')"
           :error-messages="formErrors.issue_category_id"
         />
-        <v-select
-          v-if="options?.must_choose_responsible"
-          v-model="form.responsible_employee_id"
+        <v-autocomplete
+          v-model="form.executor_ids"
           :items="candidates"
           item-title="full_name"
           item-value="id"
-          :label="$t('issues.responsible')"
+          :label="$t('issues.executors')"
+          multiple
+          chips
+          closable-chips
           :loading="loadingCandidates"
           :disabled="!form.organization_id"
-          :hint="!form.organization_id ? $t('issues.pickOrganizationFirst') : candidates.length || loadingCandidates ? '' : $t('issues.noCandidates')"
+          :hint="!form.organization_id ? $t('issues.pickOrganizationFirst') : candidates.length || loadingCandidates ? $t('issues.selectExecutors') : $t('issues.noCandidates')"
           persistent-hint
-          :error-messages="formErrors.responsible_employee_id"
+          :error-messages="formErrors.executor_ids"
         >
           <template #item="{ props, item }">
             <v-list-item v-bind="props" :title="item.full_name" :subtitle="[item.position, item.department].filter(Boolean).join(' · ')" />
           </template>
-        </v-select>
-        <v-text-field v-else :model-value="auth.user?.name" :label="$t('issues.responsible')" :hint="$t('issues.responsibleSelf')" persistent-hint readonly />
+        </v-autocomplete>
         <v-text-field v-model="form.title" :label="$t('issues.issueTitle')" :error-messages="formErrors.title" />
         <v-textarea v-model="form.description" :label="$t('issues.description')" rows="2" :error-messages="formErrors.description" />
         <v-text-field v-model="form.object_name" :label="$t('issues.objectName')" :error-messages="formErrors.object_name" />

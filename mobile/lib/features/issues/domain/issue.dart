@@ -51,25 +51,29 @@ class IssueCategory {
 }
 
 class IssueOrganizationOption {
-  IssueOrganizationOption({required this.id, required this.name});
+  IssueOrganizationOption({required this.id, required this.name, this.isCentral = false});
 
   final int id;
   final String name;
+  final bool isCentral;
 
-  factory IssueOrganizationOption.fromJson(Map<String, dynamic> json) =>
-      IssueOrganizationOption(id: json['id'] as int, name: json['name'] as String? ?? '');
+  factory IssueOrganizationOption.fromJson(Map<String, dynamic> json) => IssueOrganizationOption(
+        id: json['id'] as int,
+        name: json['name'] as String? ?? '',
+        isCentral: json['type'] == 'central',
+      );
 }
 
 /// What the report form offers this user — decided by the server so the
-/// app never re-derives role rules: which organizations they may file
-/// against, the categories, and whether they must name a responsible
-/// employee (a department-manager is responsible for what they report).
+/// app never re-derives role rules: the organizations they may file
+/// against (every one for company-wide roles, only their own otherwise),
+/// the active categories, and who to suggest as the first executor.
 class IssueOptions {
-  IssueOptions({required this.organizations, required this.categories, required this.mustChooseResponsible});
+  IssueOptions({required this.organizations, required this.categories, this.defaultExecutorId});
 
   final List<IssueOrganizationOption> organizations;
   final List<IssueCategory> categories;
-  final bool mustChooseResponsible;
+  final int? defaultExecutorId;
 
   factory IssueOptions.fromJson(Map<String, dynamic> json) => IssueOptions(
         organizations: (json['organizations'] as List<dynamic>? ?? [])
@@ -78,12 +82,12 @@ class IssueOptions {
         categories: (json['categories'] as List<dynamic>? ?? [])
             .map((e) => IssueCategory.fromJson(e as Map<String, dynamic>))
             .toList(),
-        mustChooseResponsible: json['must_choose_responsible'] as bool? ?? false,
+        defaultExecutorId: json['default_executor_id'] as int?,
       );
 }
 
-class IssueResponsibleCandidate {
-  IssueResponsibleCandidate({required this.id, required this.fullName, this.department, this.position});
+class IssueExecutorCandidate {
+  IssueExecutorCandidate({required this.id, required this.fullName, this.department, this.position});
 
   final int id;
   final String fullName;
@@ -92,7 +96,7 @@ class IssueResponsibleCandidate {
 
   String get subtitle => [position, department].whereType<String>().join(' · ');
 
-  factory IssueResponsibleCandidate.fromJson(Map<String, dynamic> json) => IssueResponsibleCandidate(
+  factory IssueExecutorCandidate.fromJson(Map<String, dynamic> json) => IssueExecutorCandidate(
         id: json['id'] as int,
         fullName: json['full_name'] as String? ?? '',
         department: json['department'] as String?,
@@ -107,7 +111,7 @@ class Issue {
     this.organization,
     this.department,
     this.category,
-    this.responsible,
+    required this.executors,
     required this.title,
     this.description,
     this.objectName,
@@ -127,7 +131,7 @@ class Issue {
   final Organization? organization;
   final Department? department;
   final IssueCategory? category;
-  final Employee? responsible;
+  final List<Employee> executors;
   final String title;
   final String? description;
   final String? objectName;
@@ -157,9 +161,9 @@ class Issue {
         category: json['category'] is Map<String, dynamic>
             ? IssueCategory.fromJson(json['category'] as Map<String, dynamic>)
             : null,
-        responsible: json['responsible'] is Map<String, dynamic>
-            ? Employee.fromJson(json['responsible'] as Map<String, dynamic>)
-            : null,
+        executors: (json['executors'] as List<dynamic>? ?? [])
+            .map((e) => Employee.fromJson(e as Map<String, dynamic>))
+            .toList(),
         title: json['title'] as String? ?? '',
         description: json['description'] as String?,
         objectName: json['object_name'] as String?,

@@ -150,6 +150,8 @@ The stack listens on `${HTTP_PORT:-8090}` (host port), not `:80` directly — on
 
 **HTTPS:** the bundled `docker/nginx/default.conf` is plain HTTP, meant to sit behind whatever already terminates TLS on this host (as with the other projects here). If this stack ever gets its own dedicated host instead, add a certbot container (webroot method — `docker/nginx/default.conf` already has the `/.well-known/acme-challenge/` location prepared for it) and a second `server` block for `:443`.
 
+**Redeploying after a permission change:** roles and their permissions come from `RolePermissionSeeder`, which is safe to re-run (it syncs, never duplicates) — do so whenever a release adds or regrants permissions, or the new grants never reach the database. The issues update (every role can report issues; `issue_categories.manage`) needs it: `docker compose run --rm artisan db:seed --class=RolePermissionSeeder --force`.
+
 **Redeploying after a code change:**
 
 ```bash

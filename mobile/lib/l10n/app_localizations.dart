@@ -1115,31 +1115,37 @@ abstract class AppLocalizations {
   /// No description provided for @issuesOrganization.
   ///
   /// In uz, this message translates to:
-  /// **'Quyi tashkilot'**
+  /// **'Tashkilot'**
   String get issuesOrganization;
 
-  /// No description provided for @issuesResponsible.
+  /// No description provided for @issuesExecutors.
   ///
   /// In uz, this message translates to:
-  /// **'Mas\'ul xodim'**
-  String get issuesResponsible;
+  /// **'Ijrochilar'**
+  String get issuesExecutors;
 
-  /// No description provided for @issuesResponsibleSelf.
+  /// No description provided for @issuesSelectExecutors.
   ///
   /// In uz, this message translates to:
-  /// **'Siz o\'zingiz mas\'ul bo\'lasiz'**
-  String get issuesResponsibleSelf;
+  /// **'Ijrochilarni tanlang'**
+  String get issuesSelectExecutors;
+
+  /// No description provided for @issuesSearchExecutors.
+  ///
+  /// In uz, this message translates to:
+  /// **'Xodimni qidirish'**
+  String get issuesSearchExecutors;
 
   /// No description provided for @issuesPickOrganizationFirst.
   ///
   /// In uz, this message translates to:
-  /// **'Avval quyi tashkilotni tanlang'**
+  /// **'Avval tashkilotni tanlang'**
   String get issuesPickOrganizationFirst;
 
   /// No description provided for @issuesNoCandidates.
   ///
   /// In uz, this message translates to:
-  /// **'Bu tashkilotda mas\'ul bo\'la oladigan xodim topilmadi'**
+  /// **'Bu tashkilotda ijrochi bo\'la oladigan xodim topilmadi'**
   String get issuesNoCandidates;
 
   /// No description provided for @announcementsTitle.

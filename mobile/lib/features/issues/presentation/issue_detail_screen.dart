@@ -140,8 +140,8 @@ class _IssueDetailScreenState extends ConsumerState<IssueDetailScreen> {
           ],
           const Divider(height: 32),
           _InfoRow(icon: Icons.person_outline, label: l10n.issuesReporter, value: issue.reporter?.fullName ?? '—'),
-          if (issue.responsible != null)
-            _InfoRow(icon: Icons.assignment_ind_outlined, label: l10n.issuesResponsible, value: issue.responsible!.fullName),
+          for (final executor in issue.executors)
+            _InfoRow(icon: Icons.assignment_ind_outlined, label: l10n.issuesExecutors, value: executor.fullName),
           if (issue.organization != null)
             _InfoRow(icon: Icons.apartment_outlined, label: issue.organization!.name, value: ''),
           if (issue.department != null)

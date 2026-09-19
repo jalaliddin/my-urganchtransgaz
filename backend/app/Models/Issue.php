@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'reporter_employee_id', 'organization_id', 'department_id',
-    'issue_category_id', 'responsible_employee_id',
+    'issue_category_id',
     'title', 'description', 'object_name', 'latitude', 'longitude',
     'status', 'resolution_note', 'resolved_by', 'resolved_at',
 ])]
@@ -41,9 +42,12 @@ class Issue extends Model
         return $this->belongsTo(IssueCategory::class, 'issue_category_id');
     }
 
-    public function responsible(): BelongsTo
+    /**
+     * The people doing the work — one or several, like a task's assignees.
+     */
+    public function executors(): BelongsToMany
     {
-        return $this->belongsTo(Employee::class, 'responsible_employee_id');
+        return $this->belongsToMany(Employee::class, 'issue_executors')->withTimestamps();
     }
 
     public function resolvedBy(): BelongsTo

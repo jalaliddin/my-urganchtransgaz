@@ -15,11 +15,10 @@ class StoreIssueRequest extends FormRequest
     use ChecksOrganizationScope;
 
     /**
-     * `issues.create` gates the action itself. A department-manager may
-     * only report an issue for their own organization (their department
-     * is filled in from their own record, never from the request);
-     * technical-policy and central roles may name any organization — the
-     * same per-target scope check `StoreTaskRequest` already uses.
+     * Anyone with `issues.create` (every role) can report an issue. Roles
+     * with company-wide reach may file it against any organization —
+     * subordinate or head office; everyone else only against their own,
+     * the same per-target scope check `StoreTaskRequest` already uses.
      */
     public function authorize(): bool
     {
@@ -39,14 +38,12 @@ class StoreIssueRequest extends FormRequest
      */
     public function rules(): array
     {
-        $mustChooseResponsible = $this->user()->mustChooseIssueResponsible();
-
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
             'object_name' => ['nullable', 'string', 'max:255'],
             'organization_id' => [
-                Rule::requiredIf($mustChooseResponsible),
+                Rule::requiredIf($this->user()->hasCentralAccess()),
                 'nullable', 'integer',
                 Rule::exists('organizations', 'id')->where('status', ActiveStatus::Active->value),
             ],
@@ -54,17 +51,17 @@ class StoreIssueRequest extends FormRequest
                 'required', 'integer',
                 Rule::exists('issue_categories', 'id')->where('status', ActiveStatus::Active->value),
             ],
-            'responsible_employee_id' => [Rule::requiredIf($mustChooseResponsible), 'nullable', 'integer'],
+            'executor_ids' => ['required', 'array', 'min:1', 'max:30'],
+            'executor_ids.*' => ['integer', 'distinct'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
         ];
     }
 
     /**
-     * The responsible employee must belong to the chosen organization and
-     * be someone who can actually act on issues — checked here rather than
-     * with a bare `exists` so a crafted request can't name an unrelated or
-     * unable employee.
+     * Every executor must be a current employee of the chosen organization —
+     * checked here rather than with a bare `exists` so a crafted request
+     * can't attach someone from an unrelated organization.
      *
      * @return array<int, callable(Validator): void>
      */
@@ -72,17 +69,19 @@ class StoreIssueRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
-                if (! $this->user()->mustChooseIssueResponsible() || $validator->errors()->isNotEmpty()) {
+                if ($validator->errors()->isNotEmpty()) {
                     return;
                 }
 
-                $eligible = Employee::issueHandlers()
-                    ->whereKey($this->integer('responsible_employee_id'))
-                    ->where('organization_id', $this->targetOrganizationId())
-                    ->exists();
+                $ids = array_unique($this->input('executor_ids'));
 
-                if (! $eligible) {
-                    $validator->errors()->add('responsible_employee_id', 'Tanlangan xodim bu tashkilotda mas\'ul bo\'la olmaydi.');
+                $eligible = Employee::issueExecutors()
+                    ->where('organization_id', $this->targetOrganizationId())
+                    ->whereIn('id', $ids)
+                    ->count();
+
+                if ($eligible !== count($ids)) {
+                    $validator->errors()->add('executor_ids', 'Ijrochilar tanlangan tashkilotning amaldagi xodimlari bo\'lishi kerak.');
                 }
             },
         ];

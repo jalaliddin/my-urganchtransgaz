@@ -16,23 +16,42 @@ class IssuePolicy
     }
 
     /**
-     * The reporter, the responsible employee, Technical Policy Service (the resolving authority,
-     * company-wide), and central leadership can always open a single
-     * issue directly; a department-manager additionally needs it to be
-     * within their own department, the same `withinScope()` boundary
-     * every other module in this app enforces.
+     * The reporter, an executor, Technical Policy Service (the resolving
+     * authority, company-wide) and central leadership can always open a
+     * single issue directly. A department-manager also sees what their
+     * department raised or is executing, and an organization-admin their
+     * whole organization's issues — the scopes `IssueController::index()`
+     * applies to the list, kept identical here so a direct link can't reach
+     * further than the list does.
      */
     public function view(User $user, Issue $issue): bool
     {
-        if ($user->id === $issue->reporter?->user_id || $user->id === $issue->responsible?->user_id) {
-            return true;
-        }
-
         if ($this->isLeadership($user)) {
             return true;
         }
 
-        return $user->can('issues.view') && $this->withinScope($user, $issue->organization_id, $issue->department_id);
+        if ($user->id === $issue->reporter?->user_id) {
+            return true;
+        }
+
+        if ($issue->executors()->where('employees.user_id', $user->id)->exists()) {
+            return true;
+        }
+
+        if (! $user->can('issues.view') || ! $user->employee) {
+            return false;
+        }
+
+        $employee = $user->employee;
+
+        if ($user->hasRole('organization-admin') && $issue->organization_id === $employee->organization_id) {
+            return true;
+        }
+
+        return $user->hasRole('department-manager')
+            && $employee->department_id !== null
+            && ($issue->department_id === $employee->department_id
+                || $issue->executors()->where('employees.department_id', $employee->department_id)->exists());
     }
 
     public function create(User $user): bool

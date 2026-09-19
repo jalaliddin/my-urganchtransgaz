@@ -5,7 +5,6 @@ import 'package:latlong2/latlong.dart';
 
 import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../auth/presentation/auth_controller.dart';
 import '../domain/issue.dart';
 import 'issue_map.dart';
 import 'issues_controller.dart';
@@ -24,8 +23,9 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
   LatLng? _pickedLocation;
   int? _organizationId;
   int? _categoryId;
-  int? _responsibleId;
+  final Set<int> _executorIds = {};
   bool _submitted = false;
+  bool _suggestedExecutorApplied = false;
   bool _saving = false;
   bool _locating = false;
   String? _locationError;
@@ -75,7 +75,6 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
     final l10n = AppLocalizations.of(context);
     final options = ref.read(issueOptionsProvider).value;
     final organizationId = options == null ? null : _effectiveOrganizationId(options);
-    final missingResponsible = (options?.mustChooseResponsible ?? false) && _responsibleId == null;
 
     setState(() => _submitted = true);
 
@@ -83,7 +82,7 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
         _titleController.text.trim().isEmpty ||
         organizationId == null ||
         _categoryId == null ||
-        missingResponsible ||
+        _executorIds.isEmpty ||
         _pickedLocation == null) {
       setState(() => _locationError = _pickedLocation == null ? l10n.issuesMapPickHint : null);
       return;
@@ -98,7 +97,7 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
             objectName: _objectNameController.text.trim().isEmpty ? null : _objectNameController.text.trim(),
             organizationId: organizationId,
             categoryId: _categoryId!,
-            responsibleEmployeeId: options.mustChooseResponsible ? _responsibleId : null,
+            executorIds: _executorIds.toList(),
             latitude: _pickedLocation!.latitude,
             longitude: _pickedLocation!.longitude,
           );
@@ -132,15 +131,19 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
             errorText: organizationId == null ? requiredText : null,
           ),
           items: options.organizations
-              .map((organization) => DropdownMenuItem(value: organization.id, child: Text(organization.name, overflow: TextOverflow.ellipsis)))
+              .map((organization) => DropdownMenuItem(
+                    value: organization.id,
+                    child: Text(organization.name, overflow: TextOverflow.ellipsis),
+                  ))
               .toList(),
-          // One organization (a department-manager's own) is preselected
-          // and not worth a control that can't be changed.
+          // A single organization (everyone who can only file against their
+          // own) is preselected and not worth a control that can't change.
           onChanged: options.organizations.length == 1
               ? null
               : (value) => setState(() {
                     _organizationId = value;
-                    _responsibleId = null;
+                    _executorIds.clear();
+                    _suggestedExecutorApplied = false;
                   }),
         ),
         const SizedBox(height: 12),
@@ -154,51 +157,135 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
           onChanged: (value) => setState(() => _categoryId = value),
         ),
         const SizedBox(height: 12),
-        if (options.mustChooseResponsible)
-          _buildResponsibleSelector(organizationId, l10n, requiredText)
-        else
-          TextFormField(
-            readOnly: true,
-            initialValue: ref.watch(authControllerProvider).value?.name ?? '',
-            decoration: InputDecoration(labelText: l10n.issuesResponsible, helperText: l10n.issuesResponsibleSelf),
-          ),
+        _buildExecutorSelector(options, organizationId, l10n, _executorIds.isEmpty ? requiredText : null),
         const SizedBox(height: 12),
       ],
     );
   }
 
-  Widget _buildResponsibleSelector(int? organizationId, AppLocalizations l10n, String? requiredText) {
+  Widget _buildExecutorSelector(IssueOptions options, int? organizationId, AppLocalizations l10n, String? errorText) {
     if (organizationId == null) {
       return InputDecorator(
-        decoration: InputDecoration(labelText: l10n.issuesResponsible, helperText: l10n.issuesPickOrganizationFirst),
+        decoration: InputDecoration(labelText: l10n.issuesExecutors, helperText: l10n.issuesPickOrganizationFirst),
         child: const SizedBox(height: 20),
       );
     }
 
-    return ref.watch(responsibleCandidatesProvider(organizationId)).when(
-          data: (candidates) => DropdownButtonFormField<int>(
-            key: ValueKey('responsible-$organizationId'),
-            initialValue: _responsibleId,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: l10n.issuesResponsible,
-              helperText: candidates.isEmpty ? l10n.issuesNoCandidates : null,
-              errorText: _responsibleId == null ? requiredText : null,
-            ),
-            items: candidates
-                .map((candidate) => DropdownMenuItem(
-                      value: candidate.id,
-                      child: Text(
-                        candidate.subtitle.isEmpty ? candidate.fullName : '${candidate.fullName} · ${candidate.subtitle}',
-                        overflow: TextOverflow.ellipsis,
+    return ref.watch(executorCandidatesProvider(organizationId)).when(
+          data: (candidates) {
+            // A department-manager starts with themselves selected (they
+            // normally handle what they report) — once, and only if they
+            // belong to the organization being filed against.
+            if (!_suggestedExecutorApplied && options.defaultExecutorId != null) {
+              _suggestedExecutorApplied = true;
+              if (candidates.any((candidate) => candidate.id == options.defaultExecutorId)) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) setState(() => _executorIds.add(options.defaultExecutorId!));
+                });
+              }
+            }
+
+            final byId = {for (final candidate in candidates) candidate.id: candidate};
+
+            return InputDecorator(
+              decoration: InputDecoration(
+                labelText: l10n.issuesExecutors,
+                errorText: errorText,
+                helperText: candidates.isEmpty ? l10n.issuesNoCandidates : null,
+              ),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  for (final id in _executorIds)
+                    if (byId[id] != null)
+                      InputChip(
+                        label: Text(byId[id]!.fullName),
+                        onDeleted: () => setState(() => _executorIds.remove(id)),
                       ),
-                    ))
-                .toList(),
-            onChanged: (value) => setState(() => _responsibleId = value),
-          ),
+                  ActionChip(
+                    avatar: const Icon(Icons.person_add_alt_1_outlined, size: 18),
+                    label: Text(l10n.issuesSelectExecutors),
+                    onPressed: candidates.isEmpty ? null : () => _pickExecutors(candidates, l10n),
+                  ),
+                ],
+              ),
+            );
+          },
           loading: () => const LinearProgressIndicator(),
           error: (error, stackTrace) => Text(l10n.commonErrorGeneric),
         );
+  }
+
+  /// A searchable checklist in a bottom sheet — a plain dropdown can only
+  /// hold one value, and an organization can have hundreds of employees.
+  Future<void> _pickExecutors(List<IssueExecutorCandidate> candidates, AppLocalizations l10n) async {
+    final selected = {..._executorIds};
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        var query = '';
+
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final visible = candidates
+                .where((candidate) => candidate.fullName.toLowerCase().contains(query.toLowerCase()))
+                .toList();
+
+            return SizedBox(
+              height: MediaQuery.sizeOf(context).height * 0.75,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: TextField(
+                      decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: l10n.issuesSearchExecutors),
+                      onChanged: (value) => setSheetState(() => query = value),
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: visible.length,
+                      itemBuilder: (context, index) {
+                        final candidate = visible[index];
+
+                        return CheckboxListTile(
+                          value: selected.contains(candidate.id),
+                          title: Text(candidate.fullName),
+                          subtitle: candidate.subtitle.isEmpty ? null : Text(candidate.subtitle),
+                          onChanged: (checked) => setSheetState(() {
+                            checked == true ? selected.add(candidate.id) : selected.remove(candidate.id);
+                          }),
+                        );
+                      },
+                    ),
+                  ),
+                  SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(onPressed: () => Navigator.pop(sheetContext), child: Text(l10n.commonConfirm)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    setState(() {
+      _executorIds
+        ..clear()
+        ..addAll(selected);
+    });
   }
 
   @override

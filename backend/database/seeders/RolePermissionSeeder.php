@@ -30,6 +30,7 @@ class RolePermissionSeeder extends Seeder
         'kpi' => ['view', 'manage'],
         'announcements' => ['view', 'create', 'publish'],
         'issues' => ['create', 'view', 'resolve'],
+        'issue_categories' => ['manage'],
         'audit_logs' => ['view'],
         'settings' => ['manage'],
     ];
@@ -53,6 +54,7 @@ class RolePermissionSeeder extends Seeder
             'tasks.view', 'tasks.create', 'tasks.update', 'tasks.assign',
             'kpi.view', 'kpi.manage',
             'announcements.view', 'announcements.create',
+            'issues.create', 'issues.view',
         ],
         'department-manager' => [
             'organizations.view', 'departments.view',
@@ -70,17 +72,20 @@ class RolePermissionSeeder extends Seeder
             'documents.view', 'documents.upload', 'documents.approve', 'documents.delete',
             'attendance.view', 'attendance.manage',
             'announcements.view', 'announcements.create',
+            'issues.create', 'issues.view',
         ],
         'safety-manager' => [
             'organizations.view', 'departments.view', 'employees.view',
             'exams.view', 'exams.create', 'exams.manage', 'exams.evaluate',
             'announcements.view',
+            'issues.create', 'issues.view',
         ],
         'technical-policy' => [
             'organizations.view', 'departments.view', 'employees.view',
             'tasks.view', 'tasks.create', 'tasks.update', 'tasks.assign',
             'announcements.view',
             'issues.create', 'issues.view', 'issues.resolve',
+            'issue_categories.manage',
         ],
         'manager' => [
             'departments.view', 'employees.view',
@@ -88,6 +93,7 @@ class RolePermissionSeeder extends Seeder
             'tasks.view', 'tasks.create', 'tasks.update', 'tasks.assign',
             'kpi.view',
             'announcements.view',
+            'issues.create', 'issues.view',
         ],
         'employee' => [
             'documents.view', 'documents.upload',
@@ -96,6 +102,7 @@ class RolePermissionSeeder extends Seeder
             'exams.view',
             'kpi.view',
             'announcements.view',
+            'issues.create', 'issues.view',
         ],
     ];
 

@@ -457,15 +457,18 @@ export interface IssueCategory {
   id: number
   name: string
   code: string
+  sort_order: number
+  status: 'active' | 'inactive'
+  issues_count?: number
 }
 
 export interface IssueOptions {
-  organizations: Pick<Organization, 'id' | 'name' | 'code'>[]
+  organizations: Pick<Organization, 'id' | 'name' | 'code' | 'type'>[]
   categories: IssueCategory[]
-  must_choose_responsible: boolean
+  default_executor_id: number | null
 }
 
-export interface IssueResponsibleCandidate {
+export interface IssueExecutorCandidate {
   id: number
   full_name: string
   department: string | null
@@ -499,8 +502,7 @@ export interface Issue {
   department?: Department
   issue_category_id: number | null
   category?: IssueCategory
-  responsible_employee_id: number | null
-  responsible?: Employee
+  executors?: Employee[]
   title: string
   description: string | null
   object_name: string | null

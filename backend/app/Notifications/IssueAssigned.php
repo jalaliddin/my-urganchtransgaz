@@ -34,7 +34,7 @@ class IssueAssigned extends Notification
     {
         return [
             'title' => 'Sizga muammo biriktirildi',
-            'message' => "\"{$this->issue->title}\" muammosiga siz mas'ul etib tayinlandingiz.",
+            'message' => "\"{$this->issue->title}\" muammosiga siz ijrochi etib tayinlandingiz.",
             'issue_id' => $this->issue->id,
         ];
     }

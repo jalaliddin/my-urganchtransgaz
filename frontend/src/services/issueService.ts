@@ -1,7 +1,7 @@
 import { createResourceService } from '@/services/resourceService'
 import { http } from '@/services/http'
 import type { ApiSuccessResponse } from '@/types/api'
-import type { Issue, IssueComment, IssueOptions, IssueResponsibleCandidate } from '@/types/models'
+import type { Issue, IssueComment, IssueExecutorCandidate, IssueOptions } from '@/types/models'
 
 export interface IssuePayload {
   title: string
@@ -9,7 +9,7 @@ export interface IssuePayload {
   object_name?: string | null
   organization_id?: number | null
   issue_category_id: number
-  responsible_employee_id?: number | null
+  executor_ids: number[]
   latitude: number
   longitude: number
 }
@@ -24,8 +24,8 @@ export const issueService = {
     return data.data
   },
 
-  async responsibleCandidates(organizationId: number): Promise<IssueResponsibleCandidate[]> {
-    const { data } = await http.get<ApiSuccessResponse<IssueResponsibleCandidate[]>>('/issues/responsible-candidates', {
+  async executorCandidates(organizationId: number): Promise<IssueExecutorCandidate[]> {
+    const { data } = await http.get<ApiSuccessResponse<IssueExecutorCandidate[]>>('/issues/executor-candidates', {
       params: { organization_id: organizationId },
     })
     return data.data
