@@ -126,7 +126,7 @@ A production-oriented `docker-compose.yml` lives at the repo root: MySQL, the La
 cp .env.docker.example .env
 # Edit .env: set DB_PASSWORD and MYSQL_ROOT_PASSWORD to real values, and
 # generate APP_KEY (needs a build first, since it runs inside the container):
-docker compose build
+docker compose --profile tools build
 docker compose run --rm artisan key:generate --show   # paste the base64:... result into .env as APP_KEY
 
 # 2. Bring up the database and set up the schema
@@ -154,9 +154,11 @@ The stack listens on `${HTTP_PORT:-8090}` (host port), not `:80` directly — on
 
 ```bash
 git pull
-docker compose build
+docker compose --profile tools build   # --profile tools matters: it also rebuilds `artisan`
 docker compose run --rm artisan migrate --force   # only if new migrations exist
 docker compose up -d
 ```
+
+**Why `--profile tools`:** the `artisan` service (migrations, seeders) is kept out of a normal `docker compose up`/`build` by a compose profile, and `docker compose run` reuses whatever image already exists instead of rebuilding it. Without `--profile tools`, after a `git pull` the app containers get the new code but `artisan` keeps the old image — so a new migration or seeder fails with `Target class [...] does not exist` or silently reports "nothing to migrate". If you hit that, run `docker compose --profile tools build artisan` and retry.
 
 **Logs:** `docker compose logs -f backend` (or `scheduler`, `nginx`, etc.). **Persistent data:** the `db-data` (MySQL) and `backend-storage` (uploaded documents/photos) named volumes survive `docker compose down`; only `docker compose down -v` removes them.
