@@ -49,7 +49,7 @@
         "text": "Pasport va sertifikatlarni yuklang; amal qilish muddati tugashidan oldin eslatma keladi."
       },
       "exams": {
-        "title": "Mehnat muhofazasi imtihonlari",
+        "title": "Imtihonlar",
         "text": "Onlayn test topshiring va natijani darhol ko'ring."
       },
       "kpi": {
@@ -106,7 +106,7 @@
     "attendance": "Davomat",
     "tasks": "Topshiriqlar",
     "kpi": "KPI",
-    "exams": "Xavfsizlik imtihonlari",
+    "exams": "Imtihonlar",
     "announcements": "E'lonlar",
     "issues": "Muammolar",
     "documents": "Hujjatlar",

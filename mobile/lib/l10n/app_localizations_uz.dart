@@ -405,7 +405,7 @@ class AppLocalizationsUz extends AppLocalizations {
   String get kpiNone => 'Hali natijalar yo\'q';
 
   @override
-  String get examsTitle => 'Xavfsizlik imtihonlari';
+  String get examsTitle => 'Imtihonlar';
 
   @override
   String get examsTabAvailable => 'Mavjud';

@@ -869,7 +869,7 @@ abstract class AppLocalizations {
   /// No description provided for @examsTitle.
   ///
   /// In uz, this message translates to:
-  /// **'Xavfsizlik imtihonlari'**
+  /// **'Imtihonlar'**
   String get examsTitle;
 
   /// No description provided for @examsTabAvailable.

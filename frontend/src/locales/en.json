@@ -49,7 +49,7 @@
         "text": "Upload passports and certificates; a reminder arrives before each one expires."
       },
       "exams": {
-        "title": "Safety exams",
+        "title": "Exams",
         "text": "Take the test online and see your result right away."
       },
       "kpi": {
@@ -106,7 +106,7 @@
     "attendance": "Attendance",
     "tasks": "Tasks",
     "kpi": "KPI",
-    "exams": "Safety Exams",
+    "exams": "Exams",
     "announcements": "Announcements",
     "issues": "Issues",
     "documents": "Documents",

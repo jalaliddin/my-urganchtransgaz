@@ -404,7 +404,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get kpiNone => 'Пока нет результатов';
 
   @override
-  String get examsTitle => 'Экзамены по охране труда';
+  String get examsTitle => 'Экзамены';
 
   @override
   String get examsTabAvailable => 'Доступные';
