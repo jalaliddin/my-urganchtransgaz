@@ -5,6 +5,14 @@ import { useAuthStore } from '@/stores/auth'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    // Must stay first: the two layout routes below also have path '/', and
+    // vue-router matches equally-scored records in definition order, so a
+    // later landing route would lose to the (empty) layout parents.
+    {
+      path: '/',
+      name: 'landing',
+      component: () => import('@/views/landing/LandingView.vue'),
+    },
     {
       path: '/privacy-policy',
       name: 'privacy-policy',
@@ -33,7 +41,7 @@ const router = createRouter({
       meta: { requiresAuth: true },
       children: [
         {
-          path: '',
+          path: 'dashboard',
           name: 'dashboard',
           component: () => import('@/views/dashboard/DashboardView.vue'),
         },

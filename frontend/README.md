@@ -50,6 +50,12 @@ No business logic lives here — every view calls a `services/*Service.ts` modul
 
 Uzbek (`uz`) is the default and most complete locale; Russian and English are fully translated for the current UI strings. Add new keys to all three locale files together. Switch locale at runtime via `plugins/i18n.ts`'s `setLocale()`.
 
+## Landing page
+
+`/` is a public landing page (`views/landing/LandingView.vue`, titled "Urganchtransgaz MCHJ Korporativ portali" in uz/ru/en) that links to `/login`; a signed-in visitor sees a "Go to dashboard" button instead. Because of that, the dashboard now lives at `/dashboard` (it used to be `/`). The landing route is declared **first** in `router/index.ts` on purpose — the two layout routes below it also have path `/`, and vue-router breaks ties by definition order.
+
+It uses two self-hosted fonts (`@fontsource-variable/onest` for body text, `@fontsource/unbounded` for headings — both cover Latin and Cyrillic, so no CDN request) imported only inside `LandingView.vue`, so they load with the landing chunk and don't touch the rest of the app. The hero diagram (`components/landing/NetworkMap.vue`) is a schematic of the real structure — head office trunk line branching to the 14 divisions — and the whole page respects `prefers-reduced-motion`. Landing-only components live in `components/landing/` rather than `components/common/`, since everything in `common/` is globally registered eagerly (see `plugins/globalComponents.ts`).
+
 ## Session restoration
 
 A stored auth token only proves a session *existed*; on every fresh page load, `main.ts` re-fetches the current user (`/auth/me`) **before** mounting the app, so a direct URL visit or a reload doesn't transiently show a logged-out-looking UI (empty permissions, hidden nav) while still holding a valid token. If that fetch fails (expired/revoked token), the session is cleared and the router's guard sends the user to `/login`.

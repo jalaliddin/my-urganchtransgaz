@@ -5,6 +5,82 @@
     "taglineSubtitle": "Davomat, topshiriqlar, hujjatlar va boshqa barcha xizmatlar — bir joyda.",
     "credit": "Axborot texnologiyalari xizmati J.S. Saidov"
   },
+  "landing": {
+    "nav": {
+      "features": "Imkoniyatlar",
+      "mobile": "Mobil ilova",
+      "login": "Kirish",
+      "dashboard": "Boshqaruv paneli"
+    },
+    "hero": {
+      "title": "Urganchtransgaz MCHJ Korporativ portali",
+      "lead": "Xodimlar, davomat, topshiriqlar, hujjatlar va muammolar — markaziy ofis hamda 14 ta boshqarma uchun bitta ishonchli joyda.",
+      "cta": "Tizimga kirish",
+      "ctaAuthed": "Boshqaruv paneliga o'tish",
+      "secondary": "Imkoniyatlarni ko'rish",
+      "mapLabel": "Urganchtransgaz boshqarmalari tarmog'i sxemasi",
+      "hub": "Bosh ofis",
+      "point1": "Veb va mobil ilova",
+      "point2": "Rolga qarab kirish huquqi",
+      "point3": "Har bir amal audit jurnalida"
+    },
+    "features": {
+      "title": "Ish kuni shu yerda o'tadi",
+      "lead": "Har bir imkoniyat rolga qarab ochiladi: xodim faqat o'zinikini, bo'lim boshlig'i o'z bo'limini, rahbariyat esa butun kompaniyani ko'radi.",
+      "issues": {
+        "title": "Muammolarni xaritada belgilang",
+        "text": "Bo'lim boshlig'i yoki Texnik siyosat xizmati muammoni aniq joyi bilan qayd etadi. Bartaraf etilmaguncha u rahbariyat xaritasida turadi, yakunlash esa faqat Texnik siyosat xizmatining javobi bilan amalga oshadi.",
+        "open": "Ochiq",
+        "resolved": "Bartaraf etilgan",
+        "timeline1": "Qayd etildi",
+        "timeline2": "Izoh qoldirildi",
+        "timeline3": "Bartaraf etildi"
+      },
+      "attendance": {
+        "title": "Davomat bir tugma bilan",
+        "text": "Keldim va Ketdim belgisi, kechikish va erta ketishni avtomatik hisoblash, bo'lim va tashkilot kesimida hisobotlar."
+      },
+      "tasks": {
+        "title": "Topshiriqlar va muddatlar",
+        "text": "Bo'lim boshlig'i xodimlariga topshiriq beradi, bajarilish foizi kuzatiladi, muddat yaqinlashganda eslatma avtomatik yuboriladi."
+      },
+      "documents": {
+        "title": "Hujjatlar",
+        "text": "Pasport va sertifikatlarni yuklang; amal qilish muddati tugashidan oldin eslatma keladi."
+      },
+      "exams": {
+        "title": "Mehnat muhofazasi imtihonlari",
+        "text": "Onlayn test topshiring va natijani darhol ko'ring."
+      },
+      "kpi": {
+        "title": "KPI ko'rsatkichlari",
+        "text": "Davr bo'yicha natijalar va bo'limlar reytingi."
+      },
+      "announcements": {
+        "title": "E'lonlar",
+        "text": "Butun kompaniyaga, boshqarmaga yoki alohida rolga yo'naltiring."
+      }
+    },
+    "mobile": {
+      "title": "Telefoningizda ham",
+      "text": "\"My Urganchtransgaz\" mobil ilovasida davomat, topshiriqlar, imtihonlar va muammolarni qayd etish — ish joyida ham, sahroda ham. Ilova o'zbek va rus tillarida.",
+      "welcome": "Xush kelibsiz",
+      "checkin": "Keldim",
+      "checkout": "Ketdim",
+      "today": "Bugungi davomat"
+    },
+    "trust": {
+      "title": "Ma'lumotlar korxona ichida qoladi",
+      "text": "Barcha ma'lumotlar tashkilotning o'z serverida saqlanadi va uchinchi shaxslarga berilmaydi. Har bir muhim amal audit jurnaliga yoziladi."
+    },
+    "cta": {
+      "title": "Ishni boshlash uchun tizimga kiring",
+      "text": "Login va parolni tashkilotingizning HR bo'limi beradi."
+    },
+    "footer": {
+      "rights": "\"Urganchtransgaz\" MCHJ. Barcha huquqlar himoyalangan."
+    }
+  },
   "privacyPolicy": {
     "title": "Maxfiylik siyosati",
     "updated": "Oxirgi yangilanish: 2026-yil 18-sentabr",

@@ -5,6 +5,82 @@
     "taglineSubtitle": "Attendance, tasks, documents, and every other service — all in one place.",
     "credit": "Information Technology Service, J.S. Saidov"
   },
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "mobile": "Mobile app",
+      "login": "Sign in",
+      "dashboard": "Dashboard"
+    },
+    "hero": {
+      "title": "Urganchtransgaz LLC Corporate Portal",
+      "lead": "Employees, attendance, tasks, documents and issues — in one reliable place for the head office and all 14 divisions.",
+      "cta": "Sign in",
+      "ctaAuthed": "Go to dashboard",
+      "secondary": "See what it does",
+      "mapLabel": "Diagram of the Urganchtransgaz divisions network",
+      "hub": "Head office",
+      "point1": "Web and mobile app",
+      "point2": "Access based on your role",
+      "point3": "Every action in the audit log"
+    },
+    "features": {
+      "title": "Where the working day happens",
+      "lead": "Every feature opens by role: employees see their own records, department heads their department, leadership the whole company.",
+      "issues": {
+        "title": "Pin problems on a map",
+        "text": "A department head or the Technical Policy Service logs a problem at its exact location. It stays on leadership's map until it is fixed, and only the Technical Policy Service's response can close it.",
+        "open": "Open",
+        "resolved": "Resolved",
+        "timeline1": "Logged",
+        "timeline2": "Comment added",
+        "timeline3": "Resolved"
+      },
+      "attendance": {
+        "title": "Attendance in one tap",
+        "text": "Check in and out, automatic late and early-leave detection, reports by department and organization."
+      },
+      "tasks": {
+        "title": "Tasks and deadlines",
+        "text": "Department heads assign tasks to their staff, progress is tracked, and reminders go out as deadlines approach."
+      },
+      "documents": {
+        "title": "Documents",
+        "text": "Upload passports and certificates; a reminder arrives before each one expires."
+      },
+      "exams": {
+        "title": "Safety exams",
+        "text": "Take the test online and see your result right away."
+      },
+      "kpi": {
+        "title": "KPI results",
+        "text": "Results by period and a ranking of departments."
+      },
+      "announcements": {
+        "title": "Announcements",
+        "text": "Target the whole company, one division, or a single role."
+      }
+    },
+    "mobile": {
+      "title": "On your phone too",
+      "text": "The \"My Urganchtransgaz\" mobile app covers attendance, tasks, exams and issue reporting — at the office or out in the field. Available in Uzbek and Russian.",
+      "welcome": "Welcome",
+      "checkin": "Check in",
+      "checkout": "Check out",
+      "today": "Today's attendance"
+    },
+    "trust": {
+      "title": "Your data stays inside the company",
+      "text": "All data is stored on the organization's own server and never shared with third parties. Every important action is written to the audit log."
+    },
+    "cta": {
+      "title": "Sign in to get started",
+      "text": "Your organization's HR department issues your login and password."
+    },
+    "footer": {
+      "rights": "\"Urganchtransgaz\" LLC. All rights reserved."
+    }
+  },
   "privacyPolicy": {
     "title": "Privacy Policy",
     "updated": "Last updated: September 18, 2026",

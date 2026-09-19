@@ -22,7 +22,7 @@ async function handleSubmit() {
 
   try {
     await auth.login({ login: login.value, password: password.value })
-    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard'
     router.push(redirect)
   } catch (error) {
     hasError.value = true

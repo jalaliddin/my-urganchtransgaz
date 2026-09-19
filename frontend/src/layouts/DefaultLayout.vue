@@ -24,7 +24,7 @@ const rail = ref(false)
 
 const navItems = computed<NavItem[]>(() =>
   [
-    { title: 'nav.dashboard', icon: 'mdi-view-dashboard-outline', to: '/' },
+    { title: 'nav.dashboard', icon: 'mdi-view-dashboard-outline', to: '/dashboard' },
     {
       title: 'nav.organizations',
       icon: 'mdi-domain',
