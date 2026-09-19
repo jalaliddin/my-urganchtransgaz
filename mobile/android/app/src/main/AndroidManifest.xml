@@ -5,6 +5,9 @@
     <!-- Issues: "use my location" when reporting a problem on-site. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Notifications about tasks, issues and announcements. Android 13+
+         asks the user at runtime; older versions grant it implicitly. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:label="My Urganchtransgaz"
         android:name="${applicationName}"

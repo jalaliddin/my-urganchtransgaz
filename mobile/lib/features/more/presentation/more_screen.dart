@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/locale/language_switcher.dart';
 import '../../../core/models/user.dart';
 import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
@@ -50,12 +51,6 @@ class MoreScreen extends ConsumerWidget {
                   title: Text(l10n.examsTitle),
                   onTap: () => context.push('/exams'),
                 ),
-                if (user != null && (user.can('issues.view') || user.can('issues.create')))
-                  ListTile(
-                    leading: const Icon(Icons.map_outlined),
-                    title: Text(l10n.issuesTitle),
-                    onTap: () => context.push('/issues'),
-                  ),
                 ListTile(
                   leading: const Icon(Icons.campaign_outlined),
                   title: Text(l10n.announcementsTitle),
@@ -71,6 +66,26 @@ class MoreScreen extends ConsumerWidget {
                   onTap: () => context.push('/notifications'),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.language, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 12),
+                      Text(l10n.settingsLanguage, style: Theme.of(context).textTheme.titleMedium),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const LanguageSwitcher(expand: true),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 16),

@@ -106,9 +106,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get navDashboard => 'Главная';
 
   @override
-  String get navAttendance => 'Посещаемость';
-
-  @override
   String get navTasks => 'Задачи';
 
   @override
@@ -139,22 +136,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dashboardWelcome => 'Добро пожаловать';
 
   @override
-  String get dashboardTodayAttendance => 'Посещаемость сегодня';
-
-  @override
-  String get dashboardNotCheckedInYet => 'Вы ещё не отметили приход';
-
-  @override
-  String dashboardCheckedInAt(Object time) {
-    return 'Пришёл в: $time';
-  }
-
-  @override
-  String dashboardCheckedOutAt(Object time) {
-    return 'Ушёл в: $time';
-  }
-
-  @override
   String get dashboardLatestAnnouncements => 'Последние объявления';
 
   @override
@@ -168,42 +149,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get dashboardNoTasks => 'Нет активных задач';
-
-  @override
-  String get attendanceTitle => 'Посещаемость';
-
-  @override
-  String get attendanceTabToday => 'Сегодня';
-
-  @override
-  String get attendanceTabHistory => 'История';
-
-  @override
-  String get attendanceCheckIn => 'Пришёл';
-
-  @override
-  String get attendanceCheckOut => 'Ушёл';
-
-  @override
-  String get attendanceCheckedIn => 'Приход отмечен';
-
-  @override
-  String get attendanceCheckedOut => 'Уход отмечен';
-
-  @override
-  String get attendanceStatus => 'Статус';
-
-  @override
-  String get attendanceWorked => 'Отработано';
-
-  @override
-  String get attendanceFrom => 'С';
-
-  @override
-  String get attendanceTo => 'По';
-
-  @override
-  String get attendanceNoRecords => 'Нет записей за этот период';
 
   @override
   String get profileTitle => 'Мой профиль';
@@ -597,18 +542,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get statusRejected => 'Отклонено';
 
   @override
-  String get statusPresent => 'Пришёл';
-
-  @override
-  String get statusLate => 'Опоздал';
-
-  @override
-  String get statusEarlyLeave => 'Ушёл раньше';
-
-  @override
-  String get statusAbsent => 'Отсутствовал';
-
-  @override
   String get statusNew => 'Новая';
 
   @override
@@ -643,4 +576,64 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get statusResolved => 'Устранена';
+
+  @override
+  String get navHome => 'Главная';
+
+  @override
+  String get settingsLanguage => 'Язык';
+
+  @override
+  String get settingsLanguageHint => 'Язык приложения';
+
+  @override
+  String get dashboardGreetingMorning => 'Доброе утро';
+
+  @override
+  String get dashboardGreetingAfternoon => 'Добрый день';
+
+  @override
+  String get dashboardGreetingEvening => 'Добрый вечер';
+
+  @override
+  String get dashboardStatTasks => 'Активные задачи';
+
+  @override
+  String get dashboardStatIssues => 'Открытые проблемы';
+
+  @override
+  String get dashboardStatExams => 'Экзамены';
+
+  @override
+  String get dashboardQuickActions => 'Быстрые действия';
+
+  @override
+  String get dashboardReportIssue => 'Сообщить о проблеме';
+
+  @override
+  String get dashboardDueSoon => 'Ближайшие сроки';
+
+  @override
+  String get dashboardAllCaughtUp => 'Всё в порядке — срочных задач нет';
+
+  @override
+  String get dashboardOverdue => 'Просрочено';
+
+  @override
+  String get dashboardLoadError => 'Не удалось загрузить';
+
+  @override
+  String get notificationsBackgroundTitle => 'Новое уведомление';
+
+  @override
+  String notificationsBackgroundSummary(int count) {
+    return 'Новых уведомлений: $count';
+  }
+
+  @override
+  String get notificationsChannelName => 'Уведомления';
+
+  @override
+  String get notificationsChannelDescription =>
+      'Сообщения о задачах, проблемах и объявлениях';
 }

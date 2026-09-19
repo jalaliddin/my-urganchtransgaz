@@ -284,12 +284,6 @@ abstract class AppLocalizations {
   /// **'Bosh sahifa'**
   String get navDashboard;
 
-  /// No description provided for @navAttendance.
-  ///
-  /// In uz, this message translates to:
-  /// **'Davomat'**
-  String get navAttendance;
-
   /// No description provided for @navTasks.
   ///
   /// In uz, this message translates to:
@@ -350,30 +344,6 @@ abstract class AppLocalizations {
   /// **'Xush kelibsiz'**
   String get dashboardWelcome;
 
-  /// No description provided for @dashboardTodayAttendance.
-  ///
-  /// In uz, this message translates to:
-  /// **'Bugungi davomat'**
-  String get dashboardTodayAttendance;
-
-  /// No description provided for @dashboardNotCheckedInYet.
-  ///
-  /// In uz, this message translates to:
-  /// **'Siz hali kelmadingiz deb belgilangansiz'**
-  String get dashboardNotCheckedInYet;
-
-  /// No description provided for @dashboardCheckedInAt.
-  ///
-  /// In uz, this message translates to:
-  /// **'Kelgan vaqt: {time}'**
-  String dashboardCheckedInAt(Object time);
-
-  /// No description provided for @dashboardCheckedOutAt.
-  ///
-  /// In uz, this message translates to:
-  /// **'Ketgan vaqt: {time}'**
-  String dashboardCheckedOutAt(Object time);
-
   /// No description provided for @dashboardLatestAnnouncements.
   ///
   /// In uz, this message translates to:
@@ -403,78 +373,6 @@ abstract class AppLocalizations {
   /// In uz, this message translates to:
   /// **'Faol topshiriqlar yo\'q'**
   String get dashboardNoTasks;
-
-  /// No description provided for @attendanceTitle.
-  ///
-  /// In uz, this message translates to:
-  /// **'Davomat'**
-  String get attendanceTitle;
-
-  /// No description provided for @attendanceTabToday.
-  ///
-  /// In uz, this message translates to:
-  /// **'Bugun'**
-  String get attendanceTabToday;
-
-  /// No description provided for @attendanceTabHistory.
-  ///
-  /// In uz, this message translates to:
-  /// **'Tarix'**
-  String get attendanceTabHistory;
-
-  /// No description provided for @attendanceCheckIn.
-  ///
-  /// In uz, this message translates to:
-  /// **'Keldim'**
-  String get attendanceCheckIn;
-
-  /// No description provided for @attendanceCheckOut.
-  ///
-  /// In uz, this message translates to:
-  /// **'Ketdim'**
-  String get attendanceCheckOut;
-
-  /// No description provided for @attendanceCheckedIn.
-  ///
-  /// In uz, this message translates to:
-  /// **'Kelganingiz qayd etildi'**
-  String get attendanceCheckedIn;
-
-  /// No description provided for @attendanceCheckedOut.
-  ///
-  /// In uz, this message translates to:
-  /// **'Ketganingiz qayd etildi'**
-  String get attendanceCheckedOut;
-
-  /// No description provided for @attendanceStatus.
-  ///
-  /// In uz, this message translates to:
-  /// **'Holat'**
-  String get attendanceStatus;
-
-  /// No description provided for @attendanceWorked.
-  ///
-  /// In uz, this message translates to:
-  /// **'Ishlangan vaqt'**
-  String get attendanceWorked;
-
-  /// No description provided for @attendanceFrom.
-  ///
-  /// In uz, this message translates to:
-  /// **'Dan'**
-  String get attendanceFrom;
-
-  /// No description provided for @attendanceTo.
-  ///
-  /// In uz, this message translates to:
-  /// **'Gacha'**
-  String get attendanceTo;
-
-  /// No description provided for @attendanceNoRecords.
-  ///
-  /// In uz, this message translates to:
-  /// **'Bu davr uchun yozuvlar yo\'q'**
-  String get attendanceNoRecords;
 
   /// No description provided for @profileTitle.
   ///
@@ -1244,30 +1142,6 @@ abstract class AppLocalizations {
   /// **'Rad etilgan'**
   String get statusRejected;
 
-  /// No description provided for @statusPresent.
-  ///
-  /// In uz, this message translates to:
-  /// **'Keldi'**
-  String get statusPresent;
-
-  /// No description provided for @statusLate.
-  ///
-  /// In uz, this message translates to:
-  /// **'Kechikdi'**
-  String get statusLate;
-
-  /// No description provided for @statusEarlyLeave.
-  ///
-  /// In uz, this message translates to:
-  /// **'Erta ketdi'**
-  String get statusEarlyLeave;
-
-  /// No description provided for @statusAbsent.
-  ///
-  /// In uz, this message translates to:
-  /// **'Kelmadi'**
-  String get statusAbsent;
-
   /// No description provided for @statusNew.
   ///
   /// In uz, this message translates to:
@@ -1339,6 +1213,120 @@ abstract class AppLocalizations {
   /// In uz, this message translates to:
   /// **'Bartaraf etilgan'**
   String get statusResolved;
+
+  /// No description provided for @navHome.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bosh sahifa'**
+  String get navHome;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In uz, this message translates to:
+  /// **'Til'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsLanguageHint.
+  ///
+  /// In uz, this message translates to:
+  /// **'Ilova tili'**
+  String get settingsLanguageHint;
+
+  /// No description provided for @dashboardGreetingMorning.
+  ///
+  /// In uz, this message translates to:
+  /// **'Xayrli tong'**
+  String get dashboardGreetingMorning;
+
+  /// No description provided for @dashboardGreetingAfternoon.
+  ///
+  /// In uz, this message translates to:
+  /// **'Xayrli kun'**
+  String get dashboardGreetingAfternoon;
+
+  /// No description provided for @dashboardGreetingEvening.
+  ///
+  /// In uz, this message translates to:
+  /// **'Xayrli kech'**
+  String get dashboardGreetingEvening;
+
+  /// No description provided for @dashboardStatTasks.
+  ///
+  /// In uz, this message translates to:
+  /// **'Faol topshiriqlar'**
+  String get dashboardStatTasks;
+
+  /// No description provided for @dashboardStatIssues.
+  ///
+  /// In uz, this message translates to:
+  /// **'Ochiq muammolar'**
+  String get dashboardStatIssues;
+
+  /// No description provided for @dashboardStatExams.
+  ///
+  /// In uz, this message translates to:
+  /// **'Imtihonlar'**
+  String get dashboardStatExams;
+
+  /// No description provided for @dashboardQuickActions.
+  ///
+  /// In uz, this message translates to:
+  /// **'Tezkor amallar'**
+  String get dashboardQuickActions;
+
+  /// No description provided for @dashboardReportIssue.
+  ///
+  /// In uz, this message translates to:
+  /// **'Muammo qayd etish'**
+  String get dashboardReportIssue;
+
+  /// No description provided for @dashboardDueSoon.
+  ///
+  /// In uz, this message translates to:
+  /// **'Muddati yaqin topshiriqlar'**
+  String get dashboardDueSoon;
+
+  /// No description provided for @dashboardAllCaughtUp.
+  ///
+  /// In uz, this message translates to:
+  /// **'Hammasi joyida — shoshilinch topshiriq yo\'q'**
+  String get dashboardAllCaughtUp;
+
+  /// No description provided for @dashboardOverdue.
+  ///
+  /// In uz, this message translates to:
+  /// **'Muddati o\'tgan'**
+  String get dashboardOverdue;
+
+  /// No description provided for @dashboardLoadError.
+  ///
+  /// In uz, this message translates to:
+  /// **'Yuklab bo\'lmadi'**
+  String get dashboardLoadError;
+
+  /// No description provided for @notificationsBackgroundTitle.
+  ///
+  /// In uz, this message translates to:
+  /// **'Yangi bildirishnoma'**
+  String get notificationsBackgroundTitle;
+
+  /// No description provided for @notificationsBackgroundSummary.
+  ///
+  /// In uz, this message translates to:
+  /// **'{count} ta yangi bildirishnoma'**
+  String notificationsBackgroundSummary(int count);
+
+  /// No description provided for @notificationsChannelName.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bildirishnomalar'**
+  String get notificationsChannelName;
+
+  /// No description provided for @notificationsChannelDescription.
+  ///
+  /// In uz, this message translates to:
+  /// **'Topshiriqlar, muammolar va e\'lonlar haqida xabarlar'**
+  String get notificationsChannelDescription;
 }
 
 class _AppLocalizationsDelegate

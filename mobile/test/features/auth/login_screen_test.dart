@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:urtg_mobile/core/locale/language_switcher.dart';
+import 'package:urtg_mobile/core/locale/locale_controller.dart';
 import 'package:urtg_mobile/core/models/user.dart';
 import 'package:urtg_mobile/core/network/api_client.dart';
 import 'package:urtg_mobile/core/network/api_providers.dart';
@@ -18,26 +21,48 @@ class _LoggedOutAuthController extends AuthController {
   Future<User?> build() async => null;
 }
 
-void main() {
-  testWidgets('shows a validation error when submitting an empty form', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          apiClientProvider.overrideWithValue(ApiClient()),
-          authControllerProvider.overrideWith(_LoggedOutAuthController.new),
-        ],
-        child: MaterialApp(
-          // The test harness's platform locale is en-US by default, not
-          // the app's uz default — force it so the assertions below (in
-          // Uzbek) match what actually renders.
-          locale: const Locale('uz'),
+Future<void> _pumpLogin(WidgetTester tester) async {
+  SharedPreferences.setMockInitialValues({});
+  final prefs = await SharedPreferences.getInstance();
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        apiClientProvider.overrideWithValue(ApiClient()),
+        authControllerProvider.overrideWith(_LoggedOutAuthController.new),
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
+      child: Consumer(
+        builder: (context, ref, _) => MaterialApp(
+          // Follows the app's own language setting (Uzbek unless changed),
+          // not the test harness's en-US platform locale.
+          locale: ref.watch(localeControllerProvider),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: const LoginScreen(),
         ),
       ),
-    );
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+void main() {
+  testWidgets('language can be switched before signing in', (tester) async {
+    await _pumpLogin(tester);
+
+    expect(find.byType(LanguageSwitcher), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Kirish'), findsOneWidget);
+
+    await tester.tap(find.text('Русский'));
     await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(FilledButton, 'Kirish'), findsNothing);
+    expect(find.widgetWithText(FilledButton, 'Войти'), findsOneWidget);
+  });
+
+  testWidgets('shows a validation error when submitting an empty form', (tester) async {
+    await _pumpLogin(tester);
 
     await tester.tap(find.widgetWithText(FilledButton, 'Kirish'));
     await tester.pumpAndSettle();

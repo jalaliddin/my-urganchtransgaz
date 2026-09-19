@@ -1,19 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/locale/locale_controller.dart';
 import 'core/network/api_client.dart';
 import 'core/network/api_providers.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/auth_controller.dart';
+import 'features/notifications/background/background_worker.dart';
+import 'features/notifications/background/notification_service.dart';
+import 'features/notifications/background/notifications_lifecycle.dart';
 import 'l10n/app_localizations.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   final apiClient = ApiClient();
+  final preferences = await SharedPreferences.getInstance();
+
+  if (NotificationService.isSupported) {
+    try {
+      await BackgroundNotifications.initialize();
+    } catch (e) {
+      // Background checks are an extra; the app itself must still start.
+      debugPrint('Background notifications unavailable: $e');
+    }
+  }
 
   runApp(
     ProviderScope(
-      overrides: [apiClientProvider.overrideWithValue(apiClient)],
+      overrides: [
+        apiClientProvider.overrideWithValue(apiClient),
+        sharedPreferencesProvider.overrideWithValue(preferences),
+      ],
       child: _AppBootstrap(apiClient: apiClient),
     ),
   );
@@ -41,7 +61,7 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
 
   @override
   Widget build(BuildContext context) {
-    return const UrtgApp();
+    return const NotificationsLifecycle(child: UrtgApp());
   }
 }
 
@@ -51,8 +71,10 @@ class UrtgApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    final locale = ref.watch(localeControllerProvider);
 
     return MaterialApp.router(
+      locale: locale,
       onGenerateTitle: (context) => AppLocalizations.of(context).appName,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),

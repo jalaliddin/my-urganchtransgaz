@@ -13,25 +13,28 @@ controllers, not just assumed from the web app's behavior).
 
 ## Scope
 
-**In:** login/logout, dashboard, attendance (check-in/check-out +
-history), profile (view/edit self-service fields, photo, pending
+**In:** login/logout, dashboard, profile (view/edit self-service fields, photo, pending
 change-request status), documents (list/upload/download), tasks
 (list/detail/progress/complete/comments/attachments), KPI (my results),
 safety exams (available/take/results), location-based issue reporting
 ("Muammolar" — any employee can report, choosing the organization,
 a category and one or more executors; list/detail/comment, and resolve
 for technical-policy), announcements (feed/detail), notifications
-(list/mark read).
+(list/mark read, plus system notifications while the app is closed —
+see "Notifications in the background"), and an in-app language setting
+(Uzbek or Russian).
+
+**Attendance is not in the mobile app** (it was removed on request; the
+backend endpoints and the web app's Attendance pages are unchanged).
 
 **Out (stays on the web app):** all organization/department/employee
 management, KPI template/exam authoring, task assignment/approval,
 announcement authoring/publishing, settings, audit logs, global search,
 import/export. Those screens are data-table- and multi-field-form-heavy
-and suit a wide screen better than a phone. There's also no
-push-notification transport here — the backend only has in-app
-notifications (see the web app's own Phase 9 README) — so this app
-polls the unread-count endpoint on refresh instead of anything
-push-based.
+and suit a wide screen better than a phone. There's no
+push-notification transport (FCM/APNs) either — the backend only has
+in-app notifications (see the web app's own Phase 9 README) — so system
+notifications come from the app checking the server itself, see below.
 
 ## Stack
 
@@ -87,9 +90,9 @@ push-based.
 
 ```
 lib/
-  core/            # network client, secure storage, theme, router, shared widgets/models
+  core/            # network client, secure storage, theme, router/shell, locale, layout breakpoints, shared widgets/models
   features/
-    auth/ dashboard/ attendance/ profile/ documents/
+    auth/ dashboard/ profile/ documents/
     tasks/ kpi/ exams/ issues/ announcements/
     notifications/ more/
       data/          # Repository classes (talk to ApiClient)
@@ -97,6 +100,64 @@ lib/
       presentation/  # Riverpod controllers + screens
   l10n/            # .arb source files + generated AppLocalizations
 ```
+
+## Language
+
+Uzbek (default) and Russian, chosen in **More → Language** or on the
+login screen, applied immediately and remembered (`shared_preferences`).
+Nothing follows the phone's system language: with no choice made the app
+is Uzbek. `LocaleController` (`lib/core/locale/`) owns the setting; the
+background notification worker reads the same stored value, so a
+notification's *summary* text ("3 new notifications") follows it too.
+Note that the title and message of an individual notification are
+written by the server, which only produces Uzbek — those are shown as
+received.
+
+## Layout
+
+Layout follows the width the app actually has, never the device type:
+compact (< 600) gets a bottom navigation bar; 600 and up gets a
+navigation rail, extended from 840. Both are built from one destination
+list (Home, Tasks, Issues — only for users with issue permissions —
+and More). The dashboard is a single column on a phone and two columns
+(tasks beside quick actions and announcements) once the page itself is
+at least 840 wide, capped at 1100 so content never stretches edge to
+edge. It shows a greeting with the notification bell, three counters
+(active tasks, open issues, exams to take), a prominent "report a
+problem" action, upcoming/overdue tasks with progress, and the latest
+announcements, and refreshes with pull-down.
+
+## Notifications in the background
+
+There is no push service behind this app, so system notifications are
+produced by the app itself asking the server for unread notifications:
+
+- **App open:** every 60 seconds and whenever it returns to the
+  foreground — the bell badge refreshes and anything new is announced.
+- **App closed or in the background (Android):** an Android WorkManager
+  periodic task (`workmanager`) runs every ~15 minutes with network
+  access, in its own isolate, and shows what is new with
+  `flutter_local_notifications`. **15 minutes is Android's minimum for
+  periodic work and battery saving may delay it further, so this is not
+  instant delivery.** Real-time delivery needs push (Firebase Cloud
+  Messaging): a Firebase project and `google-services.json`, storing each
+  device's token on the backend and sending through FCM when a
+  notification is created. That is the natural next step; nothing here
+  prevents it.
+- Tapping a notification opens what it is about (task, issue,
+  announcement, exam, document — from the ids in the notification's
+  data), falling back to the notification list.
+- What counts as "new" is remembered per account
+  (`NotificationSync`): the first check after signing in only records
+  what is already unread (it is on the badge; nothing is alerted for it),
+  each notification is announced once, more than three at once collapse
+  into one summary, and logging out cancels the task and forgets the
+  record.
+- Android 13+ asks for the notification permission after the first
+  sign-in; if it is declined nothing is shown but the in-app bell keeps
+  working.
+- **iOS is not wired up** (it needs its own background configuration and
+  could not be verified here); other platforms just refresh the badge.
 
 ## Running it
 
@@ -173,9 +234,14 @@ macOS/Xcode is available, so iOS still could not be built or run here.
 - `flutter analyze` — clean.
 - `flutter test` — unit tests for every model's `fromJson` (matched
   against real `Api\V1\*Resource` shapes) and `ApiException` parsing,
-  plus widget tests for the login form, the task list, and the
-  today-attendance card (login/session-restore, empty states, and
-  button enablement all covered).
+  plus widget tests for the login form (including switching language
+  before signing in), the task list, the adaptive navigation shell
+  (bar on a phone, rail on a wider window, selection kept across a
+  resize, Issues tab only for users who may use it), the dashboard (at
+  320, 390 and 1200/1800 px wide, in Uzbek and Russian, with and
+  without issue permissions), the language setting (default, fallback,
+  persistence) and the notification-sync logic (baseline, no repeats,
+  retry after a failed display, reset on logout).
 - `flutter build appbundle --release` — a real, full release build,
   producing an installable `app-release.aab` (~60MB) signed with the
   debug-signing fallback (no real upload keystore exists in this
@@ -236,15 +302,26 @@ dart run flutter_launcher_icons
 dart run flutter_native_splash:create
 ```
 
-Both read from `assets/icon/`: `icon-legacy.png` (the flame mark on an
-opaque white square — required for iOS, which rejects a transparent
-icon) and `icon-foreground.png` (the same mark on a transparent square,
-for Android's adaptive icon, composited at runtime over
-`adaptive_icon_background: "#FFFFFF"`). These two PNGs are a rasterized,
-cropped-to-just-the-flame version of `logo.svg` (the full logo's wide
-icon+wordmark aspect ratio doesn't fit a square icon) — regenerate them
-the same way (crop to the flame only, pad into a square, export at
-1024×1024) if the source logo ever changes.
+Both read from `assets/icon/`: `icon-legacy.png` (the mark on an opaque
+white square — required for iOS, which rejects a transparent icon),
+`icon-foreground.png` (the same mark on a transparent square, for
+Android's adaptive icon, composited at runtime over
+`adaptive_icon_background: "#FFFFFF"`) and `splash-icon.png`. They are
+a rasterized crop of `logo.svg` — the full logo's wide icon+wordmark
+shape doesn't fit a square — and **the crop is the flame together with
+the "U"** (everything above the "TRANSGAZ" wordmark). An earlier crop
+cut the mark short, which is why the logo looked incomplete on opening;
+the bounds are now measured from the rendered logo's pixel rows/columns
+rather than guessed.
+
+Two sizing rules matter here: Android 12+ draws the splash icon inside a
+circle two-thirds the size of the image, so a tall mark must occupy no
+more than about half of the image's height (the splash icon does), and an
+adaptive launcher icon's safe zone is the central ~61%, which
+`flutter_launcher_icons` already insets the foreground for. The
+notification status-bar icon (`ic_stat_notification`, in each
+`res/drawable-*dpi`) is the same mark as a white silhouette — Android
+tints status-bar icons, so a coloured one would render as a blob.
 
 ## Google Play Console
 
@@ -315,11 +392,6 @@ upload/rollout.
   section for the full design rationale (permission model, why
   leadership visibility is narrower than `hasCentralAccess()`, why
   Leave Requests/Business Trips were removed).
-- **`GET /attendance/today` returns a scoped board, not a single "my
-  status" record** (it's shared with the web app's HR/manager view) —
-  the mobile dashboard/attendance-today screen finds the caller's own
-  row in that list by `employee_id` rather than assuming the response
-  is already just-me.
 - **Emergency/bank contacts were deliberately left out of the Profile
   screen.** `UpdateProfileRequest` does accept a `contacts` field, but
   `EmployeeResource` never actually serializes it back out, and the web

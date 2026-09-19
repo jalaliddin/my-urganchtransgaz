@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/announcements/presentation/announcement_detail_screen.dart';
 import '../../features/announcements/presentation/announcements_screen.dart';
-import '../../features/attendance/presentation/attendance_screen.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
@@ -59,8 +58,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) => AppShell(child: child),
         routes: [
           GoRoute(path: '/', builder: (context, state) => const DashboardScreen()),
-          GoRoute(path: '/attendance', builder: (context, state) => const AttendanceScreen()),
           GoRoute(path: '/tasks', builder: (context, state) => const TasksScreen()),
+          GoRoute(path: '/issues', builder: (context, state) => const IssuesScreen()),
           GoRoute(path: '/more', builder: (context, state) => const MoreScreen()),
         ],
       ),
@@ -76,7 +75,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/exams/:id/attempt',
         builder: (context, state) => ExamAttemptScreen(examId: int.parse(state.pathParameters['id']!)),
       ),
-      GoRoute(path: '/issues', builder: (context, state) => const IssuesScreen()),
       GoRoute(path: '/issues/new', builder: (context, state) => const CreateIssueScreen()),
       GoRoute(
         path: '/issues/:id',

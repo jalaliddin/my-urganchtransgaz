@@ -106,9 +106,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get navDashboard => 'Bosh sahifa';
 
   @override
-  String get navAttendance => 'Davomat';
-
-  @override
   String get navTasks => 'Topshiriqlar';
 
   @override
@@ -139,23 +136,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get dashboardWelcome => 'Xush kelibsiz';
 
   @override
-  String get dashboardTodayAttendance => 'Bugungi davomat';
-
-  @override
-  String get dashboardNotCheckedInYet =>
-      'Siz hali kelmadingiz deb belgilangansiz';
-
-  @override
-  String dashboardCheckedInAt(Object time) {
-    return 'Kelgan vaqt: $time';
-  }
-
-  @override
-  String dashboardCheckedOutAt(Object time) {
-    return 'Ketgan vaqt: $time';
-  }
-
-  @override
   String get dashboardLatestAnnouncements => 'So\'nggi e\'lonlar';
 
   @override
@@ -169,42 +149,6 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get dashboardNoTasks => 'Faol topshiriqlar yo\'q';
-
-  @override
-  String get attendanceTitle => 'Davomat';
-
-  @override
-  String get attendanceTabToday => 'Bugun';
-
-  @override
-  String get attendanceTabHistory => 'Tarix';
-
-  @override
-  String get attendanceCheckIn => 'Keldim';
-
-  @override
-  String get attendanceCheckOut => 'Ketdim';
-
-  @override
-  String get attendanceCheckedIn => 'Kelganingiz qayd etildi';
-
-  @override
-  String get attendanceCheckedOut => 'Ketganingiz qayd etildi';
-
-  @override
-  String get attendanceStatus => 'Holat';
-
-  @override
-  String get attendanceWorked => 'Ishlangan vaqt';
-
-  @override
-  String get attendanceFrom => 'Dan';
-
-  @override
-  String get attendanceTo => 'Gacha';
-
-  @override
-  String get attendanceNoRecords => 'Bu davr uchun yozuvlar yo\'q';
 
   @override
   String get profileTitle => 'Mening profilim';
@@ -598,18 +542,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get statusRejected => 'Rad etilgan';
 
   @override
-  String get statusPresent => 'Keldi';
-
-  @override
-  String get statusLate => 'Kechikdi';
-
-  @override
-  String get statusEarlyLeave => 'Erta ketdi';
-
-  @override
-  String get statusAbsent => 'Kelmadi';
-
-  @override
   String get statusNew => 'Yangi';
 
   @override
@@ -644,4 +576,65 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get statusResolved => 'Bartaraf etilgan';
+
+  @override
+  String get navHome => 'Bosh sahifa';
+
+  @override
+  String get settingsLanguage => 'Til';
+
+  @override
+  String get settingsLanguageHint => 'Ilova tili';
+
+  @override
+  String get dashboardGreetingMorning => 'Xayrli tong';
+
+  @override
+  String get dashboardGreetingAfternoon => 'Xayrli kun';
+
+  @override
+  String get dashboardGreetingEvening => 'Xayrli kech';
+
+  @override
+  String get dashboardStatTasks => 'Faol topshiriqlar';
+
+  @override
+  String get dashboardStatIssues => 'Ochiq muammolar';
+
+  @override
+  String get dashboardStatExams => 'Imtihonlar';
+
+  @override
+  String get dashboardQuickActions => 'Tezkor amallar';
+
+  @override
+  String get dashboardReportIssue => 'Muammo qayd etish';
+
+  @override
+  String get dashboardDueSoon => 'Muddati yaqin topshiriqlar';
+
+  @override
+  String get dashboardAllCaughtUp =>
+      'Hammasi joyida — shoshilinch topshiriq yo\'q';
+
+  @override
+  String get dashboardOverdue => 'Muddati o\'tgan';
+
+  @override
+  String get dashboardLoadError => 'Yuklab bo\'lmadi';
+
+  @override
+  String get notificationsBackgroundTitle => 'Yangi bildirishnoma';
+
+  @override
+  String notificationsBackgroundSummary(int count) {
+    return '$count ta yangi bildirishnoma';
+  }
+
+  @override
+  String get notificationsChannelName => 'Bildirishnomalar';
+
+  @override
+  String get notificationsChannelDescription =>
+      'Topshiriqlar, muammolar va e\'lonlar haqida xabarlar';
 }

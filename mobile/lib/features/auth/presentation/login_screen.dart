@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/locale/language_switcher.dart';
 import '../../../core/network/api_providers.dart';
 import '../../../l10n/app_localizations.dart';
 import 'auth_controller.dart';
@@ -79,6 +80,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    const Align(alignment: Alignment.centerRight, child: LanguageSwitcher()),
+                    const SizedBox(height: 16),
                     SvgPicture.asset('assets/images/logo.svg', height: 84),
                     const SizedBox(height: 16),
                     Text(

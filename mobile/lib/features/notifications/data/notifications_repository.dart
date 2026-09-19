@@ -10,11 +10,11 @@ class NotificationsRepository {
 
   final ApiClient _client;
 
-  Future<Paginated<NotificationItem>> list({int page = 1}) async {
+  Future<Paginated<NotificationItem>> list({int page = 1, bool unreadOnly = false}) async {
     try {
       final response = await _client.dio.get<Map<String, dynamic>>(
         '/notifications',
-        queryParameters: {'page': page},
+        queryParameters: {'page': page, if (unreadOnly) 'unread_only': 1},
       );
 
       return Paginated.fromJson(response.data!, NotificationItem.fromJson);
