@@ -1106,6 +1106,42 @@ abstract class AppLocalizations {
   /// **'Muammolar topilmadi'**
   String get issuesNone;
 
+  /// No description provided for @issuesCategory.
+  ///
+  /// In uz, this message translates to:
+  /// **'Kategoriya'**
+  String get issuesCategory;
+
+  /// No description provided for @issuesOrganization.
+  ///
+  /// In uz, this message translates to:
+  /// **'Quyi tashkilot'**
+  String get issuesOrganization;
+
+  /// No description provided for @issuesResponsible.
+  ///
+  /// In uz, this message translates to:
+  /// **'Mas\'ul xodim'**
+  String get issuesResponsible;
+
+  /// No description provided for @issuesResponsibleSelf.
+  ///
+  /// In uz, this message translates to:
+  /// **'Siz o\'zingiz mas\'ul bo\'lasiz'**
+  String get issuesResponsibleSelf;
+
+  /// No description provided for @issuesPickOrganizationFirst.
+  ///
+  /// In uz, this message translates to:
+  /// **'Avval quyi tashkilotni tanlang'**
+  String get issuesPickOrganizationFirst;
+
+  /// No description provided for @issuesNoCandidates.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bu tashkilotda mas\'ul bo\'la oladigan xodim topilmadi'**
+  String get issuesNoCandidates;
+
   /// No description provided for @announcementsTitle.
   ///
   /// In uz, this message translates to:

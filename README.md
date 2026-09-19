@@ -136,6 +136,7 @@ docker compose run --rm artisan migrate --force
 # 3. Seed real reference data — NOT the full demo dataset (see note below)
 docker compose run --rm artisan db:seed --class=RolePermissionSeeder --force
 docker compose run --rm artisan db:seed --class=DocumentTypeSeeder --force
+docker compose run --rm artisan db:seed --class=IssueCategorySeeder --force
 
 # 4. Bring up everything else
 docker compose up -d
@@ -143,7 +144,7 @@ docker compose up -d
 
 The stack listens on `${HTTP_PORT:-8090}` (host port), not `:80` directly — on a host that already runs other projects behind their own reverse proxy (as this one does), point that existing proxy's `my.urtg.uz` server block at `127.0.0.1:${HTTP_PORT}` instead of exposing this stack's own `nginx` service to the internet directly. Set `HTTP_PORT=80` in `.env` instead if this stack gets a dedicated host.
 
-**Seeding note:** `RolePermissionSeeder` and `DocumentTypeSeeder` are real, required setup (roles/permissions, document-category reference data). `OrganizationSeeder`/`DepartmentSeeder`/`PositionSeeder`/`EmployeeSeeder` (what a plain `db:seed --force` would also run) encode this company's actual district structure but via Eloquent factories — fine for local dev/staging/demos, but skip them for a real production database and create the real org/department/employee records through the app itself (or the CSV import feature) instead. If you do want the full demo dataset (e.g. for a staging environment), `docker compose run --rm artisan db:seed --force` works too — the `artisan` service's image includes dev dependencies specifically so this works (see `backend/Dockerfile`'s `vendor-dev`/`fpm-tools` stages), unlike the lean `backend`/`scheduler` runtime images.
+**Seeding note:** `RolePermissionSeeder`, `DocumentTypeSeeder` and `IssueCategorySeeder` are real, required setup (roles/permissions, document categories, issue categories — the report-issue form refuses to submit without a category). `OrganizationSeeder`/`DepartmentSeeder`/`PositionSeeder`/`EmployeeSeeder` (what a plain `db:seed --force` would also run) encode this company's actual district structure but via Eloquent factories — fine for local dev/staging/demos, but skip them for a real production database and create the real org/department/employee records through the app itself (or the CSV import feature) instead. If you do want the full demo dataset (e.g. for a staging environment), `docker compose run --rm artisan db:seed --force` works too — the `artisan` service's image includes dev dependencies specifically so this works (see `backend/Dockerfile`'s `vendor-dev`/`fpm-tools` stages), unlike the lean `backend`/`scheduler` runtime images.
 
 **First admin account:** no seeder creates one in the real (non-demo) path above — create your first organization, department, and super-admin employee/user once via `docker compose run --rm artisan tinker`, then manage everything else through the web app from there.
 

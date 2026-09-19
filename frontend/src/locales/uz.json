@@ -441,7 +441,14 @@
     "resolutionNote": "Javob (bartaraf etish uchun)",
     "resolvedBy": "Bartaraf etdi",
     "resolvedAt": "Bartaraf etilgan vaqt",
-    "noIssues": "Muammolar topilmadi"
+    "noIssues": "Muammolar topilmadi",
+    "category": "Kategoriya",
+    "organization": "Quyi tashkilot",
+    "responsible": "Mas'ul xodim",
+    "responsibleSelf": "Siz o'zingiz mas'ul bo'lasiz",
+    "allCategories": "Barcha kategoriyalar",
+    "pickOrganizationFirst": "Avval quyi tashkilotni tanlang",
+    "noCandidates": "Bu tashkilotda mas'ul bo'la oladigan xodim topilmadi"
   },
   "search": {
     "placeholder": "Qidirish...",

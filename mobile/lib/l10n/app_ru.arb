@@ -178,6 +178,12 @@
   "issuesResolutionNote": "Ответ (для устранения)",
   "issuesResolvedBy": "Устранил",
   "issuesNone": "Проблемы не найдены",
+  "issuesCategory": "Категория",
+  "issuesOrganization": "Подведомственная организация",
+  "issuesResponsible": "Ответственный",
+  "issuesResponsibleSelf": "Ответственным будете вы",
+  "issuesPickOrganizationFirst": "Сначала выберите организацию",
+  "issuesNoCandidates": "В этой организации нет сотрудников, которых можно назначить ответственными",
 
   "announcementsTitle": "Объявления",
   "announcementsNone": "Нет объявлений",

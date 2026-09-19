@@ -528,6 +528,25 @@ class AppLocalizationsUz extends AppLocalizations {
   String get issuesNone => 'Muammolar topilmadi';
 
   @override
+  String get issuesCategory => 'Kategoriya';
+
+  @override
+  String get issuesOrganization => 'Quyi tashkilot';
+
+  @override
+  String get issuesResponsible => 'Mas\'ul xodim';
+
+  @override
+  String get issuesResponsibleSelf => 'Siz o\'zingiz mas\'ul bo\'lasiz';
+
+  @override
+  String get issuesPickOrganizationFirst => 'Avval quyi tashkilotni tanlang';
+
+  @override
+  String get issuesNoCandidates =>
+      'Bu tashkilotda mas\'ul bo\'la oladigan xodim topilmadi';
+
+  @override
   String get announcementsTitle => 'E\'lonlar';
 
   @override

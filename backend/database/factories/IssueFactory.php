@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Enums\IssueStatus;
 use App\Models\Employee;
 use App\Models\Issue;
+use App\Models\IssueCategory;
 use App\Models\Organization;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -23,6 +24,7 @@ class IssueFactory extends Factory
         return [
             'reporter_employee_id' => Employee::factory(),
             'organization_id' => Organization::factory(),
+            'issue_category_id' => IssueCategory::factory(),
             'title' => fake()->sentence(4),
             'description' => fake()->paragraph(),
             'object_name' => fake()->streetName(),

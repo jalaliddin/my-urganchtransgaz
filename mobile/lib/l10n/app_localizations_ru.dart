@@ -527,6 +527,25 @@ class AppLocalizationsRu extends AppLocalizations {
   String get issuesNone => 'Проблемы не найдены';
 
   @override
+  String get issuesCategory => 'Категория';
+
+  @override
+  String get issuesOrganization => 'Подведомственная организация';
+
+  @override
+  String get issuesResponsible => 'Ответственный';
+
+  @override
+  String get issuesResponsibleSelf => 'Ответственным будете вы';
+
+  @override
+  String get issuesPickOrganizationFirst => 'Сначала выберите организацию';
+
+  @override
+  String get issuesNoCandidates =>
+      'В этой организации нет сотрудников, которых можно назначить ответственными';
+
+  @override
   String get announcementsTitle => 'Объявления';
 
   @override

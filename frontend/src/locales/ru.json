@@ -441,7 +441,14 @@
     "resolutionNote": "Ответ (для устранения)",
     "resolvedBy": "Устранил",
     "resolvedAt": "Время устранения",
-    "noIssues": "Проблемы не найдены"
+    "noIssues": "Проблемы не найдены",
+    "category": "Категория",
+    "organization": "Подведомственная организация",
+    "responsible": "Ответственный",
+    "responsibleSelf": "Ответственным будете вы",
+    "allCategories": "Все категории",
+    "pickOrganizationFirst": "Сначала выберите организацию",
+    "noCandidates": "В этой организации нет сотрудников, которых можно назначить ответственными"
   },
   "search": {
     "placeholder": "Поиск...",

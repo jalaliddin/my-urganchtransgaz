@@ -36,12 +36,78 @@ class IssueComment {
       );
 }
 
+class IssueCategory {
+  IssueCategory({required this.id, required this.name, required this.code});
+
+  final int id;
+  final String name;
+  final String code;
+
+  factory IssueCategory.fromJson(Map<String, dynamic> json) => IssueCategory(
+        id: json['id'] as int,
+        name: json['name'] as String? ?? '',
+        code: json['code'] as String? ?? '',
+      );
+}
+
+class IssueOrganizationOption {
+  IssueOrganizationOption({required this.id, required this.name});
+
+  final int id;
+  final String name;
+
+  factory IssueOrganizationOption.fromJson(Map<String, dynamic> json) =>
+      IssueOrganizationOption(id: json['id'] as int, name: json['name'] as String? ?? '');
+}
+
+/// What the report form offers this user — decided by the server so the
+/// app never re-derives role rules: which organizations they may file
+/// against, the categories, and whether they must name a responsible
+/// employee (a department-manager is responsible for what they report).
+class IssueOptions {
+  IssueOptions({required this.organizations, required this.categories, required this.mustChooseResponsible});
+
+  final List<IssueOrganizationOption> organizations;
+  final List<IssueCategory> categories;
+  final bool mustChooseResponsible;
+
+  factory IssueOptions.fromJson(Map<String, dynamic> json) => IssueOptions(
+        organizations: (json['organizations'] as List<dynamic>? ?? [])
+            .map((e) => IssueOrganizationOption.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        categories: (json['categories'] as List<dynamic>? ?? [])
+            .map((e) => IssueCategory.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        mustChooseResponsible: json['must_choose_responsible'] as bool? ?? false,
+      );
+}
+
+class IssueResponsibleCandidate {
+  IssueResponsibleCandidate({required this.id, required this.fullName, this.department, this.position});
+
+  final int id;
+  final String fullName;
+  final String? department;
+  final String? position;
+
+  String get subtitle => [position, department].whereType<String>().join(' · ');
+
+  factory IssueResponsibleCandidate.fromJson(Map<String, dynamic> json) => IssueResponsibleCandidate(
+        id: json['id'] as int,
+        fullName: json['full_name'] as String? ?? '',
+        department: json['department'] as String?,
+        position: json['position'] as String?,
+      );
+}
+
 class Issue {
   Issue({
     required this.id,
     this.reporter,
     this.organization,
     this.department,
+    this.category,
+    this.responsible,
     required this.title,
     this.description,
     this.objectName,
@@ -60,6 +126,8 @@ class Issue {
   final Employee? reporter;
   final Organization? organization;
   final Department? department;
+  final IssueCategory? category;
+  final Employee? responsible;
   final String title;
   final String? description;
   final String? objectName;
@@ -85,6 +153,12 @@ class Issue {
             : null,
         department: json['department'] is Map<String, dynamic>
             ? Department.fromJson(json['department'] as Map<String, dynamic>)
+            : null,
+        category: json['category'] is Map<String, dynamic>
+            ? IssueCategory.fromJson(json['category'] as Map<String, dynamic>)
+            : null,
+        responsible: json['responsible'] is Map<String, dynamic>
+            ? Employee.fromJson(json['responsible'] as Map<String, dynamic>)
             : null,
         title: json['title'] as String? ?? '',
         description: json['description'] as String?,

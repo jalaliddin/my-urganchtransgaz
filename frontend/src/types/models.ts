@@ -453,6 +453,25 @@ export interface Announcement {
 
 export type IssueStatus = 'open' | 'resolved'
 
+export interface IssueCategory {
+  id: number
+  name: string
+  code: string
+}
+
+export interface IssueOptions {
+  organizations: Pick<Organization, 'id' | 'name' | 'code'>[]
+  categories: IssueCategory[]
+  must_choose_responsible: boolean
+}
+
+export interface IssueResponsibleCandidate {
+  id: number
+  full_name: string
+  department: string | null
+  position: string | null
+}
+
 export interface IssueActivity {
   id: number
   action: string
@@ -478,6 +497,10 @@ export interface Issue {
   organization?: Organization
   department_id: number | null
   department?: Department
+  issue_category_id: number | null
+  category?: IssueCategory
+  responsible_employee_id: number | null
+  responsible?: Employee
   title: string
   description: string | null
   object_name: string | null

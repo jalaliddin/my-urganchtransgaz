@@ -5,9 +5,11 @@ namespace App\Models;
 use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
 use App\Enums\Gender;
+use App\Enums\UserStatus;
 use Database\Factories\EmployeeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -34,6 +36,23 @@ class Employee extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Employees who can actually be held responsible for an issue: still
+     * working, with an active account that may open the Issues module —
+     * otherwise they'd be named responsible for something they can never
+     * see, comment on, or be notified about.
+     *
+     * @param  Builder<Employee>  $query
+     */
+    public function scopeIssueHandlers(Builder $query): void
+    {
+        $query
+            ->whereNotIn('status', [EmployeeStatus::Inactive->value, EmployeeStatus::Terminated->value])
+            ->whereHas('user', fn (Builder $user) => $user
+                ->where('status', UserStatus::Active->value)
+                ->permission('issues.view'));
     }
 
     public function organization(): BelongsTo

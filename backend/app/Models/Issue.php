@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'reporter_employee_id', 'organization_id', 'department_id',
+    'issue_category_id', 'responsible_employee_id',
     'title', 'description', 'object_name', 'latitude', 'longitude',
     'status', 'resolution_note', 'resolved_by', 'resolved_at',
 ])]
@@ -33,6 +34,16 @@ class Issue extends Model
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(IssueCategory::class, 'issue_category_id');
+    }
+
+    public function responsible(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'responsible_employee_id');
     }
 
     public function resolvedBy(): BelongsTo

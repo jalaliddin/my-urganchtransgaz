@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             PositionSeeder::class,
             EmployeeSeeder::class,
             DocumentTypeSeeder::class,
+            IssueCategorySeeder::class,
         ]);
     }
 }

@@ -16,7 +16,7 @@ class IssuePolicy
     }
 
     /**
-     * The reporter, Technical Policy Service (the resolving authority,
+     * The reporter, the responsible employee, Technical Policy Service (the resolving authority,
      * company-wide), and central leadership can always open a single
      * issue directly; a department-manager additionally needs it to be
      * within their own department, the same `withinScope()` boundary
@@ -24,7 +24,7 @@ class IssuePolicy
      */
     public function view(User $user, Issue $issue): bool
     {
-        if ($user->id === $issue->reporter?->user_id) {
+        if ($user->id === $issue->reporter?->user_id || $user->id === $issue->responsible?->user_id) {
             return true;
         }
 

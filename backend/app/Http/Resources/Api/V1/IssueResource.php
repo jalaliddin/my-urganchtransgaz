@@ -26,6 +26,10 @@ class IssueResource extends JsonResource
             'organization' => new OrganizationResource($this->whenLoaded('organization')),
             'department_id' => $this->department_id,
             'department' => new DepartmentResource($this->whenLoaded('department')),
+            'issue_category_id' => $this->issue_category_id,
+            'category' => new IssueCategoryResource($this->whenLoaded('category')),
+            'responsible_employee_id' => $this->responsible_employee_id,
+            'responsible' => new EmployeeResource($this->whenLoaded('responsible')),
 
             'title' => $this->title,
             'description' => $this->description,

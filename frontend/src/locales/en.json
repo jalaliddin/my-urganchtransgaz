@@ -441,7 +441,14 @@
     "resolutionNote": "Response (to resolve)",
     "resolvedBy": "Resolved by",
     "resolvedAt": "Resolved at",
-    "noIssues": "No issues found"
+    "noIssues": "No issues found",
+    "category": "Category",
+    "organization": "Subordinate organization",
+    "responsible": "Responsible employee",
+    "responsibleSelf": "You will be the responsible person",
+    "allCategories": "All categories",
+    "pickOrganizationFirst": "Select an organization first",
+    "noCandidates": "No employee in this organization can be made responsible"
   },
   "search": {
     "placeholder": "Search...",

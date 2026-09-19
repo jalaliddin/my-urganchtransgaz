@@ -100,9 +100,15 @@ class _IssueDetailScreenState extends ConsumerState<IssueDetailScreen> {
         children: [
           Text(issue.title, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
-          Chip(
-            label: Text(issue.isOpen ? l10n.statusOpen : l10n.statusResolved),
-            backgroundColor: issue.isOpen ? Colors.red.shade50 : Colors.green.shade50,
+          Wrap(
+            spacing: 8,
+            children: [
+              Chip(
+                label: Text(issue.isOpen ? l10n.statusOpen : l10n.statusResolved),
+                backgroundColor: issue.isOpen ? Colors.red.shade50 : Colors.green.shade50,
+              ),
+              if (issue.category != null) Chip(avatar: const Icon(Icons.sell_outlined, size: 16), label: Text(issue.category!.name)),
+            ],
           ),
           if (issue.description != null) ...[
             const SizedBox(height: 12),
@@ -134,6 +140,8 @@ class _IssueDetailScreenState extends ConsumerState<IssueDetailScreen> {
           ],
           const Divider(height: 32),
           _InfoRow(icon: Icons.person_outline, label: l10n.issuesReporter, value: issue.reporter?.fullName ?? '—'),
+          if (issue.responsible != null)
+            _InfoRow(icon: Icons.assignment_ind_outlined, label: l10n.issuesResponsible, value: issue.responsible!.fullName),
           if (issue.organization != null)
             _InfoRow(icon: Icons.apartment_outlined, label: issue.organization!.name, value: ''),
           if (issue.department != null)

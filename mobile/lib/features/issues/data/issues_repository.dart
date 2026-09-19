@@ -26,6 +26,30 @@ class IssuesRepository {
     }
   }
 
+  Future<IssueOptions> options() async {
+    try {
+      final response = await _client.dio.get<Map<String, dynamic>>('/issues/options');
+
+      return IssueOptions.fromJson(response.data!['data'] as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<List<IssueResponsibleCandidate>> responsibleCandidates(int organizationId) async {
+    try {
+      final response = await _client.dio.get<Map<String, dynamic>>(
+        '/issues/responsible-candidates',
+        queryParameters: {'organization_id': organizationId},
+      );
+      final data = response.data!['data'] as List<dynamic>;
+
+      return data.map((e) => IssueResponsibleCandidate.fromJson(e as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
   Future<Issue> show(int id) async {
     try {
       final response = await _client.dio.get<Map<String, dynamic>>('/issues/$id');
@@ -40,6 +64,9 @@ class IssuesRepository {
     required String title,
     String? description,
     String? objectName,
+    int? organizationId,
+    required int categoryId,
+    int? responsibleEmployeeId,
     required double latitude,
     required double longitude,
   }) async {
@@ -48,6 +75,9 @@ class IssuesRepository {
         'title': title,
         'description': ?description,
         'object_name': ?objectName,
+        'organization_id': ?organizationId,
+        'issue_category_id': categoryId,
+        'responsible_employee_id': ?responsibleEmployeeId,
         'latitude': latitude,
         'longitude': longitude,
       });

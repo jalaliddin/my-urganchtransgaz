@@ -8,6 +8,15 @@ final issuesRepositoryProvider = Provider<IssuesRepository>((ref) {
   return IssuesRepository(ref.watch(apiClientProvider));
 });
 
+final issueOptionsProvider = FutureProvider.autoDispose<IssueOptions>((ref) {
+  return ref.watch(issuesRepositoryProvider).options();
+});
+
+final responsibleCandidatesProvider =
+    FutureProvider.autoDispose.family<List<IssueResponsibleCandidate>, int>((ref, organizationId) {
+  return ref.watch(issuesRepositoryProvider).responsibleCandidates(organizationId);
+});
+
 /// Defaults to open-only — "shown on the map until resolved" is the
 /// primary view; "All" is there for history, not the default.
 class IssuesController extends AsyncNotifier<List<Issue>> {

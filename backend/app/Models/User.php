@@ -54,6 +54,18 @@ class User extends Authenticatable
     }
 
     /**
+     * A department-manager reporting an issue is, by definition, the
+     * person responsible for it. Everyone else who can report one
+     * (Technical Policy Service, central-admin, super-admin) is flagging a
+     * problem on someone else's ground and must name who is responsible.
+     */
+    public function mustChooseIssueResponsible(): bool
+    {
+        return ! $this->hasRole('department-manager')
+            || $this->hasAnyRole(['technical-policy', 'central-admin', 'super-admin']);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
