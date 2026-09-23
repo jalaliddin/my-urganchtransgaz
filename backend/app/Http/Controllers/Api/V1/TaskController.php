@@ -47,6 +47,10 @@ class TaskController extends Controller
                 'priority',
                 AllowedFilter::exact('organization_id'),
                 AllowedFilter::exact('department_id'),
+                AllowedFilter::callback(
+                    'assignee_id',
+                    fn ($query, $value) => $query->whereHas('assignees', fn ($assigneeQuery) => $assigneeQuery->where('employees.id', $value))
+                ),
             )
             ->defaultSort('-created_at')
             ->when(! $user->hasCentralAccess(), function ($query) use ($user) {

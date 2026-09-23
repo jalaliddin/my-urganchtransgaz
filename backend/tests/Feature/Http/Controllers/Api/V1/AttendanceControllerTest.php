@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\AttendanceStatus;
+use App\Models\AttendanceEvent;
 use App\Models\AttendanceRecord;
 use App\Models\Department;
 use App\Models\Employee;
@@ -78,6 +79,54 @@ it('rejects a duplicate check-out for the same day', function () {
     $this->actingAs($user, 'sanctum')->postJson('/api/v1/attendance/check-in')->assertOk();
     $this->actingAs($user, 'sanctum')->postJson('/api/v1/attendance/check-out')->assertOk();
     $this->actingAs($user, 'sanctum')->postJson('/api/v1/attendance/check-out')->assertStatus(409);
+});
+
+it('lists the raw scan log behind one daily record, in chronological order', function () {
+    $hr = userWithRole('hr', Organization::factory()->create());
+    $employee = Employee::factory()->create(['organization_id' => $hr->employee->organization_id]);
+    $record = AttendanceRecord::factory()->create(['employee_id' => $employee->id, 'date' => '2026-09-23']);
+
+    AttendanceEvent::factory()->checkOut()->create(['employee_id' => $employee->id, 'occurred_at' => '2026-09-23 18:00:00']);
+    AttendanceEvent::factory()->checkIn()->create(['employee_id' => $employee->id, 'occurred_at' => '2026-09-23 09:00:00']);
+    AttendanceEvent::factory()->checkOut()->create(['employee_id' => $employee->id, 'occurred_at' => '2026-09-23 13:00:00']);
+    // A different day for the same employee must not leak into the list.
+    AttendanceEvent::factory()->checkIn()->create(['employee_id' => $employee->id, 'occurred_at' => '2026-09-22 09:00:00']);
+
+    $response = $this->actingAs($hr, 'sanctum')->getJson("/api/v1/attendance/{$record->id}/events");
+
+    $response->assertOk();
+    $times = collect($response->json('data'))->pluck('occurred_at');
+    expect($times)->toHaveCount(3)
+        ->and($times->first())->toContain('09:00:00')
+        ->and($times->last())->toContain('18:00:00');
+});
+
+it('forbids viewing another organization\'s attendance events', function () {
+    $manager = userWithRole('manager', Organization::factory()->create());
+    $record = AttendanceRecord::factory()->create([
+        'employee_id' => Employee::factory()->create(['organization_id' => Organization::factory()->create()->id])->id,
+    ]);
+
+    $this->actingAs($manager, 'sanctum')
+        ->getJson("/api/v1/attendance/{$record->id}/events")
+        ->assertStatus(403);
+});
+
+it('attaches each listed record\'s visits_count, computed from the raw scan log', function () {
+    $hr = userWithRole('hr', Organization::factory()->create());
+    $employee = Employee::factory()->create(['organization_id' => $hr->employee->organization_id]);
+    AttendanceRecord::factory()->create(['employee_id' => $employee->id, 'date' => '2026-09-23']);
+
+    AttendanceEvent::factory()->checkIn()->create(['employee_id' => $employee->id, 'occurred_at' => '2026-09-23 09:00:00']);
+    AttendanceEvent::factory()->checkOut()->create(['employee_id' => $employee->id, 'occurred_at' => '2026-09-23 13:00:00']);
+    AttendanceEvent::factory()->checkIn()->create(['employee_id' => $employee->id, 'occurred_at' => '2026-09-23 14:00:00']);
+    AttendanceEvent::factory()->checkOut()->create(['employee_id' => $employee->id, 'occurred_at' => '2026-09-23 18:00:00']);
+
+    $response = $this->actingAs($hr, 'sanctum')->getJson("/api/v1/attendance?filter[employee_id]={$employee->id}");
+
+    $response->assertOk();
+    $row = collect($response->json('data'))->firstWhere('employee_id', $employee->id);
+    expect($row['visits_count'])->toBe(4);
 });
 
 it('forbids a manager from viewing an attendance record outside their organization', function () {

@@ -12,12 +12,15 @@ use App\Enums\AttendanceSource;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAttendanceRequest;
 use App\Http\Requests\UpdateAttendanceRequest;
+use App\Http\Resources\Api\V1\AttendanceEventResource;
 use App\Http\Resources\Api\V1\AttendanceRecordResource;
 use App\Http\Resources\Api\V1\TodayAttendanceResource;
+use App\Models\AttendanceEvent;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
 use App\Models\Setting;
 use App\Services\AuditLogService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -67,10 +70,57 @@ class AttendanceController extends Controller
             )
             ->paginate(request()->integer('per_page', 15));
 
+        $this->attachVisitsCounts($records);
+
         return $this->success(
             AttendanceRecordResource::collection($records),
             meta: $this->paginationMeta($records)
         );
+    }
+
+    /**
+     * Attach each record's "necha bora kirib chiqqan" (how many scans
+     * that day) as a transient visits_count attribute, via one grouped
+     * query for the whole page instead of one per record.
+     */
+    private function attachVisitsCounts(LengthAwarePaginator $records): void
+    {
+        if ($records->isEmpty()) {
+            return;
+        }
+
+        $dates = $records->getCollection()->pluck('date')->map->toDateString();
+
+        $counts = AttendanceEvent::query()
+            ->whereIn('employee_id', $records->getCollection()->pluck('employee_id')->unique())
+            ->whereDate('occurred_at', '>=', $dates->min())
+            ->whereDate('occurred_at', '<=', $dates->max())
+            ->selectRaw('employee_id, DATE(occurred_at) as day, COUNT(*) as cnt')
+            ->groupBy('employee_id', 'day')
+            ->get()
+            ->keyBy(fn ($row) => $row->employee_id.'|'.$row->day);
+
+        foreach ($records as $record) {
+            $key = $record->employee_id.'|'.$record->date->toDateString();
+            $record->visits_count = (int) ($counts[$key]->cnt ?? 0);
+        }
+    }
+
+    /**
+     * The raw scan log behind one daily record — every individual
+     * check-in/check-out event that day, not just the summarized
+     * check_in/check_out on the record itself.
+     */
+    public function events(AttendanceRecord $attendanceRecord): JsonResponse
+    {
+        Gate::authorize('view', $attendanceRecord);
+
+        $events = AttendanceEvent::where('employee_id', $attendanceRecord->employee_id)
+            ->whereDate('occurred_at', $attendanceRecord->date)
+            ->orderBy('occurred_at')
+            ->get();
+
+        return $this->success(AttendanceEventResource::collection($events));
     }
 
     /**

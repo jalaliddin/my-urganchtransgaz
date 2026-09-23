@@ -34,6 +34,10 @@ class AttendanceRecordResource extends JsonResource
             'status' => $this->status,
             'source' => $this->source,
             'notes' => $this->notes,
+            // Only set when the controller bulk-attached it (index()); a
+            // per-record show()/store()/update() leaves this null rather
+            // than issuing an extra query nobody asked for.
+            'visits_count' => $this->visits_count ?? null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

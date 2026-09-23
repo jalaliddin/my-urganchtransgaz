@@ -11,6 +11,7 @@ Route::prefix('attendance')->name('attendance.')->group(function () {
     Route::get('timesheet', [AttendanceController::class, 'timesheet'])->name('timesheet');
     Route::post('check-in', [AttendanceController::class, 'checkIn'])->name('check-in');
     Route::post('check-out', [AttendanceController::class, 'checkOut'])->name('check-out');
+    Route::get('{attendanceRecord}/events', [AttendanceController::class, 'events'])->name('events');
     Route::get('{attendanceRecord}', [AttendanceController::class, 'show'])->name('show');
     Route::put('{attendanceRecord}', [AttendanceController::class, 'update'])->name('update');
     Route::delete('{attendanceRecord}', [AttendanceController::class, 'destroy'])->name('destroy');
