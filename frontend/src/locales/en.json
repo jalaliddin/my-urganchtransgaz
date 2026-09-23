@@ -243,7 +243,8 @@
     "openAccount": "Open an account",
     "resetPassword": "Reset password",
     "newPassword": "New password",
-    "confirmPassword": "Confirm password"
+    "confirmPassword": "Confirm password",
+    "visitsCount": "Visits"
   },
   "dashboard": {
     "title": "Dashboard",

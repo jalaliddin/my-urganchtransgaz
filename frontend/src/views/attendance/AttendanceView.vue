@@ -7,6 +7,7 @@ import { departmentService } from '@/services/departmentService'
 import { organizationService } from '@/services/organizationService'
 import { useAuthStore } from '@/stores/auth'
 import type {
+  AttendanceEvent,
   AttendanceRecord,
   AttendanceReportRow,
   AttendanceStatus,
@@ -186,6 +187,21 @@ async function openDetail(row: AttendanceReportRow) {
     detailRows.value = result.data
   } finally {
     loadingDetail.value = false
+  }
+}
+
+// --- Per-day raw scan log (necha bora kirib chiqqan) behind one detail row ---
+const eventsTarget = ref<AttendanceRecord | null>(null)
+const eventsList = ref<AttendanceEvent[]>([])
+const loadingEvents = ref(false)
+
+async function openEvents(record: AttendanceRecord) {
+  eventsTarget.value = record
+  loadingEvents.value = true
+  try {
+    eventsList.value = await attendanceService.events(record.id)
+  } finally {
+    loadingEvents.value = false
   }
 }
 
@@ -575,6 +591,7 @@ watch(tab, (value) => {
               <th>{{ $t('attendance.checkIn') }}</th>
               <th>{{ $t('attendance.checkOut') }}</th>
               <th>{{ $t('attendance.totalWorked') }}</th>
+              <th>{{ $t('employees.visitsCount') }}</th>
               <th>{{ $t('common.status') }}</th>
             </tr>
           </thead>
@@ -584,6 +601,15 @@ watch(tab, (value) => {
               <td>{{ timeOnly(record.check_in) }}</td>
               <td>{{ timeOnly(record.check_out) }}</td>
               <td>{{ record.worked_minutes ? formatMinutes(record.worked_minutes) : '—' }}</td>
+              <td>
+                <a
+                  v-if="(record.visits_count ?? 0) > 0"
+                  href="#"
+                  class="text-decoration-none"
+                  @click.prevent="openEvents(record)"
+                >{{ record.visits_count }}</a>
+                <span v-else>—</span>
+              </td>
               <td><AppStatusChip :status="record.status" /></td>
             </tr>
           </tbody>
@@ -593,6 +619,37 @@ watch(tab, (value) => {
       <v-card-actions>
         <v-spacer />
         <v-btn variant="text" @click="detailTarget = null">{{ $t('common.close') }}</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog
+    :model-value="eventsTarget !== null"
+    max-width="420"
+    @update:model-value="(v: boolean) => !v && (eventsTarget = null)"
+  >
+    <v-card v-if="eventsTarget">
+      <v-card-title>{{ eventsTarget.date }}</v-card-title>
+      <v-card-text>
+        <v-progress-linear v-if="loadingEvents" indeterminate class="mb-4" />
+        <v-timeline density="compact" side="end">
+          <v-timeline-item
+            v-for="event in eventsList"
+            :key="event.id"
+            size="x-small"
+            :dot-color="event.type === 'check_in' ? 'success' : 'warning'"
+          >
+            <div class="text-body-2">
+              {{ event.type === 'check_in' ? $t('attendance.checkIn') : $t('attendance.checkOut') }}
+              — {{ timeOnly(event.occurred_at) }}
+            </div>
+          </v-timeline-item>
+        </v-timeline>
+        <AppEmptyState v-if="!loadingEvents && eventsList.length === 0" icon="mdi-history" />
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="eventsTarget = null">{{ $t('common.close') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

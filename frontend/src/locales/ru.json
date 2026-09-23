@@ -243,7 +243,8 @@
     "openAccount": "Открыть учётную запись",
     "resetPassword": "Сбросить пароль",
     "newPassword": "Новый пароль",
-    "confirmPassword": "Подтвердите пароль"
+    "confirmPassword": "Подтвердите пароль",
+    "visitsCount": "Кол-во входов/выходов"
   },
   "dashboard": {
     "title": "Панель управления",

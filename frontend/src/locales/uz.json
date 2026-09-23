@@ -243,7 +243,8 @@
     "openAccount": "Hisob ochish",
     "resetPassword": "Parolni tiklash",
     "newPassword": "Yangi parol",
-    "confirmPassword": "Parolni tasdiqlang"
+    "confirmPassword": "Parolni tasdiqlang",
+    "visitsCount": "Necha bora keldi-ketdi"
   },
   "dashboard": {
     "title": "Boshqaruv paneli",

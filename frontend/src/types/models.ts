@@ -171,8 +171,19 @@ export interface AttendanceRecord {
   status: AttendanceStatus
   source: AttendanceSource
   notes: string | null
+  // Only present when the listing endpoint bulk-attached it — "necha
+  // bora kirib chiqqan" (how many scans that day), from attendance_events.
+  visits_count: number | null
   created_at: string
   updated_at: string
+}
+
+export interface AttendanceEvent {
+  id: number
+  employee_id: number
+  type: 'check_in' | 'check_out'
+  occurred_at: string
+  source: AttendanceSource
 }
 
 export interface TodayAttendance {

@@ -1,7 +1,7 @@
 import { createResourceService } from '@/services/resourceService'
 import { http } from '@/services/http'
 import type { ApiSuccessResponse } from '@/types/api'
-import type { AttendanceRecord, AttendanceReportRow, AttendanceStatus, Timesheet, TodayAttendance } from '@/types/models'
+import type { AttendanceEvent, AttendanceRecord, AttendanceReportRow, AttendanceStatus, Timesheet, TodayAttendance } from '@/types/models'
 
 export interface AttendanceEntryPayload {
   employee_id: number
@@ -47,6 +47,12 @@ export const attendanceService = {
 
   async checkOut(): Promise<AttendanceRecord> {
     const { data } = await http.post<ApiSuccessResponse<AttendanceRecord>>('/attendance/check-out')
+    return data.data
+  },
+
+  /** The raw scan log behind one daily record — "necha bora kirib chiqqan". */
+  async events(recordId: number): Promise<AttendanceEvent[]> {
+    const { data } = await http.get<ApiSuccessResponse<AttendanceEvent[]>>(`/attendance/${recordId}/events`)
     return data.data
   },
 

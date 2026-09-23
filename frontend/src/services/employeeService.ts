@@ -1,7 +1,7 @@
 import { createResourceService } from '@/services/resourceService'
 import { http } from '@/services/http'
 import type { ApiSuccessResponse, ListParams } from '@/types/api'
-import type { Employee, ImportResult } from '@/types/models'
+import type { Employee, EmployeeStatus, ImportResult } from '@/types/models'
 
 export interface CreateEmployeePayload {
   organization_id: number | null
@@ -31,6 +31,7 @@ export interface UpdateEmployeePayload {
   middle_name?: string | null
   phone?: string | null
   corporate_email?: string | null
+  status?: EmployeeStatus
 }
 
 export interface CreateEmployeeAccountPayload {

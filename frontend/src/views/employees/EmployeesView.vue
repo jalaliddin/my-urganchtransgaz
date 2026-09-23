@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 import { usePaginatedResource } from '@/composables/usePaginatedResource'
 import { departmentService } from '@/services/departmentService'
@@ -8,10 +9,13 @@ import { employeeImportService, employeeService } from '@/services/employeeServi
 import { organizationService } from '@/services/organizationService'
 import { positionService } from '@/services/positionService'
 import { useAuthStore } from '@/stores/auth'
-import type { Department, Employee, ImportResult, Organization, Position } from '@/types/models'
+import type { Department, Employee, EmployeeStatus, ImportResult, Organization, Position } from '@/types/models'
 
 const { t } = useI18n()
 const auth = useAuthStore()
+const router = useRouter()
+
+const employeeStatuses: EmployeeStatus[] = ['active', 'vacation', 'business_trip', 'sick_leave', 'inactive', 'terminated']
 
 const { items, total, loading, page, itemsPerPage, search, reload } =
   usePaginatedResource(employeeService.list)
@@ -48,6 +52,7 @@ const form = ref({
   middle_name: '',
   phone: '',
   corporate_email: '',
+  status: 'active' as EmployeeStatus,
   create_account: false,
   username: '',
   password: '',
@@ -93,6 +98,7 @@ function openCreate() {
     middle_name: '',
     phone: '',
     corporate_email: '',
+    status: 'active' as EmployeeStatus,
     create_account: false,
     username: '',
     password: '',
@@ -115,6 +121,7 @@ function openEdit(employee: Employee) {
     middle_name: employee.middle_name ?? '',
     phone: employee.phone ?? '',
     corporate_email: employee.corporate_email ?? '',
+    status: employee.status,
     create_account: false,
     username: '',
     password: '',
@@ -129,7 +136,7 @@ async function save() {
   formErrors.value = {}
   try {
     if (editing.value) {
-      const { organization_id, department_id, position_id, employee_number, dahua_person_id, first_name, last_name, middle_name, phone, corporate_email } = form.value
+      const { organization_id, department_id, position_id, employee_number, dahua_person_id, first_name, last_name, middle_name, phone, corporate_email, status } = form.value
       await employeeService.update(editing.value.id, {
         organization_id,
         department_id,
@@ -144,6 +151,7 @@ async function save() {
         middle_name,
         phone,
         corporate_email,
+        status,
       })
     } else {
       await employeeService.create({ ...form.value, dahua_person_id: form.value.dahua_person_id || null })
@@ -156,6 +164,10 @@ async function save() {
   } finally {
     saving.value = false
   }
+}
+
+function openDetail(employee: Employee) {
+  router.push({ name: 'employee-detail', params: { id: employee.id } })
 }
 
 async function confirmDelete() {
@@ -330,6 +342,9 @@ async function confirmImport() {
     @update:items-per-page="(v: number) => (itemsPerPage = v)"
     @update:search="(v: string) => (search = v)"
   >
+    <template #item.full_name="{ item }">
+      <a href="#" class="text-decoration-none" @click.prevent="openDetail(item)">{{ item.full_name }}</a>
+    </template>
     <template #item.organization.name="{ item }">
       {{ item.organization?.name ?? '—' }}
     </template>
@@ -459,6 +474,15 @@ async function confirmImport() {
                 v-model="form.middle_name"
                 :label="$t('employees.middleName')"
                 :error-messages="formErrors.middle_name"
+              />
+            </v-col>
+
+            <v-col v-if="editing" cols="12" sm="6">
+              <v-select
+                v-model="form.status"
+                :items="employeeStatuses.map((s) => ({ title: $t(`status.${s}`), value: s }))"
+                :label="$t('employees.status')"
+                :error-messages="formErrors.status"
               />
             </v-col>
 
