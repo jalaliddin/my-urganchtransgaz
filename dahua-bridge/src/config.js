@@ -101,6 +101,10 @@ export function loadConfig(env = (loadEnv(process.env.ENV_FILE_PATH || '.env'), 
     // `Events[0].Code=AccessControl` — so this is a candidate list, same
     // reasoning as personIdFields, not a single assumed key.
     codeFields: parseList(env.CODE_FIELDS, ['EventBaseInfo.Code', 'Code']),
+    // Confirmed live, both on the event stream and on a recordFinder
+    // record: the device's own scan time, as Unix epoch seconds — always
+    // preferred over "when this bridge happened to process it".
+    timeFields: parseList(env.TIME_FIELDS, ['CreateTime', 'UTC', 'RealUTC']),
     logRawEvents: parseBool(env.LOG_RAW_EVENTS, false),
     dryRun: parseBool(env.DRY_RUN, false),
     logLevel: env.LOG_LEVEL?.trim() || 'info',
@@ -109,6 +113,36 @@ export function loadConfig(env = (loadEnv(process.env.ENV_FILE_PATH || '.env'), 
     // a real second visit is never this fast.
     dedupeSeconds: Number(env.DEDUPE_SECONDS || 4),
     dataDir: env.DATA_DIR?.trim() || new URL('../data/', import.meta.url).pathname,
+    recordFinder: {
+      enabled: parseBool(env.RECORD_FINDER_ENABLED, true),
+      // The one record type name Dahua's own documentation gives for
+      // access-control card/fingerprint/face records — configurable in
+      // case a different terminal model uses another name.
+      recordName: env.RECORD_FINDER_NAME?.trim() || 'AccessControlCardRec',
+      // The device's documented default and cap for one `find` call. The
+      // response carries no total-record count or pagination token on
+      // the terminal this was verified against (confirmed live: asking
+      // for 5 returns exactly `found=5` with nothing else to page
+      // through) — backfillOnStart.js narrows the time window instead of
+      // paging when a window might hold more than this.
+      count: Number(env.RECORD_FINDER_COUNT || 1024),
+      // Runs once at startup, covering the gap since the last record this
+      // bridge already processed (persisted in DATA_DIR) — recovers
+      // whatever happened while the bridge was down, which the live
+      // subscription alone never sees. Unset (or 0) disables it.
+      backfillOnStart: parseBool(env.BACKFILL_ON_START, true),
+      // A specific point in time (anything `Date` can parse, e.g.
+      // "2026-09-01") to backfill from on the very first run, before any
+      // "last processed" state exists — otherwise that first run only
+      // looks back one day, which is deliberately conservative (a
+      // fresh install has no prior state to know how far back is safe
+      // to pull without risking a huge, slow first sync).
+      backfillSince: env.BACKFILL_SINCE?.trim() || undefined,
+      // Runs the same gap-fill periodically as a safety net alongside
+      // the live subscription (a network blip the stream's own
+      // reconnect logic didn't fully cover, etc.). 0 disables it.
+      reconcileIntervalMinutes: Number(env.RECONCILE_INTERVAL_MINUTES || 30),
+    },
   };
 
   return config;

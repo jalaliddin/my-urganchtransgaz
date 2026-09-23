@@ -21,6 +21,19 @@ export function readAccessControlEvent(fields, config) {
     return null;
   }
 
+  return readAccessRecord(fields, config);
+}
+
+/**
+ * Same field resolution as readAccessControlEvent, minus the Code check —
+ * for a record read from recordFinder.cgi (offline/historical access
+ * records), which has no Code field at all because the query itself
+ * (`name=AccessControlCardRec`) already guarantees every record returned
+ * is one. Confirmed live: a real record carries the same flat field
+ * names as a live event (UserID, Status, ErrorCode, Type, Door, ...), so
+ * the same candidate lists apply unchanged.
+ */
+export function readAccessRecord(fields, config) {
   const personId = firstPresentField(fields, config.personIdFields);
 
   if (!personId) {
@@ -36,12 +49,27 @@ export function readAccessControlEvent(fields, config) {
 }
 
 /**
+ * The event/record's own reported time (Unix epoch seconds), preferred
+ * over "whenever this bridge happened to process it" — essential for a
+ * backfilled record (which is by definition processed long after it
+ * happened) and more accurate even for a live event. `undefined` when
+ * none of the candidate fields are present, so the caller can fall back
+ * to "now" for a genuinely live event with no time field at all.
+ */
+export function resolveEventTime(fields, config) {
+  return firstPresentField(fields, config.timeFields);
+}
+
+/**
  * `ErrorCode`, when present, is trusted first: 0 means no error, matching
- * the same convention Dahua's other HTTP APIs use — and it is what
- * distinguished the one real "no matching person" scan seen live during
- * development (`ErrorCode: 16`, empty UserID) from what a genuine
- * recognized scan should look like. `Status`'s own known-failure values
- * are the fallback for an event with no `ErrorCode` at all.
+ * the same convention Dahua's other HTTP APIs use. Two real examples
+ * confirmed this live: a "no matching person" scan (`ErrorCode: 16`,
+ * empty UserID, `Status: 0`) and, from recordFinder, a genuine recognized
+ * entry (`ErrorCode: 0`, a real UserID and CardName, `Status: 1`) —
+ * consistent with 0/absent-vs-nonzero being the real signal and `Status`
+ * being numeric on this model, not the word "Success"/"Failure" the
+ * vendor's documentation excerpt implied. `Status`'s own known-failure
+ * values are the fallback for an event with no `ErrorCode` at all.
  */
 function isSuccessful(fields) {
   const errorCode = fields.ErrorCode;

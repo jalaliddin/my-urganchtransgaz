@@ -1,4 +1,5 @@
-import { readAccessControlEvent } from './accessControlEvent.js';
+import { readAccessControlEvent, resolveEventTime } from './accessControlEvent.js';
+import { epochSecondsToTashkentDateTimeString, toTashkentDateTimeString } from './tashkentTime.js';
 import { parseEventText } from './eventTextParser.js';
 
 /**
@@ -51,10 +52,21 @@ export function createEventPipeline(config, { logger, dedupe, direction, queue, 
         continue;
       }
 
+      // The device's own reported scan time when the event carries one
+      // (it does on every model seen live so far) — never "now" labelled
+      // as if it were UTC. my.urtg.uz stores this as naive Asia/Tashkent
+      // wall-clock text with no timezone marker at all (see
+      // tashkentTime.js); sending anything UTC-suffixed here previously
+      // recorded every check-in/check-out five hours early.
+      const deviceTime = resolveEventTime(fields, config);
+      const eventTime = deviceTime
+        ? epochSecondsToTashkentDateTimeString(deviceTime)
+        : toTashkentDateTimeString(new Date());
+
       const attendanceEvent = {
         personId: accessEvent.personId,
         direction: direction.resolve(accessEvent),
-        eventTime: new Date().toISOString(),
+        eventTime,
       };
 
       logger.info('Scan recognized', attendanceEvent);

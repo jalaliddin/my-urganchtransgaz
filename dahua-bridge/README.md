@@ -216,6 +216,64 @@ sidesteps the problem entirely. Otherwise, two modes are supported
 - **Denied access attempts** (a rejected card/face at the terminal) are
   never forwarded as attendance — only a recognized, successful scan is.
 
+## Historical records (recordFinder.cgi) and backfill
+
+The live event subscription only ever reports what happens *after* it
+connects — anything that happened before this bridge was installed, or
+while it was briefly down, is otherwise gone. Dahua's `recordFinder.cgi`
+(`action=find&name=AccessControlCardRec`) is a second, separate endpoint
+that reads the terminal's own stored history, and this bridge uses it to
+fill that gap:
+
+- **On startup**, it pulls everything since the last record this bridge
+  already processed (tracked in `DATA_DIR/backfill-state.json`) — a
+  fresh install with no prior state looks back one day by default
+  (`BACKFILL_SINCE` sets an explicit starting point instead, e.g. for a
+  brand-new install that should pull a terminal's whole history).
+- **Periodically** afterward (`RECONCILE_INTERVAL_MINUTES`, default 30)
+  as a safety net alongside the live stream.
+- **On demand**, independent of the running bridge: `npm run backfill`
+  (optionally with `BACKFILL_SINCE=2026-01-01` for one specific deep
+  pull).
+- Every record goes through the exact same mapping, dedupe-by-record
+  (not the live stream's time-window dedupe — each record has its own
+  sequence number, `RecNo`, confirmed live to be a simple increasing
+  counter, so a record already processed on an earlier run is never
+  re-sent) and offline queue as a live event — `DRY_RUN`/`LOG_RAW_EVENTS`
+  cover this too, and a dry run never advances the "already processed"
+  cursor, so testing it doesn't cause a real run afterward to skip
+  anything.
+- The response carries no total-record count or pagination token on the
+  terminal this was verified against (confirmed live: asking for 5
+  returns exactly `found=5`, nothing to page through) — if a query
+  window could hold more than `RECORD_FINDER_COUNT` (default 1024, the
+  vendor's own default), a warning is logged; narrow `BACKFILL_SINCE` or
+  raise the count rather than assume pagination exists.
+
+## A timezone bug this same live-device testing caught
+
+**If you deployed this bridge before this was fixed, every check-in/
+check-out it recorded is five hours earlier than the real time; a real
+13:15 arrival was stored as 08:15. Restart the bridge to pick up the
+fix, and treat any attendance already recorded through it as needing a
+manual correction on the web app's Attendance page.**
+
+my.urtg.uz stores attendance times as plain `Y-m-d H:i:s` text with no
+timezone marker, always meaning Asia/Tashkent wall-clock time (confirmed
+directly: `config('app.timezone')` is `Asia/Tashkent`, and
+`Carbon::parse()` on a `Z`-suffixed UTC string keeps that string's own
+UTC timezone instead of converting it — so a UTC-labelled ISO timestamp
+lands in the database still holding its *UTC* digits, unchanged, which
+read five hours behind the real Tashkent time). This bridge originally
+sent `new Date().toISOString()` — UTC, with a `Z` suffix — for every
+event; it now sends the device's own reported scan time (confirmed live
+to be Unix epoch seconds, in `CreateTime`/`UTC`/`RealUTC`), converted to
+that naive Tashkent form (`src/tashkentTime.js`, a fixed +5:00 offset —
+Uzbekistan has had one constant UTC+5 offset with no DST since 1992, so
+this needs no timezone database at all, avoiding the same category of
+gap this project already hit once with `Intl.DateTimeFormat('uz', ...)`
+on the web dashboard).
+
 ## What was verified, and what was not
 
 This was originally built entirely from Dahua's own published protocol
@@ -248,18 +306,32 @@ also how the defaults below stopped being a documentation-only guess.
     `DIRECTION_MODE=fixed` exactly as intended: the entry terminal's own
     event carried `"Type":"Entry"`, matching `FIXED_DIRECTION=check_in`
     configured for it independently of that field.
-- **Not yet verified**: a genuine *recognized* scan (matched to a real
-  `UserID`) end to end from either terminal through to a real
-  `attendance_records` row — the capture window only caught an
-  unmatched attempt. The `ErrorCode=0`/populated-`UserID` shape a
-  successful scan is expected to have is inferred from the one real
-  sample's schema, not itself observed. The webhook call and backend
-  side of that path *were* separately verified live (next point); what
-  remains unconfirmed is only the terminal actually reporting a match
-  in the field names this bridge now expects. Confirm with
-  `npm run capture` against an employee's real badge/face before
-  disabling dry-run in production, and watch the first day's real
-  traffic in `journalctl` afterward regardless.
+- **Verified live via recordFinder.cgi** (see "Historical records" above):
+  real, genuinely recognized scans, hundreds of them, from both
+  terminals — `ErrorCode: 0`, a real `UserID`, a human `CardName`
+  (e.g. `"Kenjayev N"`), `Status: 1` (numeric, not the word
+  "Success"/"Failure" the vendor's documentation excerpt implied). A
+  `count=5` query against 30 days of history back returned exactly
+  `found=5`, confirming this endpoint has no pagination this bridge can
+  rely on beyond `count`. `CreateTime`'s epoch-seconds value was checked
+  against that same record's own embedded snapshot file path
+  (`.../2026-09-16/15/34/...`) and matched exactly once converted to
+  Asia/Tashkent — the basis for the timezone fix below. This is also
+  what caught that `runBackfill` needed its own explicit `DRY_RUN` check
+  (`npm run capture` was, until this was added, silently running a real
+  backfill on startup regardless of dry-run).
+- **Not yet verified**: a *live* recognized scan (one tapped in real time
+  while the bridge was watching, as opposed to one read back afterward
+  via recordFinder) end to end through to a real `attendance_records`
+  row. The webhook call and backend side of that path *were* separately
+  verified live; what remains unconfirmed is only that the live
+  event-stream path reports a match in exactly the field shape this
+  bridge now expects (recordFinder's records and the one live-captured
+  event seen so far agree on that shape, but a live *match* specifically
+  has not itself been observed). Confirm with `npm run capture` against
+  an employee's real badge/face before disabling dry-run in production,
+  and watch the first day's real traffic in `journalctl` afterward
+  regardless.
 - **Verified against the real backend**, live: a real device record was
   provisioned with `attendance:create-device`, an employee given that
   `dahua_person_id`, and the bridge's actual webhook client (unmodified)
@@ -269,7 +341,7 @@ also how the defaults below stopped being a documentation-only guess.
   dropped) are both rejected rather than retried forever, and that an
   unreachable server is treated as retryable. Both records created
   during this check were deleted afterward.
-- **Automated tests** (`npm test`, 70 tests) additionally cover: the
+- **Automated tests** (`npm test`, 90 tests) additionally cover: the
   multipart stream parser, including a JPEG snapshot body engineered to
   contain boundary-like bytes inside it, and a part deliberately fed one
   byte at a time to prove chunk-boundary reassembly is correct; the flat
@@ -277,7 +349,12 @@ also how the defaults below stopped being a documentation-only guess.
   restart), field, and fixed modes — the last two exercised with the
   real terminal's own field names and values, including the real
   captured no-match event verbatim; the dedupe window; the offline
-  queue's durability and flush/retry/drop logic.
+  queue's durability and flush/retry/drop logic; the recordFinder.cgi
+  response parser (the real captured multi-record response, verbatim);
+  the Tashkent time conversion (checked against the same real
+  `CreateTime`↔snapshot-path pair described above); and `runBackfill`'s
+  RecNo-based already-processed cursor, including that a dry run neither
+  enqueues nor advances it.
 - **HTTP only** (not HTTPS) to the device, matching what both real
   terminals here are actually configured for — this bridge has no HTTPS
   client path for the device connection.

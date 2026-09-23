@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node src/index.js",
     "test": "node --test test/",
-    "capture": "LOG_RAW_EVENTS=true DRY_RUN=true node src/index.js"
+    "capture": "LOG_RAW_EVENTS=true DRY_RUN=true node src/index.js",
+    "backfill": "node src/backfillCli.js"
   },
   "dependencies": {}
 }

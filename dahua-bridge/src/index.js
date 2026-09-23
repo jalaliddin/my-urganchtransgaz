@@ -1,3 +1,4 @@
+import { runBackfill } from './backfill.js';
 import { connectToDevice } from './dahuaClient.js';
 import { loadConfig } from './config.js';
 import { DirectionResolver } from './directionResolver.js';
@@ -36,6 +37,21 @@ async function main() {
   if (queue.size > 0) {
     logger.info(`${queue.size} attendance event(s) left over from before this start — attempting delivery now.`);
     await flush();
+  }
+
+  const backfill = () =>
+    runBackfill(config, { logger, queue, direction, flush }).catch((error) =>
+      logger.error('Backfill (recordFinder.cgi) failed — the live subscription still runs independently of this.', {
+        error: error.message,
+      }),
+    );
+
+  if (config.recordFinder.enabled && config.recordFinder.backfillOnStart) {
+    await backfill();
+  }
+
+  if (config.recordFinder.enabled && config.recordFinder.reconcileIntervalMinutes > 0) {
+    setInterval(backfill, config.recordFinder.reconcileIntervalMinutes * 60 * 1000);
   }
 
   const flushTimer = setInterval(() => {
