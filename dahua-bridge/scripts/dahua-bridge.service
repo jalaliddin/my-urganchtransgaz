@@ -1,0 +1,23 @@
+[Unit]
+Description=Dahua turnstile attendance bridge (local device -> my.urtg.uz webhook)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Adjust these two paths to wherever this folder actually lives on the
+# on-site machine, and the user it should run as (it only needs
+# permission to read this directory and write to its data/ subfolder —
+# never root).
+WorkingDirectory=/opt/dahua-bridge
+ExecStart=/usr/bin/node /opt/dahua-bridge/src/index.js
+Restart=always
+RestartSec=5
+User=dahua-bridge
+
+# The .env file's own DIRECTION_MODE/PERSON_ID_FIELDS/etc. still apply —
+# this only supplies what the process needs to find it.
+EnvironmentFile=/opt/dahua-bridge/.env
+
+[Install]
+WantedBy=multi-user.target

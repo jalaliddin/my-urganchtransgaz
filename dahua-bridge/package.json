@@ -1,0 +1,16 @@
+{
+  "name": "dahua-attendance-bridge",
+  "version": "1.0.0",
+  "description": "Local bridge: subscribes to a Dahua access-control terminal's real-time events and forwards attendance check-in/check-out webhooks to the My Urganchtransgaz backend.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test test/",
+    "capture": "LOG_RAW_EVENTS=true DRY_RUN=true node src/index.js"
+  },
+  "dependencies": {}
+}

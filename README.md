@@ -15,6 +15,7 @@ Mobile app (Flutter)        ─┼──►  Laravel REST API (/api/v1/...)  ─
 - **backend/** — Laravel 13 API (PHP 8.3), token-based auth via Sanctum, RBAC via `spatie/laravel-permission`, MySQL.
 - **frontend/** — Vue 3 + TypeScript + Vuetify SPA (Vite), consuming the API over HTTP only. No business logic lives in the frontend.
 - **mobile/** — Flutter app covering employee self-service essentials (tasks, documents, KPI, exams, location-based issue reporting, announcements, notifications). Admin/HR/management screens stay web-only. See [`mobile/README.md`](mobile/README.md) for scope and setup.
+- **dahua-bridge/** — a standalone, zero-dependency Node.js service that runs on-site next to a Dahua access-control turnstile, subscribes to its real-time event stream, and forwards each scan to the backend's existing device-attendance webhook, resolving the employee by a new `employees.dahua_person_id` field. See [`dahua-bridge/README.md`](dahua-bridge/README.md).
 
 The API is versioned (`/api/v1`) and mobile-ready by design: authentication is a Bearer token (not a browser session/cookie), so the Flutter app (and any future native client) reuses the exact same backend, with zero API changes.
 
