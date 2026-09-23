@@ -253,7 +253,8 @@
     "noDueDate": "Muddat belgilanmagan",
     "allCaughtUp": "Barcha topshiriqlar bajarilgan",
     "adminAccount": "Bu tizim boshqaruvi uchun hisob — xodim profili biriktirilmagan.",
-    "companyOverview": "Kompaniya bo'yicha statistika"
+    "companyOverview": "Kompaniya bo'yicha statistika",
+    "teamAttendanceToday": "Bugungi davomat"
   },
   "profile": {
     "title": "Mening profilim",

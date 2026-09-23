@@ -253,7 +253,8 @@
     "noDueDate": "No due date",
     "allCaughtUp": "All tasks are done",
     "adminAccount": "This is a system administration account with no employee profile attached.",
-    "companyOverview": "Company overview"
+    "companyOverview": "Company overview",
+    "teamAttendanceToday": "Today's attendance"
   },
   "profile": {
     "title": "My Profile",

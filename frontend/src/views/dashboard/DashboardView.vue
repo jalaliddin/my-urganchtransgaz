@@ -43,6 +43,24 @@ async function loadToday() {
   today.value = await attendanceService.today()
 }
 
+// Today's attendance, tallied for whoever is scoped to see it — every
+// role except the base "employee" (department-manager, hr, and the other
+// management/central roles all qualify). `today` is already exactly the
+// scoped list the backend's own today() endpoint returns (a
+// department-manager's department, an org role's organization, or
+// everyone for central access) — see AttendanceController::today() — so
+// this counts what the viewer is actually allowed to see, not company-wide
+// regardless of role.
+const showAttendanceOverview = computed(() => !auth.hasRole('employee'))
+const presentCount = computed(() => today.value.filter((row) => row.attendance?.status === 'present').length)
+const lateCount = computed(() => today.value.filter((row) => row.attendance?.status === 'late').length)
+// "Kelmadi": no check-in yet today, or formally marked absent — not an
+// approved leave (vacation/business trip/sick leave), which isn't the
+// "failed to show up" concern this number is for.
+const notCameCount = computed(
+  () => today.value.filter((row) => !row.attendance || row.attendance.status === 'absent').length,
+)
+
 async function checkIn() {
   checkingInOut.value = true
   try {
@@ -104,11 +122,14 @@ onMounted(async () => {
   try {
     if (auth.user?.employee) {
       completion.value = await profileService.completion()
-      await loadToday()
       await loadMyTasks()
       await loadMyKpi()
       if (showAnnouncements.value) await loadAnnouncements()
     }
+    // Central/management roles need today's attendance for the team
+    // overview below even without an employee profile of their own
+    // (e.g. a pure system account) — not only self-service check-in users.
+    if (auth.user?.employee || showAttendanceOverview.value) await loadToday()
     if (showOverview.value) await loadOverview()
   } finally {
     loading.value = false
@@ -230,6 +251,41 @@ function timeOnly(value: string | null): string {
               {{ $t('attendance.checkOut') }}
             </v-btn>
           </div>
+        </v-card-text>
+      </v-card>
+
+      <v-card v-if="showAttendanceOverview" class="mb-4">
+        <v-card-item>
+          <template #title>
+            <span class="text-subtitle-1 font-weight-bold">{{ $t('dashboard.teamAttendanceToday') }}</span>
+          </template>
+          <template #append>
+            <v-btn variant="text" size="small" :to="{ name: 'attendance' }" append-icon="mdi-arrow-right">
+              {{ $t('dashboard.seeAll') }}
+            </v-btn>
+          </template>
+        </v-card-item>
+        <v-card-text>
+          <v-row dense>
+            <v-col cols="4">
+              <div class="stat-tile">
+                <div class="stat-tile__value">{{ presentCount }}</div>
+                <div class="stat-tile__label">{{ $t('status.present') }}</div>
+              </div>
+            </v-col>
+            <v-col cols="4">
+              <div class="stat-tile" :class="{ 'stat-tile--warn': lateCount > 0 }">
+                <div class="stat-tile__value">{{ lateCount }}</div>
+                <div class="stat-tile__label">{{ $t('status.late') }}</div>
+              </div>
+            </v-col>
+            <v-col cols="4">
+              <div class="stat-tile" :class="{ 'stat-tile--warn': notCameCount > 0 }">
+                <div class="stat-tile__value">{{ notCameCount }}</div>
+                <div class="stat-tile__label">{{ $t('status.absent') }}</div>
+              </div>
+            </v-col>
+          </v-row>
         </v-card-text>
       </v-card>
 
