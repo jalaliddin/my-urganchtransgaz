@@ -1,7 +1,7 @@
 import { createResourceService } from '@/services/resourceService'
 import { http } from '@/services/http'
 import type { ApiSuccessResponse } from '@/types/api'
-import type { AttendanceRecord, AttendanceReportRow, AttendanceStatus, TodayAttendance } from '@/types/models'
+import type { AttendanceRecord, AttendanceReportRow, AttendanceStatus, Timesheet, TodayAttendance } from '@/types/models'
 
 export interface AttendanceEntryPayload {
   employee_id: number
@@ -16,6 +16,13 @@ export interface AttendanceReportParams {
   group_by: 'employee' | 'department' | 'organization'
   from?: string
   to?: string
+  organization_id?: number
+  department_id?: number
+  employee_id?: number
+}
+
+export interface TimesheetParams {
+  month?: string
   organization_id?: number
   department_id?: number
   employee_id?: number
@@ -57,6 +64,24 @@ export const attendanceService = {
     const link = document.createElement('a')
     link.href = url
     link.download = `attendance-report.${format}`
+    link.click()
+    URL.revokeObjectURL(url)
+  },
+
+  async timesheet(params: TimesheetParams): Promise<Timesheet> {
+    const { data } = await http.get<ApiSuccessResponse<Timesheet>>('/attendance/timesheet', { params })
+    return data.data
+  },
+
+  async exportTimesheet(format: 'csv' | 'xlsx' | 'pdf', params: TimesheetParams): Promise<void> {
+    const response = await http.get('/attendance/timesheet', {
+      params: { ...params, export: format },
+      responseType: 'blob',
+    })
+    const url = URL.createObjectURL(response.data as Blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `tabel-${params.month ?? ''}.${format}`
     link.click()
     URL.revokeObjectURL(url)
   },

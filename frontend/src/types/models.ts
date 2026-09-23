@@ -186,9 +186,49 @@ export interface AttendanceReportRow {
   label: string
   total_days: number
   total_worked_minutes: number
+  present_count: number
   late_count: number
   absent_count: number
   early_leave_count: number
+  business_trip_count: number
+  vacation_count: number
+  sick_leave_count: number
+}
+
+export interface TimesheetDayCell {
+  day: number
+  status: AttendanceStatus | null
+  short_code: string | null
+  worked_minutes: number | null
+  is_weekend: boolean
+}
+
+export interface TimesheetTotals {
+  present_count: number
+  late_count: number
+  early_leave_count: number
+  absent_count: number
+  business_trip_count: number
+  vacation_count: number
+  sick_leave_count: number
+  total_worked_minutes: number
+}
+
+export interface TimesheetEmployeeRow {
+  employee_id: number
+  employee_number: string
+  full_name: string
+  department: string | null
+  days: TimesheetDayCell[]
+  totals: TimesheetTotals
+}
+
+export interface Timesheet {
+  from: string
+  to: string
+  day_count: number
+  working_days: number[]
+  employees: TimesheetEmployeeRow[]
 }
 
 export interface TaskComment {

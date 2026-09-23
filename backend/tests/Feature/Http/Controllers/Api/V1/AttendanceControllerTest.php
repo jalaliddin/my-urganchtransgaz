@@ -2,6 +2,7 @@
 
 use App\Enums\AttendanceStatus;
 use App\Models\AttendanceRecord;
+use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Organization;
 use Database\Seeders\RolePermissionSeeder;
@@ -190,5 +191,127 @@ it('aggregates a report by organization using database-level sums', function () 
         ->not->toBeNull()
         ->total_days->toBe(2)
         ->total_worked_minutes->toBe(1020)
-        ->late_count->toBe(1);
+        ->present_count->toBe(1)
+        ->late_count->toBe(1)
+        ->absent_count->toBe(0)
+        ->business_trip_count->toBe(0)
+        ->vacation_count->toBe(0)
+        ->sick_leave_count->toBe(0);
+});
+
+it('builds a monthly timesheet grid with one cell per calendar day and correct totals', function () {
+    $hr = userWithRole('hr', Organization::factory()->create());
+    $employee = Employee::factory()->create();
+
+    // September 2026 has 30 days; days 3 and 4 get real records, everything
+    // else stays "no record" so the grid's blanks/weekends can be checked.
+    AttendanceRecord::factory()->create([
+        'employee_id' => $employee->id,
+        'date' => '2026-09-03',
+        'status' => AttendanceStatus::Present,
+        'worked_minutes' => 540,
+    ]);
+    AttendanceRecord::factory()->create([
+        'employee_id' => $employee->id,
+        'date' => '2026-09-04',
+        'status' => AttendanceStatus::Late,
+        'worked_minutes' => 500,
+    ]);
+
+    $response = $this->actingAs($hr, 'sanctum')
+        ->getJson("/api/v1/attendance/timesheet?month=2026-09&employee_id={$employee->id}");
+
+    $response->assertOk();
+    $data = $response->json('data');
+
+    expect($data['day_count'])->toBe(30)
+        ->and($data['from'])->toBe('2026-09-01')
+        ->and($data['to'])->toBe('2026-09-30');
+
+    $row = collect($data['employees'])->firstWhere('employee_id', $employee->id);
+    expect($row)->not->toBeNull();
+    expect($row['days'])->toHaveCount(30);
+
+    $day3 = collect($row['days'])->firstWhere('day', 3);
+    $day4 = collect($row['days'])->firstWhere('day', 4);
+    $day1 = collect($row['days'])->firstWhere('day', 1);
+
+    expect($day3)->status->toBe('present')->short_code->toBe('K')->worked_minutes->toBe(540);
+    expect($day4)->status->toBe('late')->short_code->toBe('K/K')->worked_minutes->toBe(500);
+    expect($day1)->status->toBeNull()->worked_minutes->toBeNull();
+
+    expect($row['totals'])
+        ->present_count->toBe(1)
+        ->late_count->toBe(1)
+        ->absent_count->toBe(0)
+        ->total_worked_minutes->toBe(1040);
+});
+
+it('marks non-working days as weekends in the timesheet, using the configured working days', function () {
+    $hr = userWithRole('hr', Organization::factory()->create());
+    $employee = Employee::factory()->create();
+
+    $response = $this->actingAs($hr, 'sanctum')
+        ->getJson("/api/v1/attendance/timesheet?month=2026-09&employee_id={$employee->id}");
+
+    $row = collect($response->json('data.employees'))->firstWhere('employee_id', $employee->id);
+
+    foreach ($row['days'] as $day) {
+        $expectedWeekend = ! in_array(Carbon::create(2026, 9, $day['day'])->isoWeekday(), [1, 2, 3, 4, 5], true);
+        expect($day['is_weekend'])->toBe($expectedWeekend);
+    }
+});
+
+it('defaults the timesheet to the current month when none is given', function () {
+    $hr = userWithRole('hr', Organization::factory()->create());
+
+    $response = $this->actingAs($hr, 'sanctum')->getJson('/api/v1/attendance/timesheet');
+
+    $response->assertOk()
+        ->assertJsonPath('data.from', now()->startOfMonth()->toDateString())
+        ->assertJsonPath('data.to', now()->endOfMonth()->toDateString());
+});
+
+it('scopes the timesheet to a department-manager\'s own department', function () {
+    $organization = Organization::factory()->create();
+    $department = Department::factory()->create(['organization_id' => $organization->id]);
+    $manager = userWithRole('department-manager', $organization, $department);
+    $inDepartment = Employee::factory()->create(['organization_id' => $organization->id, 'department_id' => $department->id]);
+    $outsideDepartment = Employee::factory()->create(['organization_id' => $organization->id]);
+
+    $response = $this->actingAs($manager, 'sanctum')->getJson('/api/v1/attendance/timesheet');
+
+    $ids = collect($response->json('data.employees'))->pluck('employee_id');
+    expect($ids)->toContain($manager->employee->id, $inDepartment->id)
+        ->not->toContain($outsideDepartment->id);
+});
+
+it('shows a plain employee the whole organization\'s timesheet, same breadth as the today board', function () {
+    // attendance.view is granted broadly, including the base employee
+    // role (see backend/README.md's Phase 3 notes) — "self vs. everyone"
+    // is not the distinction; org/department breadth is. This mirrors
+    // today()'s own scoping exactly.
+    $organization = Organization::factory()->create();
+    $employee = userWithRole('employee', $organization);
+    $colleague = Employee::factory()->create(['organization_id' => $organization->id]);
+    $otherOrgEmployee = Employee::factory()->create(['organization_id' => Organization::factory()->create()->id]);
+
+    $response = $this->actingAs($employee, 'sanctum')->getJson('/api/v1/attendance/timesheet');
+
+    $ids = collect($response->json('data.employees'))->pluck('employee_id');
+    expect($ids)->toContain($employee->employee->id, $colleague->id)
+        ->not->toContain($otherOrgEmployee->id);
+});
+
+it('exports the timesheet as a downloadable csv with day and total columns', function () {
+    $hr = userWithRole('hr', Organization::factory()->create());
+    $employee = Employee::factory()->create();
+    AttendanceRecord::factory()->create(['employee_id' => $employee->id, 'date' => '2026-09-03', 'status' => AttendanceStatus::Present]);
+
+    $response = $this->actingAs($hr, 'sanctum')
+        ->get("/api/v1/attendance/timesheet?month=2026-09&employee_id={$employee->id}&export=csv");
+
+    $response->assertOk();
+    expect($response->headers->get('Content-Type'))->toContain('text/csv');
+    expect($response->streamedContent())->toContain($employee->employee_number)->toContain('Tabel raqami');
 });

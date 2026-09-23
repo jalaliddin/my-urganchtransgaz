@@ -1,10 +1,20 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { attendanceService } from '@/services/attendanceService'
+import { departmentService } from '@/services/departmentService'
+import { organizationService } from '@/services/organizationService'
 import { useAuthStore } from '@/stores/auth'
-import type { AttendanceReportRow, AttendanceStatus, TodayAttendance } from '@/types/models'
+import type {
+  AttendanceRecord,
+  AttendanceReportRow,
+  AttendanceStatus,
+  Department,
+  Organization,
+  Timesheet,
+  TodayAttendance,
+} from '@/types/models'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -156,9 +166,98 @@ function formatMinutes(minutes: number): string {
   return `${hours}${t('attendance.hoursShort')} ${mins}${t('attendance.minutesShort')}`
 }
 
+// --- Report row detail (batafsil): day-by-day records behind one report row ---
+const detailTarget = ref<AttendanceReportRow | null>(null)
+const detailRows = ref<AttendanceRecord[]>([])
+const loadingDetail = ref(false)
+
+async function openDetail(row: AttendanceReportRow) {
+  if (reportFilters.value.group_by !== 'employee') return
+  detailTarget.value = row
+  loadingDetail.value = true
+  try {
+    const result = await attendanceService.list({
+      'filter[employee_id]': row.group_id,
+      from: reportFilters.value.from,
+      to: reportFilters.value.to,
+      per_page: 100,
+      sort: '-date',
+    })
+    detailRows.value = result.data
+  } finally {
+    loadingDetail.value = false
+  }
+}
+
+// --- Tabel (monthly timesheet) ---
+const organizations = ref<Organization[]>([])
+const departments = ref<Department[]>([])
+const timesheet = ref<Timesheet | null>(null)
+const loadingTimesheet = ref(false)
+const exportingTimesheet = ref(false)
+
+function currentMonthString(): string {
+  const date = new Date()
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+}
+
+const timesheetFilters = ref({
+  month: currentMonthString(),
+  organization_id: undefined as number | undefined,
+  department_id: undefined as number | undefined,
+  employee_id: undefined as number | undefined,
+})
+
+watch(
+  () => timesheetFilters.value.organization_id,
+  async (organizationId) => {
+    timesheetFilters.value.department_id = undefined
+    if (!organizationId) {
+      departments.value = []
+      return
+    }
+    const result = await departmentService.list({ per_page: 200, 'filter[organization_id]': organizationId })
+    departments.value = result.data
+  },
+)
+
+async function loadTimesheet() {
+  loadingTimesheet.value = true
+  try {
+    timesheet.value = await attendanceService.timesheet(timesheetFilters.value)
+  } finally {
+    loadingTimesheet.value = false
+  }
+}
+
+async function exportTimesheet(format: 'csv' | 'xlsx' | 'pdf') {
+  exportingTimesheet.value = true
+  try {
+    await attendanceService.exportTimesheet(format, timesheetFilters.value)
+  } finally {
+    exportingTimesheet.value = false
+  }
+}
+
+/** A day cell's worked hours, short — "8", "7.5" — blank when there is nothing to show. */
+function cellHours(minutes: number | null): string {
+  if (!minutes) return ''
+  const hours = minutes / 60
+  return Number.isInteger(hours) ? String(hours) : hours.toFixed(1)
+}
+
+const dayHeaders = computed(() => (timesheet.value ? Array.from({ length: timesheet.value.day_count }, (_, i) => i + 1) : []))
+
 onMounted(() => {
   loadToday()
   loadReport()
+  organizationService.list({ per_page: 100 }).then((result) => (organizations.value = result.data))
+})
+
+watch(tab, (value) => {
+  if (value === 'timesheet' && !timesheet.value) {
+    loadTimesheet()
+  }
 })
 </script>
 
@@ -168,6 +267,7 @@ onMounted(() => {
   <v-tabs v-model="tab" class="mb-4">
     <v-tab value="today">{{ $t('attendance.tabToday') }}</v-tab>
     <v-tab value="report">{{ $t('attendance.tabReport') }}</v-tab>
+    <v-tab value="timesheet">{{ $t('attendance.tabTimesheet') }}</v-tab>
   </v-tabs>
 
   <v-window v-model="tab">
@@ -295,23 +395,129 @@ onMounted(() => {
               <th>{{ $t('attendance.group') }}</th>
               <th>{{ $t('attendance.totalDays') }}</th>
               <th>{{ $t('attendance.totalWorked') }}</th>
+              <th>{{ $t('status.present') }}</th>
               <th>{{ $t('status.late') }}</th>
-              <th>{{ $t('status.absent') }}</th>
               <th>{{ $t('status.early_leave') }}</th>
+              <th>{{ $t('status.absent') }}</th>
+              <th>{{ $t('status.business_trip') }}</th>
+              <th>{{ $t('status.vacation') }}</th>
+              <th>{{ $t('status.sick_leave') }}</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in reportRows" :key="row.group_id">
+            <tr
+              v-for="row in reportRows"
+              :key="row.group_id"
+              :style="reportFilters.group_by === 'employee' ? { cursor: 'pointer' } : undefined"
+              @click="openDetail(row)"
+            >
               <td>{{ row.label }}</td>
               <td>{{ row.total_days }}</td>
               <td>{{ formatMinutes(row.total_worked_minutes) }}</td>
+              <td>{{ row.present_count }}</td>
               <td>{{ row.late_count }}</td>
-              <td>{{ row.absent_count }}</td>
               <td>{{ row.early_leave_count }}</td>
+              <td>{{ row.absent_count }}</td>
+              <td>{{ row.business_trip_count }}</td>
+              <td>{{ row.vacation_count }}</td>
+              <td>{{ row.sick_leave_count }}</td>
             </tr>
           </tbody>
         </v-table>
         <AppEmptyState v-if="!loadingReport && reportRows.length === 0" icon="mdi-chart-bar" />
+      </v-card>
+    </v-window-item>
+
+    <v-window-item value="timesheet">
+      <v-card class="mb-4">
+        <v-card-text class="d-flex flex-wrap ga-4">
+          <v-text-field
+            v-model="timesheetFilters.month"
+            type="month"
+            :label="$t('attendance.month')"
+            style="max-width: 180px"
+            hide-details
+          />
+          <v-select
+            v-model="timesheetFilters.organization_id"
+            :items="organizations.map((o) => ({ title: o.name, value: o.id }))"
+            :label="$t('employees.organization')"
+            style="max-width: 220px"
+            clearable
+            hide-details
+          />
+          <v-select
+            v-model="timesheetFilters.department_id"
+            :items="departments.map((d) => ({ title: d.name, value: d.id }))"
+            :label="$t('employees.department')"
+            style="max-width: 220px"
+            clearable
+            :disabled="!timesheetFilters.organization_id"
+            hide-details
+          />
+          <v-btn color="primary" variant="flat" :loading="loadingTimesheet" @click="loadTimesheet">
+            {{ $t('common.search') }}
+          </v-btn>
+          <v-spacer />
+          <v-menu>
+            <template #activator="{ props }">
+              <v-btn v-bind="props" variant="tonal" prepend-icon="mdi-download" :loading="exportingTimesheet">
+                {{ $t('export.export') }}
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item title="CSV" @click="exportTimesheet('csv')" />
+              <v-list-item title="Excel" @click="exportTimesheet('xlsx')" />
+              <v-list-item title="PDF" @click="exportTimesheet('pdf')" />
+            </v-list>
+          </v-menu>
+        </v-card-text>
+      </v-card>
+
+      <v-card>
+        <v-card-text class="text-caption text-medium-emphasis">
+          {{ $t('attendance.timesheetLegend') }}
+        </v-card-text>
+        <div style="overflow-x: auto">
+          <v-table density="compact" class="attendance-timesheet-table">
+            <thead>
+              <tr>
+                <th class="attendance-timesheet-table__name">{{ $t('employees.fullName') }}</th>
+                <th v-for="day in dayHeaders" :key="day">{{ day }}</th>
+                <th>{{ $t('status.present') }}</th>
+                <th>{{ $t('status.late') }}</th>
+                <th>{{ $t('status.early_leave') }}</th>
+                <th>{{ $t('status.absent') }}</th>
+                <th>{{ $t('attendance.totalWorked') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in timesheet?.employees ?? []" :key="row.employee_id">
+                <td class="attendance-timesheet-table__name">
+                  <div>{{ row.full_name }}</div>
+                  <div class="text-caption text-medium-emphasis">{{ row.department ?? '—' }}</div>
+                </td>
+                <td
+                  v-for="day in row.days"
+                  :key="day.day"
+                  :class="{ 'attendance-timesheet-table__weekend': day.is_weekend && !day.status }"
+                  :title="day.status ? $t(`status.${day.status}`) : undefined"
+                >
+                  <template v-if="day.status">
+                    {{ day.short_code }}<br /><span class="text-caption">{{ cellHours(day.worked_minutes) }}</span>
+                  </template>
+                  <template v-else-if="day.is_weekend">D</template>
+                </td>
+                <td>{{ row.totals.present_count }}</td>
+                <td>{{ row.totals.late_count }}</td>
+                <td>{{ row.totals.early_leave_count }}</td>
+                <td>{{ row.totals.absent_count }}</td>
+                <td>{{ formatMinutes(row.totals.total_worked_minutes) }}</td>
+              </tr>
+            </tbody>
+          </v-table>
+        </div>
+        <AppEmptyState v-if="!loadingTimesheet && (timesheet?.employees.length ?? 0) === 0" icon="mdi-calendar-month-outline" />
       </v-card>
     </v-window-item>
   </v-window>
@@ -352,4 +558,63 @@ onMounted(() => {
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-dialog
+    :model-value="detailTarget !== null"
+    max-width="720"
+    @update:model-value="(v: boolean) => !v && (detailTarget = null)"
+  >
+    <v-card v-if="detailTarget">
+      <v-card-title>{{ detailTarget.label }}</v-card-title>
+      <v-card-text>
+        <v-progress-linear v-if="loadingDetail" indeterminate class="mb-4" />
+        <v-table density="compact">
+          <thead>
+            <tr>
+              <th>{{ $t('attendance.date') }}</th>
+              <th>{{ $t('attendance.checkIn') }}</th>
+              <th>{{ $t('attendance.checkOut') }}</th>
+              <th>{{ $t('attendance.totalWorked') }}</th>
+              <th>{{ $t('common.status') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="record in detailRows" :key="record.id">
+              <td>{{ record.date }}</td>
+              <td>{{ timeOnly(record.check_in) }}</td>
+              <td>{{ timeOnly(record.check_out) }}</td>
+              <td>{{ record.worked_minutes ? formatMinutes(record.worked_minutes) : '—' }}</td>
+              <td><AppStatusChip :status="record.status" /></td>
+            </tr>
+          </tbody>
+        </v-table>
+        <AppEmptyState v-if="!loadingDetail && detailRows.length === 0" icon="mdi-calendar-blank-outline" />
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="detailTarget = null">{{ $t('common.close') }}</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
+
+<style scoped>
+.attendance-timesheet-table :deep(td),
+.attendance-timesheet-table :deep(th) {
+  text-align: center;
+  min-width: 34px;
+  white-space: nowrap;
+}
+
+.attendance-timesheet-table__name {
+  text-align: left !important;
+  position: sticky;
+  left: 0;
+  background: rgb(var(--v-theme-surface));
+  min-width: 160px !important;
+}
+
+.attendance-timesheet-table__weekend {
+  background: rgba(var(--v-theme-on-surface), 0.04);
+}
+</style>

@@ -334,7 +334,11 @@
     "totalDays": "Кол-во дней",
     "totalWorked": "Отработано",
     "hoursShort": "ч",
-    "minutesShort": "м"
+    "minutesShort": "м",
+    "tabTimesheet": "Табель",
+    "month": "Месяц",
+    "date": "Дата",
+    "timesheetLegend": "K — пришёл, K/K — опоздал, K/E — ушёл раньше, N — не явился, X — в командировке, T — в отпуске, B — на больничном, D — выходной день. Под кодом дня указаны отработанные часы."
   },
   "exams": {
     "examTitle": "Название",

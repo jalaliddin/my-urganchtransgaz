@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\Attendance\BuildTimesheet;
 use App\Actions\Attendance\CalculateAttendanceStatus;
 use App\Actions\Attendance\RecordCheckInAction;
 use App\Actions\Attendance\RecordCheckOutAction;
 use App\Actions\Export\ExportRecords;
+use App\Actions\Export\ExportTimesheet;
 use App\Enums\AttendanceSource;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAttendanceRequest;
@@ -14,6 +16,7 @@ use App\Http\Resources\Api\V1\AttendanceRecordResource;
 use App\Http\Resources\Api\V1\TodayAttendanceResource;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
+use App\Models\Setting;
 use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -274,9 +277,16 @@ class AttendanceController extends Controller
             ->selectRaw("{$labelColumn} as label")
             ->selectRaw('COUNT(DISTINCT attendance_records.date) as total_days')
             ->selectRaw('COALESCE(SUM(attendance_records.worked_minutes), 0) as total_worked_minutes')
+            // "Keldi" (present, on time) is its own count, not just "total_days
+            // minus everything else" — every status below is mutually
+            // exclusive per record, so these all sum back to total_days.
+            ->selectRaw("SUM(CASE WHEN attendance_records.status = 'present' THEN 1 ELSE 0 END) as present_count")
             ->selectRaw("SUM(CASE WHEN attendance_records.status = 'late' THEN 1 ELSE 0 END) as late_count")
             ->selectRaw("SUM(CASE WHEN attendance_records.status = 'absent' THEN 1 ELSE 0 END) as absent_count")
             ->selectRaw("SUM(CASE WHEN attendance_records.status = 'early_leave' THEN 1 ELSE 0 END) as early_leave_count")
+            ->selectRaw("SUM(CASE WHEN attendance_records.status = 'business_trip' THEN 1 ELSE 0 END) as business_trip_count")
+            ->selectRaw("SUM(CASE WHEN attendance_records.status = 'vacation' THEN 1 ELSE 0 END) as vacation_count")
+            ->selectRaw("SUM(CASE WHEN attendance_records.status = 'sick_leave' THEN 1 ELSE 0 END) as sick_leave_count")
             ->groupBy('group_id', 'label')
             ->orderBy('label');
 
@@ -285,9 +295,13 @@ class AttendanceController extends Controller
                 'label' => 'Nomi',
                 'total_days' => 'Kunlar soni',
                 'total_worked_minutes' => 'Ishlangan (daqiqa)',
-                'late_count' => 'Kechikishlar',
-                'absent_count' => 'Kelmagan kunlar',
-                'early_leave_count' => 'Erta ketishlar',
+                'present_count' => 'Keldi',
+                'late_count' => 'Kech keldi',
+                'early_leave_count' => 'Erta ketdi',
+                'absent_count' => 'Kelmadi',
+                'business_trip_count' => 'Xizmat safarida',
+                'vacation_count' => 'Ta\'tilda',
+                'sick_leave_count' => 'Bemor varaqasida',
             ], $format, 'attendance-report');
         }
 
@@ -296,9 +310,13 @@ class AttendanceController extends Controller
             'label' => $row->label,
             'total_days' => (int) $row->total_days,
             'total_worked_minutes' => (int) $row->total_worked_minutes,
+            'present_count' => (int) $row->present_count,
             'late_count' => (int) $row->late_count,
             'absent_count' => (int) $row->absent_count,
             'early_leave_count' => (int) $row->early_leave_count,
+            'business_trip_count' => (int) $row->business_trip_count,
+            'vacation_count' => (int) $row->vacation_count,
+            'sick_leave_count' => (int) $row->sick_leave_count,
         ]);
 
         return $this->success($rows, meta: [
@@ -306,5 +324,55 @@ class AttendanceController extends Controller
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
         ]);
+    }
+
+    /**
+     * The monthly "tabel": one row per employee, one column per calendar
+     * day, each cell showing that day's status (present/late/absent/...)
+     * and worked minutes — the batafsil (detailed), day-by-day view a
+     * summary report can't show, and the printable timesheet form this
+     * company's HR process expects on top of the aggregate report above.
+     * Same visibility rules as `today()`: central-access roles see every
+     * employee (optionally narrowed by organization/department/employee),
+     * a department-manager sees their own department, everyone else sees
+     * only themselves.
+     */
+    public function timesheet(BuildTimesheet $buildTimesheet, ExportTimesheet $export): JsonResponse|Response
+    {
+        Gate::authorize('viewAny', AttendanceRecord::class);
+
+        $user = request()->user();
+        $month = request()->filled('month') ? Carbon::parse(request()->string('month')->toString().'-01') : now()->startOfMonth();
+        $from = $month->copy()->startOfMonth();
+        $to = $month->copy()->endOfMonth();
+
+        $employees = Employee::query()
+            ->with('department')
+            ->when(
+                ! $user->can('attendance.view'),
+                fn ($query) => $query->where('id', $user->employee?->id)
+            )
+            ->when(
+                $user->can('attendance.view') && ! $user->hasCentralAccess(),
+                fn ($query) => $query->where('organization_id', $user->employee?->organization_id)
+                    ->when(
+                        $user->hasRole('department-manager'),
+                        fn ($departmentQuery) => $departmentQuery->where('department_id', $user->employee?->department_id)
+                    )
+            )
+            ->when(request()->filled('organization_id'), fn ($query) => $query->where('organization_id', request()->integer('organization_id')))
+            ->when(request()->filled('department_id'), fn ($query) => $query->where('department_id', request()->integer('department_id')))
+            ->when(request()->filled('employee_id'), fn ($query) => $query->where('id', request()->integer('employee_id')))
+            ->orderBy('last_name')
+            ->get();
+
+        $workingDays = Setting::get('attendance.working_days', [1, 2, 3, 4, 5]);
+        $timesheet = $buildTimesheet->handle($employees, $from, $to, $workingDays);
+
+        if ($format = request()->string('export')->toString()) {
+            return $export->stream($timesheet, $format, 'tabel-'.$from->format('Y-m'));
+        }
+
+        return $this->success($timesheet);
     }
 }

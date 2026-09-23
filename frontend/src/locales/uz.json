@@ -334,7 +334,11 @@
     "totalDays": "Kunlar soni",
     "totalWorked": "Ishlangan vaqt",
     "hoursShort": "s",
-    "minutesShort": "d"
+    "minutesShort": "d",
+    "tabTimesheet": "Tabel",
+    "month": "Oy",
+    "date": "Sana",
+    "timesheetLegend": "K — keldi, K/K — kech keldi, K/E — erta ketdi, N — kelmadi, X — xizmat safarida, T — ta'tilda, B — bemor varaqasida, D — dam olish kuni. Bosh sana ustuni bo'yicha ish soati ko'rsatiladi."
   },
   "exams": {
     "examTitle": "Nomi",

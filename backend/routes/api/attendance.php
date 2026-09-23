@@ -8,6 +8,7 @@ Route::prefix('attendance')->name('attendance.')->group(function () {
     Route::post('/', [AttendanceController::class, 'store'])->name('store');
     Route::get('today', [AttendanceController::class, 'today'])->name('today');
     Route::get('report', [AttendanceController::class, 'report'])->name('report');
+    Route::get('timesheet', [AttendanceController::class, 'timesheet'])->name('timesheet');
     Route::post('check-in', [AttendanceController::class, 'checkIn'])->name('check-in');
     Route::post('check-out', [AttendanceController::class, 'checkOut'])->name('check-out');
     Route::get('{attendanceRecord}', [AttendanceController::class, 'show'])->name('show');

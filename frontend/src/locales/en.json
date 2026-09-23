@@ -334,7 +334,11 @@
     "totalDays": "Total days",
     "totalWorked": "Worked",
     "hoursShort": "h",
-    "minutesShort": "m"
+    "minutesShort": "m",
+    "tabTimesheet": "Timesheet",
+    "month": "Month",
+    "date": "Date",
+    "timesheetLegend": "K — present, K/K — late, K/E — early leave, N — absent, X — business trip, T — vacation, B — sick leave, D — day off. Hours worked are shown under each day's code."
   },
   "exams": {
     "examTitle": "Title",
