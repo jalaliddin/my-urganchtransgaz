@@ -1,0 +1,26 @@
+[Unit]
+Description=Dahua attendance bridge (%i)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Adjust this path to wherever this folder actually lives on the on-site
+# machine, and the user it should run as (it only needs permission to
+# read this directory and write to its data-%i/ subfolder — never root).
+WorkingDirectory=/opt/dahua-bridge
+ExecStart=/usr/bin/node /opt/dahua-bridge/src/index.js
+Restart=always
+RestartSec=5
+User=dahua-bridge
+
+# A template unit: `systemctl enable --now dahua-bridge@turnstile-1`
+# reads /opt/dahua-bridge/.env.turnstile-1, `dahua-bridge@turnstile-2`
+# reads .env.turnstile-2, and so on — one instance per physical
+# terminal, each with its own device connection, credentials and
+# on-disk queue/direction-state (that file's own DATA_DIR must be set
+# to a directory unique to it, e.g. data-turnstile-1/).
+EnvironmentFile=/opt/dahua-bridge/.env.%i
+
+[Install]
+WantedBy=multi-user.target

@@ -16,7 +16,7 @@ test('loads sensible defaults from a minimal valid env', () => {
   assert.equal(config.server.url, 'https://my.urtg.uz/api/v1', 'trailing slash is stripped');
   assert.equal(config.direction.mode, 'toggle');
   assert.equal(config.dryRun, false);
-  assert.deepEqual(config.personIdFields, ['AccessControl.UserID', 'AccessControl.CardNo', 'UserID', 'CardNo']);
+  assert.deepEqual(config.personIdFields, ['UserID', 'CardNo', 'AccessControl.UserID', 'AccessControl.CardNo']);
 });
 
 for (const key of ['DEVICE_HOST', 'DEVICE_USERNAME', 'DEVICE_PASSWORD', 'SERVER_URL', 'DEVICE_TOKEN', 'DEVICE_ID']) {
@@ -30,6 +30,14 @@ for (const key of ['DEVICE_HOST', 'DEVICE_USERNAME', 'DEVICE_PASSWORD', 'SERVER_
 
 test('rejects an unknown DIRECTION_MODE', () => {
   assert.throws(() => loadConfig({ ...validEnv, DIRECTION_MODE: 'sideways' }), /DIRECTION_MODE/);
+});
+
+test('DIRECTION_MODE=fixed requires a valid FIXED_DIRECTION', () => {
+  assert.throws(() => loadConfig({ ...validEnv, DIRECTION_MODE: 'fixed' }), /FIXED_DIRECTION/);
+  assert.throws(() => loadConfig({ ...validEnv, DIRECTION_MODE: 'fixed', FIXED_DIRECTION: 'sideways' }), /FIXED_DIRECTION/);
+
+  const config = loadConfig({ ...validEnv, DIRECTION_MODE: 'fixed', FIXED_DIRECTION: 'check_out' });
+  assert.equal(config.direction.fixedDirection, 'check_out');
 });
 
 test('parses comma-separated lists and booleans', () => {

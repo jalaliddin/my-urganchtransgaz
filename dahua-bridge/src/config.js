@@ -37,11 +37,21 @@ function parseBool(value, fallback) {
  * `env` is injectable so tests can build a config from a plain object
  * instead of process.env / a real .env file.
  */
-export function loadConfig(env = (loadEnv(), process.env)) {
+export function loadConfig(env = (loadEnv(process.env.ENV_FILE_PATH || '.env'), process.env)) {
   const directionMode = env.DIRECTION_MODE?.trim() || 'toggle';
 
-  if (!['toggle', 'field'].includes(directionMode)) {
-    throw new Error(`DIRECTION_MODE must be "toggle" or "field", got "${directionMode}".`);
+  if (!['toggle', 'field', 'fixed'].includes(directionMode)) {
+    throw new Error(`DIRECTION_MODE must be "toggle", "field", or "fixed", got "${directionMode}".`);
+  }
+
+  let fixedDirection;
+
+  if (directionMode === 'fixed') {
+    fixedDirection = env.FIXED_DIRECTION?.trim();
+
+    if (!['check_in', 'check_out'].includes(fixedDirection)) {
+      throw new Error(`DIRECTION_MODE=fixed requires FIXED_DIRECTION to be "check_in" or "check_out", got "${fixedDirection}".`);
+    }
   }
 
   const config = {
@@ -63,16 +73,34 @@ export function loadConfig(env = (loadEnv(), process.env)) {
     },
     direction: {
       mode: directionMode,
-      field: env.DIRECTION_FIELD?.trim() || 'AccessControl.Door',
-      entryValues: parseList(env.ENTRY_VALUES, ['1']),
-      exitValues: parseList(env.EXIT_VALUES, ['2']),
+      fixedDirection,
+      // A candidate list, same reasoning as personIdFields below: a real
+      // terminal observed live during development reports a plain `Type`
+      // field with the literal values "Entry"/"Exit" — a direct,
+      // zero-configuration direction signal that the vendor's own
+      // documentation excerpt this bridge was otherwise built from didn't
+      // mention at all. `Door`/`ReaderID` (also seen live, but numeric and
+      // without a documented in/out meaning) are the fallback candidates.
+      fields: parseList(env.DIRECTION_FIELD, ['Type', 'Door', 'ReaderID']),
+      entryValues: parseList(env.ENTRY_VALUES, ['1', 'Entry']),
+      exitValues: parseList(env.EXIT_VALUES, ['2', 'Exit']),
     },
+    // Confirmed live: this device's own field names are flat (`UserID`,
+    // `CardNo`), not nested under an `AccessControl.` prefix the way the
+    // vendor's documentation excerpt suggested — those nested forms are
+    // kept only as fallback candidates for a different terminal model.
     personIdFields: parseList(env.PERSON_ID_FIELDS, [
-      'AccessControl.UserID',
-      'AccessControl.CardNo',
       'UserID',
       'CardNo',
+      'AccessControl.UserID',
+      'AccessControl.CardNo',
     ]),
+    // A real terminal observed live during development nests the event's
+    // type one level deeper than the vendor's own documentation excerpt
+    // shows — `Events[0].EventBaseInfo.Code=AccessControl`, not
+    // `Events[0].Code=AccessControl` — so this is a candidate list, same
+    // reasoning as personIdFields, not a single assumed key.
+    codeFields: parseList(env.CODE_FIELDS, ['EventBaseInfo.Code', 'Code']),
     logRawEvents: parseBool(env.LOG_RAW_EVENTS, false),
     dryRun: parseBool(env.DRY_RUN, false),
     logLevel: env.LOG_LEVEL?.trim() || 'info',

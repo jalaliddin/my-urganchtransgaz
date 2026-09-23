@@ -65,6 +65,36 @@ test('field mode: uses the configured field\'s value when present', () => {
   rmSync(dataDir, { recursive: true, force: true });
 });
 
+test('field mode: the default candidates work with a real terminal\'s own Type=Entry/Exit values, unconfigured', () => {
+  const { config, dataDir } = tempConfig({ DIRECTION_MODE: 'field' });
+  const resolver = new DirectionResolver(config);
+
+  assert.equal(resolver.resolve({ personId: 'A', directionFieldValue: 'Entry' }), 'check_in');
+  assert.equal(resolver.resolve({ personId: 'A', directionFieldValue: 'Exit' }), 'check_out');
+
+  rmSync(dataDir, { recursive: true, force: true });
+});
+
+test('fixed mode: always returns the configured direction, never toggling', () => {
+  const { config, dataDir } = tempConfig({ DIRECTION_MODE: 'fixed', FIXED_DIRECTION: 'check_in' });
+  const resolver = new DirectionResolver(config);
+
+  assert.equal(resolver.resolve({ personId: 'A' }), 'check_in');
+  assert.equal(resolver.resolve({ personId: 'A' }), 'check_in');
+  assert.equal(resolver.resolve({ personId: 'B' }), 'check_in');
+
+  rmSync(dataDir, { recursive: true, force: true });
+});
+
+test('fixed mode: the other direction works the same way', () => {
+  const { config, dataDir } = tempConfig({ DIRECTION_MODE: 'fixed', FIXED_DIRECTION: 'check_out' });
+  const resolver = new DirectionResolver(config);
+
+  assert.equal(resolver.resolve({ personId: 'A' }), 'check_out');
+
+  rmSync(dataDir, { recursive: true, force: true });
+});
+
 test('field mode: falls back to toggling when the field is missing or unrecognized', () => {
   const { config, dataDir } = tempConfig({ DIRECTION_MODE: 'field' });
   const resolver = new DirectionResolver(config);

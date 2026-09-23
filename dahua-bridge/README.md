@@ -59,7 +59,34 @@ This prints a token **once** — put it straight into `.env` as
 cannot be recovered later (re-run the command with a new device_id, or
 ask someone with database access to rotate it, if it's lost).
 
-## Setup
+## This deployment: two terminals already provisioned
+
+For the two real gates this bridge was set up against, everything above
+is already done — `.env.turnstile-1` and `.env.turnstile-2` exist in
+this folder, filled in and ready to run, and are **git-ignored: they are
+never committed** (they hold the device admin password and a backend
+device token). Copy the whole `dahua-bridge/` folder to wherever this
+actually runs long-term and start both (see "Two separate entry/exit
+terminals" below for the exact commands), or point each systemd instance
+at these files directly.
+
+| | Kirish (entry) | Chiqish (exit) |
+|---|---|---|
+| Terminal IP | `10.100.90.51` | `10.100.90.52` |
+| `DEVICE_ID` | `TURNSTILE-1` | `TURNSTILE-2` |
+| `FIXED_DIRECTION` | `check_in` | `check_out` |
+| Env file | `.env.turnstile-1` | `.env.turnstile-2` |
+
+**Security note:** the terminal admin password and the two backend
+device tokens above were shared in a chat session while setting this up.
+That's an acceptable way to hand them over once, but they now exist in
+that chat's history — rotate the terminal's admin password and
+re-provision both device tokens (`attendance:create-device` again, then
+update the two `.env.turnstile-*` files) once this is deployed and
+confirmed working, the same as for any credential that passed through a
+chat transcript.
+
+## Setup (a new terminal, from scratch)
 
 ```bash
 cd dahua-bridge
@@ -94,19 +121,57 @@ Once that looks right, start it for real:
 npm start
 ```
 
-or install it as a systemd service (`scripts/dahua-bridge.service` —
-edit the paths and user in it first, then):
+or install it as a systemd service (`scripts/dahua-bridge@.service` — a
+template unit; edit the paths and user in it first, then, per instance
+name, e.g. `turnstile-1`):
 
 ```bash
-sudo cp scripts/dahua-bridge.service /etc/systemd/system/
-sudo systemctl enable --now dahua-bridge
-journalctl -u dahua-bridge -f
+sudo cp scripts/dahua-bridge@.service /etc/systemd/system/
+sudo systemctl enable --now dahua-bridge@turnstile-1
+journalctl -u dahua-bridge@turnstile-1 -f
 ```
+
+## Two separate entry/exit terminals
+
+A common real layout is **two physically separate terminals** at one
+gate — one that only ever sees people entering, one that only ever sees
+people leaving — rather than one terminal with two readers. In that
+case, direction needs no field or guesswork at all: which terminal an
+event came from already says everything.
+
+Run **one bridge instance per terminal**, each with its own `.env` (its
+own `DEVICE_HOST`, `DEVICE_ID`/`DEVICE_TOKEN` from its own
+`attendance:create-device` call, and its own `DATA_DIR` so their queues
+never collide), and set:
+
+```bash
+# .env.turnstile-1 (the entry terminal)
+DIRECTION_MODE=fixed
+FIXED_DIRECTION=check_in
+
+# .env.turnstile-2 (the exit terminal)
+DIRECTION_MODE=fixed
+FIXED_DIRECTION=check_out
+```
+
+Run both at once, without systemd, with `ENV_FILE_PATH`:
+
+```bash
+ENV_FILE_PATH=.env.turnstile-1 npm start &
+ENV_FILE_PATH=.env.turnstile-2 npm start &
+```
+
+or as two systemd instances of the same template unit —
+`dahua-bridge@turnstile-1` and `dahua-bridge@turnstile-2` — each reading
+its own `.env.turnstile-1`/`.env.turnstile-2` automatically (see
+`scripts/dahua-bridge@.service`).
 
 ## Direction: check-in vs check-out
 
 Dahua does not have one universal field across every terminal model that
-says "this was an entry" vs "this was an exit". Two modes are supported
+says "this was an entry" vs "this was an exit" — see "Two separate
+entry/exit terminals" above if that's the actual site layout, which
+sidesteps the problem entirely. Otherwise, two modes are supported
 (`DIRECTION_MODE` in `.env`):
 
 - **`toggle`** (the default, and almost certainly what a single-lane
@@ -115,12 +180,14 @@ says "this was an entry" vs "this was an exit". Two modes are supported
   next scan that day is a check-out, and so on. State lives in
   `data/direction-state.json` and resets at local midnight, so a bridge
   restart mid-day doesn't turn someone's next scan back into a check-in.
-- **`field`**: for a gate with two readers (one per direction), trust a
-  device field — set `DIRECTION_FIELD` (e.g. `AccessControl.Door`),
-  `ENTRY_VALUES` and `EXIT_VALUES` to whatever `npm run capture` showed
-  for that field. If the field is ever missing from a particular event,
-  this mode falls back to toggling for that one scan rather than
-  guessing wrong.
+- **`field`**: for a single gate with two readers (one per direction),
+  trust a device field. The default candidates (`Type`, then `Door`,
+  then `ReaderID`) already match what a real terminal was observed
+  reporting — its own `Type` field, with the literal values `Entry`/
+  `Exit` — so this may work with no `DIRECTION_FIELD` configuration at
+  all; confirm with `npm run capture` regardless before relying on it. If
+  the field is ever missing from a particular event, this mode falls
+  back to toggling for that one scan rather than guessing wrong.
 
 ## Resilience
 
@@ -151,21 +218,48 @@ says "this was an entry" vs "this was an exit". Two modes are supported
 
 ## What was verified, and what was not
 
-This was built entirely from Dahua's own published protocol
-documentation (the HTTP Digest challenge, the multipart response shape,
-the `Events[n].Code`/`Events[n].AccessControl.*` field-naming pattern),
-**not against a physical terminal** — none was available while building
-this. What that means concretely:
+This was originally built entirely from Dahua's own published protocol
+documentation, then verified live against the two real terminals this
+deployment actually uses (`10.100.90.51`, the entry gate; `10.100.90.52`,
+the exit gate) — both reachable and tested during development, which is
+also how the defaults below stopped being a documentation-only guess.
 
-- **Verified, with automated tests** (`npm test`, 60 tests): the HTTP
-  Digest authentication handshake (including against a real local HTTP
-  server acting as the challenge/response counterpart, not just as unit
-  math); the multipart stream parser, including a JPEG snapshot body
-  engineered to contain boundary-like bytes inside it, and a part
-  deliberately fed one byte at a time to prove chunk-boundary
-  reassembly is correct; the flat `Events[n].*` text parser; the direction
-  toggle (including surviving a restart) and field modes; the dedupe
-  window; the offline queue's durability and flush/retry/drop logic.
+- **Verified live, against both real terminals**: the HTTP Digest
+  handshake with real device credentials; the requested 5-second
+  heartbeat arriving on schedule for 3+ minutes straight on both
+  terminals simultaneously with zero drops or reconnects; graceful
+  shutdown. One real `AccessControl` scan was captured from the entry
+  terminal — an unrecognized/no-match attempt (`ErrorCode: 16`, empty
+  `UserID`), which is exactly the case this bridge is supposed to ignore,
+  and it was correctly ignored (logged as "no recognizable person-id
+  field", nothing forwarded). That capture is also what corrected three
+  defaults that had been guessed from documentation alone and turned out
+  wrong for this hardware:
+  - the event's type is reported as `EventBaseInfo.Code`, not the bare
+    `Code` the documentation excerpt showed (`CODE_FIELDS`, checked
+    before the documented form);
+  - the person-id and status fields are flat (`UserID`, `Status`), not
+    nested under an `AccessControl.` prefix (`PERSON_ID_FIELDS`, same
+    ordering change);
+  - a plain `ErrorCode` field (0 = no error) is a more reliable
+    success/failure signal than `Status` alone, and is now checked first
+    when present.
+  - It also confirmed this specific deployment's topology matches
+    `DIRECTION_MODE=fixed` exactly as intended: the entry terminal's own
+    event carried `"Type":"Entry"`, matching `FIXED_DIRECTION=check_in`
+    configured for it independently of that field.
+- **Not yet verified**: a genuine *recognized* scan (matched to a real
+  `UserID`) end to end from either terminal through to a real
+  `attendance_records` row — the capture window only caught an
+  unmatched attempt. The `ErrorCode=0`/populated-`UserID` shape a
+  successful scan is expected to have is inferred from the one real
+  sample's schema, not itself observed. The webhook call and backend
+  side of that path *were* separately verified live (next point); what
+  remains unconfirmed is only the terminal actually reporting a match
+  in the field names this bridge now expects. Confirm with
+  `npm run capture` against an employee's real badge/face before
+  disabling dry-run in production, and watch the first day's real
+  traffic in `journalctl` afterward regardless.
 - **Verified against the real backend**, live: a real device record was
   provisioned with `attendance:create-device`, an employee given that
   `dahua_person_id`, and the bridge's actual webhook client (unmodified)
@@ -175,20 +269,18 @@ this. What that means concretely:
   dropped) are both rejected rather than retried forever, and that an
   unreachable server is treated as retryable. Both records created
   during this check were deleted afterward.
-- **Not verified**: the exact field names a *specific* real terminal
-  model sends for the person id, the success/failure status, and (for a
-  two-reader gate) the direction. Dahua's own documentation confirms the
-  general `Events[n].Code`/dotted-field shape but the concrete
-  sub-fields under `AccessControl` were not available to check against a
-  real event dump. This is exactly why `npm run capture` and the
-  `PERSON_ID_FIELDS`/`DIRECTION_FIELD` settings exist — run capture mode
-  against the real terminal before trusting it in production, and adjust
-  those settings from what it actually shows. Until that is done, do not
-  assume the default `PERSON_ID_FIELDS` guess is correct for a given
-  terminal model.
-- **HTTP only** (not HTTPS) to the device, matching Dahua's own
-  documentation examples and typical on-site configuration — this bridge
-  has no HTTPS client path for the device connection.
+- **Automated tests** (`npm test`, 70 tests) additionally cover: the
+  multipart stream parser, including a JPEG snapshot body engineered to
+  contain boundary-like bytes inside it, and a part deliberately fed one
+  byte at a time to prove chunk-boundary reassembly is correct; the flat
+  `Events[n].*` text parser; the direction toggle (including surviving a
+  restart), field, and fixed modes — the last two exercised with the
+  real terminal's own field names and values, including the real
+  captured no-match event verbatim; the dedupe window; the offline
+  queue's durability and flush/retry/drop logic.
+- **HTTP only** (not HTTPS) to the device, matching what both real
+  terminals here are actually configured for — this bridge has no HTTPS
+  client path for the device connection.
 - The bridge's own outbound call to my.urtg.uz always uses HTTPS when
   `SERVER_URL` is an `https://` URL, same as any other client of this
   API.

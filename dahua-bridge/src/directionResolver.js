@@ -8,8 +8,16 @@ function today() {
 /**
  * Decides whether a scan is a check-in or a check-out.
  *
+ * `fixed` mode: this whole bridge instance only ever reports one
+ * direction (`FIXED_DIRECTION=check_in` or `check_out`) — for a site
+ * with two separate terminals, one on the entry side of a gate and one
+ * on the exit side, each its own IP. Which physical device an event
+ * came from already says everything; run one bridge instance per
+ * terminal (see the README's two-terminal setup).
+ *
  * `field` mode trusts a device field (see config.js's DIRECTION_FIELD) —
- * for a terminal with two readers wired to report which one was used.
+ * for a single terminal with two readers wired to report which one was
+ * used.
  *
  * `toggle` mode (the default) needs no such field: each person's first
  * scan on a given calendar day is a check-in, their next one that day is
@@ -28,6 +36,10 @@ export class DirectionResolver {
   }
 
   resolve(event) {
+    if (this.config.direction.mode === 'fixed') {
+      return this.config.direction.fixedDirection;
+    }
+
     if (this.config.direction.mode === 'field') {
       const value = event.directionFieldValue;
 

@@ -7,14 +7,17 @@ const FAILURE_VALUES = new Set(['failure', 'fail', 'false', '0', 'abnormal', 'de
  * loss, ...), which this bridge has no use for and must not mistake for
  * an attendance scan.
  *
- * The exact field names Dahua uses for the person id and the
- * success/failure status are not identical across every terminal model,
- * so both are resolved through the configurable, ordered candidate lists
- * in config.js rather than a single hardcoded key — `LOG_RAW_EVENTS=true`
- * is how a real device's actual field names get confirmed on-site.
+ * The exact field names Dahua uses for the event type, the person id, and
+ * the success/failure status are not identical across every terminal
+ * model, so all three are resolved through the configurable, ordered
+ * candidate lists in config.js rather than a single hardcoded key —
+ * `LOG_RAW_EVENTS=true` is how a real device's actual field names get
+ * confirmed on-site.
  */
 export function readAccessControlEvent(fields, config) {
-  if ((fields.Code || '').toLowerCase() !== 'accesscontrol') {
+  const code = firstPresentField(fields, config.codeFields);
+
+  if ((code || '').toLowerCase() !== 'accesscontrol') {
     return null;
   }
 
@@ -24,15 +27,36 @@ export function readAccessControlEvent(fields, config) {
     return { personId: null, successful: true, directionFieldValue: undefined, raw: fields };
   }
 
-  const statusValue = fields['AccessControl.Status'] ?? fields.Status;
-  const successful = statusValue === undefined ? true : !isKnownFailure(statusValue);
-
   return {
     personId,
-    successful,
-    directionFieldValue: fields[config.direction.field],
+    successful: isSuccessful(fields),
+    directionFieldValue: firstPresentField(fields, config.direction.fields),
     raw: fields,
   };
+}
+
+/**
+ * `ErrorCode`, when present, is trusted first: 0 means no error, matching
+ * the same convention Dahua's other HTTP APIs use — and it is what
+ * distinguished the one real "no matching person" scan seen live during
+ * development (`ErrorCode: 16`, empty UserID) from what a genuine
+ * recognized scan should look like. `Status`'s own known-failure values
+ * are the fallback for an event with no `ErrorCode` at all.
+ */
+function isSuccessful(fields) {
+  const errorCode = fields.ErrorCode;
+
+  if (errorCode !== undefined && errorCode.trim() !== '') {
+    const numeric = Number(errorCode);
+
+    if (Number.isFinite(numeric)) {
+      return numeric === 0;
+    }
+  }
+
+  const statusValue = fields['AccessControl.Status'] ?? fields.Status;
+
+  return statusValue === undefined ? true : !isKnownFailure(statusValue);
 }
 
 function firstPresentField(fields, candidateKeys) {
