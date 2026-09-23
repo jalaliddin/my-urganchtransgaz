@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'user_id', 'organization_id', 'department_id', 'position_id',
-    'employee_number', 'first_name', 'last_name', 'middle_name',
+    'employee_number', 'dahua_person_id', 'first_name', 'last_name', 'middle_name',
     'birth_date', 'birth_place', 'gender',
     'phone', 'email', 'corporate_email',
     'address', 'passport_number', 'pinfl',

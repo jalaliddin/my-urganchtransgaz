@@ -25,8 +25,9 @@ class AttendanceEventController extends Controller
     /**
      * Record a biometric device event. The device is already authenticated
      * by AuthenticateAttendanceDevice; the employee is always resolved
-     * server-side from `employee_number`, never trusted as a raw id from
-     * the payload.
+     * server-side from `employee_number` or `dahua_person_id` — whichever
+     * the request validation confirmed is present — never trusted as a raw
+     * id from the payload beyond that lookup.
      */
     public function store(RecordAttendanceEventRequest $request): JsonResponse
     {
@@ -37,7 +38,9 @@ class AttendanceEventController extends Controller
             return $this->error('device_id does not match the authenticated device.', 422);
         }
 
-        $employee = Employee::where('employee_number', $request->string('employee_number')->toString())->firstOrFail();
+        $employee = $request->filled('dahua_person_id')
+            ? Employee::where('dahua_person_id', $request->string('dahua_person_id')->toString())->firstOrFail()
+            : Employee::where('employee_number', $request->string('employee_number')->toString())->firstOrFail();
         $eventTime = Carbon::parse($request->string('event_time')->toString());
 
         $record = match ($request->string('event_type')->toString()) {

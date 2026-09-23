@@ -65,6 +65,57 @@ it('records a check-in event from an authenticated device by employee_number', f
     ]);
 });
 
+it('rejects an event for an unknown dahua_person_id', function () {
+    AttendanceDevice::factory()->withToken('a-token')->create(['device_id' => 'DEV-1']);
+
+    $this->withToken('a-token')->postJson('/api/v1/integrations/attendance/events', [
+        'device_id' => 'DEV-1',
+        'dahua_person_id' => '9999',
+        'event_type' => 'check_in',
+        'event_time' => Carbon::now()->toDateTimeString(),
+    ])->assertStatus(422)->assertJsonValidationErrors('dahua_person_id');
+});
+
+it('rejects an event with neither employee_number nor dahua_person_id', function () {
+    AttendanceDevice::factory()->withToken('a-token')->create(['device_id' => 'DEV-1']);
+
+    $this->withToken('a-token')->postJson('/api/v1/integrations/attendance/events', [
+        'device_id' => 'DEV-1',
+        'event_type' => 'check_in',
+        'event_time' => Carbon::now()->toDateTimeString(),
+    ])->assertStatus(422)->assertJsonValidationErrors(['employee_number', 'dahua_person_id']);
+});
+
+it('rejects an event that sends both employee_number and dahua_person_id', function () {
+    AttendanceDevice::factory()->withToken('a-token')->create(['device_id' => 'DEV-1']);
+    $employee = Employee::factory()->create(['employee_number' => 'EMP-001', 'dahua_person_id' => '1001']);
+
+    $this->withToken('a-token')->postJson('/api/v1/integrations/attendance/events', [
+        'device_id' => 'DEV-1',
+        'employee_number' => $employee->employee_number,
+        'dahua_person_id' => $employee->dahua_person_id,
+        'event_type' => 'check_in',
+        'event_time' => Carbon::now()->toDateTimeString(),
+    ])->assertStatus(422)->assertJsonValidationErrors(['employee_number']);
+});
+
+it('records a check-in event from the Dahua bridge by dahua_person_id', function () {
+    AttendanceDevice::factory()->withToken('a-token')->create(['device_id' => 'DEV-TURNSTILE']);
+    $employee = Employee::factory()->create(['dahua_person_id' => '1001']);
+
+    $this->withToken('a-token')->postJson('/api/v1/integrations/attendance/events', [
+        'device_id' => 'DEV-TURNSTILE',
+        'dahua_person_id' => '1001',
+        'event_type' => 'check_in',
+        'event_time' => Carbon::today()->setTime(9, 0)->toDateTimeString(),
+    ])->assertCreated();
+
+    $this->assertDatabaseHas('attendance_records', [
+        'employee_id' => $employee->id,
+        'source' => 'biometric',
+    ]);
+});
+
 it('lets a repeated device check-in for the same day pass through as a no-op', function () {
     AttendanceDevice::factory()->withToken('a-token')->create(['device_id' => 'DEV-1']);
     $employee = Employee::factory()->create(['employee_number' => 'EMP-001']);

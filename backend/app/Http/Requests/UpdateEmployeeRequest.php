@@ -44,6 +44,7 @@ class UpdateEmployeeRequest extends FormRequest
             'position_id' => ['nullable', 'integer', Rule::exists('positions', 'id')],
 
             'employee_number' => ['sometimes', 'required', 'string', 'max:50', Rule::unique('employees', 'employee_number')->ignore($employee->id)],
+            'dahua_person_id' => ['nullable', 'string', 'max:64', Rule::unique('employees', 'dahua_person_id')->ignore($employee->id)],
             'first_name' => ['sometimes', 'required', 'string', 'max:100'],
             'last_name' => ['sometimes', 'required', 'string', 'max:100'],
             'middle_name' => ['nullable', 'string', 'max:100'],

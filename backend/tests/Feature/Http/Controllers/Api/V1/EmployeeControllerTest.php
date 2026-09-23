@@ -214,6 +214,48 @@ it('rejects a duplicate employee number', function () {
     ])->assertStatus(422)->assertJsonValidationErrors(['employee_number']);
 });
 
+it('creates an employee with a Dahua terminal person id', function () {
+    $organization = Organization::factory()->create();
+    $user = userWithRole('hr', $organization);
+
+    $this->actingAs($user, 'sanctum')->postJson('/api/v1/employees', [
+        'organization_id' => $organization->id,
+        'employee_number' => 'EMP00004',
+        'dahua_person_id' => '1001',
+        'first_name' => 'Aziz',
+        'last_name' => 'Karimov',
+    ])->assertCreated();
+
+    $this->assertDatabaseHas('employees', ['employee_number' => 'EMP00004', 'dahua_person_id' => '1001']);
+});
+
+it('rejects a Dahua person id already assigned to another employee', function () {
+    $organization = Organization::factory()->create();
+    Employee::factory()->create(['organization_id' => $organization->id, 'dahua_person_id' => '1001']);
+    $user = userWithRole('hr', $organization);
+
+    $this->actingAs($user, 'sanctum')->postJson('/api/v1/employees', [
+        'organization_id' => $organization->id,
+        'employee_number' => 'EMP00005',
+        'dahua_person_id' => '1001',
+        'first_name' => 'Aziz',
+        'last_name' => 'Karimov',
+    ])->assertStatus(422)->assertJsonValidationErrors(['dahua_person_id']);
+});
+
+it('lets an employee keep their own Dahua person id when updating other fields', function () {
+    $organization = Organization::factory()->create();
+    $employee = Employee::factory()->create(['organization_id' => $organization->id, 'dahua_person_id' => '1001']);
+    $user = userWithRole('hr', $organization);
+
+    $this->actingAs($user, 'sanctum')->putJson("/api/v1/employees/{$employee->id}", [
+        'dahua_person_id' => '1001',
+        'phone' => '999',
+    ])->assertOk();
+
+    expect($employee->fresh()->dahua_person_id)->toBe('1001');
+});
+
 it('updates an employee and persists the change', function () {
     $organization = Organization::factory()->create();
     $employee = Employee::factory()->create(['organization_id' => $organization->id, 'phone' => '111']);

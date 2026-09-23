@@ -59,6 +59,7 @@ class StoreEmployeeRequest extends FormRequest
             'position_id' => ['nullable', 'integer', Rule::exists('positions', 'id')],
 
             'employee_number' => ['required', 'string', 'max:50', Rule::unique('employees', 'employee_number')],
+            'dahua_person_id' => ['nullable', 'string', 'max:64', Rule::unique('employees', 'dahua_person_id')],
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'middle_name' => ['nullable', 'string', 'max:100'],

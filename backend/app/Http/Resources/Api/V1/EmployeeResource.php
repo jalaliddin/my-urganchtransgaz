@@ -32,6 +32,7 @@ class EmployeeResource extends JsonResource
             'position' => new PositionResource($this->whenLoaded('position')),
 
             'employee_number' => $this->employee_number,
+            'dahua_person_id' => $this->dahua_person_id,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'middle_name' => $this->middle_name,
