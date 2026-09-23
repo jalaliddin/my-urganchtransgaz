@@ -9,6 +9,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         require base_path('routes/api/organizations.php');
         require base_path('routes/api/departments.php');
+        require base_path('routes/api/positions.php');
         require base_path('routes/api/employees.php');
         require base_path('routes/api/profile.php');
         require base_path('routes/api/documents.php');

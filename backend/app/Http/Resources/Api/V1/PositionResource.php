@@ -19,9 +19,11 @@ class PositionResource extends JsonResource
         return [
             'id' => $this->id,
             'organization_id' => $this->organization_id,
+            'organization' => new OrganizationResource($this->whenLoaded('organization')),
             'title' => $this->title,
             'code' => $this->code,
             'status' => $this->status,
+            'employees_count' => $this->whenCounted('employees'),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

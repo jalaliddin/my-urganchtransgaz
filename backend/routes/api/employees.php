@@ -10,3 +10,5 @@ Route::post('employees/import', [EmployeeImportController::class, 'store'])->nam
 Route::apiResource('employees', EmployeeController::class);
 Route::get('employees/{employee}/photo', [EmployeeController::class, 'photo'])->name('employees.photo');
 Route::put('employees/{employee}/role', [EmployeeController::class, 'updateRole'])->name('employees.role.update');
+Route::post('employees/{employee}/account', [EmployeeController::class, 'createAccount'])->name('employees.account.create');
+Route::put('employees/{employee}/password', [EmployeeController::class, 'resetPassword'])->name('employees.password.reset');

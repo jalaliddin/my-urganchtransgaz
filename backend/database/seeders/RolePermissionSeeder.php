@@ -22,6 +22,7 @@ class RolePermissionSeeder extends Seeder
         'users' => ['view', 'create', 'update', 'delete'],
         'organizations' => ['view', 'create', 'update', 'delete'],
         'departments' => ['view', 'create', 'update', 'delete'],
+        'positions' => ['view', 'create', 'update', 'delete'],
         'employees' => ['view', 'create', 'update', 'delete'],
         'documents' => ['view', 'upload', 'approve', 'delete'],
         'attendance' => ['view', 'manage'],
@@ -47,6 +48,7 @@ class RolePermissionSeeder extends Seeder
         'organization-admin' => [
             'organizations.view',
             'departments.view', 'departments.create', 'departments.update',
+            'positions.view', 'positions.create', 'positions.update',
             'employees.view', 'employees.create', 'employees.update',
             'users.view',
             'documents.view', 'documents.approve',
@@ -58,6 +60,7 @@ class RolePermissionSeeder extends Seeder
         ],
         'department-manager' => [
             'organizations.view', 'departments.view',
+            'positions.view',
             'employees.view',
             'attendance.view',
             'tasks.view', 'tasks.create', 'tasks.update', 'tasks.assign',
@@ -67,6 +70,7 @@ class RolePermissionSeeder extends Seeder
         ],
         'hr' => [
             'organizations.view', 'departments.view',
+            'positions.view', 'positions.create', 'positions.update',
             'employees.view', 'employees.create', 'employees.update',
             'users.view', 'users.create', 'users.update',
             'documents.view', 'documents.upload', 'documents.approve', 'documents.delete',
@@ -75,20 +79,20 @@ class RolePermissionSeeder extends Seeder
             'issues.create', 'issues.view',
         ],
         'safety-manager' => [
-            'organizations.view', 'departments.view', 'employees.view',
+            'organizations.view', 'departments.view', 'positions.view', 'employees.view',
             'exams.view', 'exams.create', 'exams.manage', 'exams.evaluate',
             'announcements.view',
             'issues.create', 'issues.view',
         ],
         'technical-policy' => [
-            'organizations.view', 'departments.view', 'employees.view',
+            'organizations.view', 'departments.view', 'positions.view', 'employees.view',
             'tasks.view', 'tasks.create', 'tasks.update', 'tasks.assign',
             'announcements.view',
             'issues.create', 'issues.view', 'issues.resolve',
             'issue_categories.manage',
         ],
         'manager' => [
-            'departments.view', 'employees.view',
+            'departments.view', 'positions.view', 'employees.view',
             'attendance.view',
             'tasks.view', 'tasks.create', 'tasks.update', 'tasks.assign',
             'kpi.view',

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\Employees\CreateAccountForEmployeeAction;
 use App\Actions\Employees\CreateEmployeeAction;
 use App\Actions\Export\ExportRecords;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ResetEmployeePasswordRequest;
+use App\Http\Requests\StoreEmployeeAccountRequest;
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
 use App\Http\Requests\UpdateUserRoleRequest;
@@ -13,6 +16,7 @@ use App\Models\Employee;
 use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -173,5 +177,40 @@ class EmployeeController extends Controller
         $this->auditLog->log('permission_changed', 'users', $user, ['role' => $oldRole], ['role' => $newRole]);
 
         return $this->success(message: 'Xodim roli yangilandi.');
+    }
+
+    /**
+     * Open a login for an employee who was added without one — the same
+     * account-creation step StoreEmployeeRequest offers up front
+     * (`create_account`), available afterward for an employee it wasn't
+     * used for at the time.
+     */
+    public function createAccount(StoreEmployeeAccountRequest $request, Employee $employee, CreateAccountForEmployeeAction $action): JsonResponse
+    {
+        if ($employee->user_id) {
+            return $this->error('Bu xodimning hisobi allaqachon mavjud.', 409);
+        }
+
+        $action->handle($employee, $request->validated());
+
+        return $this->success(new EmployeeResource($employee->fresh()), 'Hisob yaratildi.', 201);
+    }
+
+    /**
+     * Set a new password for an employee's linked account (an admin
+     * action — no current password is required, unlike the self-service
+     * change-password endpoint).
+     */
+    public function resetPassword(ResetEmployeePasswordRequest $request, Employee $employee): JsonResponse
+    {
+        abort_unless($employee->user_id, 404);
+
+        $employee->user->forceFill([
+            'password' => Hash::make($request->validated('password')),
+        ])->save();
+
+        $this->auditLog->log('password_reset', 'users', $employee->user);
+
+        return $this->success(message: 'Parol yangilandi.');
     }
 }

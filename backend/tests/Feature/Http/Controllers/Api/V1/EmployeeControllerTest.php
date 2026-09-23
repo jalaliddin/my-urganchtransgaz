@@ -4,6 +4,7 @@ use App\Models\Employee;
 use App\Models\Organization;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Support\Facades\Hash;
 
 beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
@@ -199,6 +200,108 @@ it('forbids an organization-admin (no users.update) from changing a role', funct
     $this->actingAs($orgAdmin, 'sanctum')
         ->putJson("/api/v1/employees/{$employeeUser->employee->id}/role", ['role' => 'manager'])
         ->assertStatus(403);
+});
+
+it('lets hr open an account for an employee who was created without one', function () {
+    $organization = Organization::factory()->create();
+    $hr = userWithRole('hr', $organization);
+    $employee = Employee::factory()->create(['organization_id' => $organization->id, 'user_id' => null]);
+
+    $response = $this->actingAs($hr, 'sanctum')->postJson("/api/v1/employees/{$employee->id}/account", [
+        'username' => 'newlogin',
+        'corporate_email' => 'newlogin@urtg.uz',
+        'password' => 'password123',
+        'role' => 'employee',
+    ]);
+
+    $response->assertCreated();
+
+    $employee->refresh();
+    expect($employee->user_id)->not->toBeNull();
+    $newUser = User::find($employee->user_id);
+    expect($newUser->username)->toBe('newlogin');
+    expect($newUser->hasRole('employee'))->toBeTrue();
+});
+
+it('rejects opening a second account for an employee who already has one', function () {
+    $organization = Organization::factory()->create();
+    $hr = userWithRole('hr', $organization);
+    $employeeUser = userWithRole('employee', $organization);
+
+    $this->actingAs($hr, 'sanctum')->postJson("/api/v1/employees/{$employeeUser->employee->id}/account", [
+        'username' => 'another',
+        'password' => 'password123',
+        'role' => 'employee',
+    ])->assertStatus(409);
+});
+
+it('forbids a scoped hr user from opening a central-admin account via the account-creation endpoint', function () {
+    $organization = Organization::factory()->create();
+    $hr = userWithRole('hr', $organization);
+    $employee = Employee::factory()->create(['organization_id' => $organization->id, 'user_id' => null]);
+
+    $this->actingAs($hr, 'sanctum')->postJson("/api/v1/employees/{$employee->id}/account", [
+        'username' => 'newlogin',
+        'password' => 'password123',
+        'role' => 'central-admin',
+    ])->assertStatus(422)->assertJsonValidationErrors(['role']);
+});
+
+it('forbids an organization-admin (no users.update) from opening an account', function () {
+    $organization = Organization::factory()->create();
+    $orgAdmin = userWithRole('organization-admin', $organization);
+    $employee = Employee::factory()->create(['organization_id' => $organization->id, 'user_id' => null]);
+
+    $this->actingAs($orgAdmin, 'sanctum')->postJson("/api/v1/employees/{$employee->id}/account", [
+        'username' => 'newlogin',
+        'password' => 'password123',
+        'role' => 'employee',
+    ])->assertStatus(403);
+});
+
+it('lets hr reset an employee\'s password', function () {
+    $organization = Organization::factory()->create();
+    $hr = userWithRole('hr', $organization);
+    $employeeUser = userWithRole('employee', $organization);
+
+    $this->actingAs($hr, 'sanctum')->putJson("/api/v1/employees/{$employeeUser->employee->id}/password", [
+        'password' => 'newpassword123',
+        'password_confirmation' => 'newpassword123',
+    ])->assertOk();
+
+    expect(Hash::check('newpassword123', $employeeUser->fresh()->password))->toBeTrue();
+});
+
+it('rejects resetting the password of an employee with no linked account', function () {
+    $organization = Organization::factory()->create();
+    $hr = userWithRole('hr', $organization);
+    $employee = Employee::factory()->create(['organization_id' => $organization->id, 'user_id' => null]);
+
+    $this->actingAs($hr, 'sanctum')->putJson("/api/v1/employees/{$employee->id}/password", [
+        'password' => 'newpassword123',
+        'password_confirmation' => 'newpassword123',
+    ])->assertStatus(404);
+});
+
+it('rejects a password reset without confirmation', function () {
+    $organization = Organization::factory()->create();
+    $hr = userWithRole('hr', $organization);
+    $employeeUser = userWithRole('employee', $organization);
+
+    $this->actingAs($hr, 'sanctum')->putJson("/api/v1/employees/{$employeeUser->employee->id}/password", [
+        'password' => 'newpassword123',
+    ])->assertStatus(422)->assertJsonValidationErrors(['password']);
+});
+
+it('forbids an organization-admin (no users.update) from resetting a password', function () {
+    $organization = Organization::factory()->create();
+    $orgAdmin = userWithRole('organization-admin', $organization);
+    $employeeUser = userWithRole('employee', $organization);
+
+    $this->actingAs($orgAdmin, 'sanctum')->putJson("/api/v1/employees/{$employeeUser->employee->id}/password", [
+        'password' => 'newpassword123',
+        'password_confirmation' => 'newpassword123',
+    ])->assertStatus(403);
 });
 
 it('rejects a duplicate employee number', function () {
