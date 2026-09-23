@@ -1,0 +1,14 @@
+/*
+ * App-wide typography. The public landing page already uses Onest — a
+ * modern, slightly technical grotesque already installed for it
+ * (@fontsource-variable/onest) — but the authenticated app never adopted
+ * it and instead ran on Vuetify's own Roboto default. One family across
+ * both surfaces reads as one product; Vuetify exposes exactly this hook
+ * for it (--v-font-body / --v-font-heading, consumed by every typography
+ * class in vuetify/lib/styles/main.css), so no per-component overrides
+ * are needed.
+ */
+:root {
+  --v-font-body: 'Onest Variable', 'Onest', system-ui, -apple-system, sans-serif;
+  --v-font-heading: 'Onest Variable', 'Onest', system-ui, -apple-system, sans-serif;
+}

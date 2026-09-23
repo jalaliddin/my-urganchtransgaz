@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import '@fontsource-variable/onest/wght.css'
+// Onest Variable is loaded app-wide now (see src/main.ts) — only the
+// display face used for this page's own headings still needs its own import.
 import '@fontsource/unbounded/latin-600.css'
 import '@fontsource/unbounded/cyrillic-600.css'
 

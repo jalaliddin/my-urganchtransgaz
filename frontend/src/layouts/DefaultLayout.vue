@@ -22,6 +22,16 @@ const { mobile } = useDisplay()
 const drawer = ref(!mobile.value)
 const rail = ref(false)
 
+// `mobile` from useDisplay() is itself reactive to a resize, but a plain
+// `ref(!mobile.value)` only reads it once at setup — crossing the
+// breakpoint afterward (an actual window resize, not just a page load at
+// a given width) left the drawer's own state stale: still open and
+// full-width on top of newly-narrow content, or stuck closed after
+// widening back out. Watching keeps it in sync either direction.
+watch(mobile, (isMobile) => {
+  drawer.value = !isMobile
+})
+
 const navItems = computed<NavItem[]>(() =>
   [
     { title: 'nav.dashboard', icon: 'mdi-view-dashboard-outline', to: '/dashboard' },
@@ -189,6 +199,7 @@ function goToResult(type: SearchGroup['type']) {
           :prepend-icon="item.icon"
           :title="$t(item.title)"
           rounded="lg"
+          color="sidebar-active"
           active-color="white"
           base-color="rgba(255,255,255,0.72)"
         />

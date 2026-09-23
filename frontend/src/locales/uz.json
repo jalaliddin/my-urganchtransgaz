@@ -243,7 +243,17 @@
   "dashboard": {
     "title": "Boshqaruv paneli",
     "welcome": "Xush kelibsiz",
-    "profileCompletion": "Profil to'ldirilishi"
+    "profileCompletion": "Profil to'ldirilishi",
+    "greetingMorning": "Xayrli tong",
+    "greetingAfternoon": "Xayrli kun",
+    "greetingEvening": "Xayrli kech",
+    "activeTasks": "Faol topshiriqlar",
+    "dueSoon": "Muddati yaqin topshiriqlar",
+    "seeAll": "Barchasini ko'rish",
+    "noDueDate": "Muddat belgilanmagan",
+    "allCaughtUp": "Barcha topshiriqlar bajarilgan",
+    "adminAccount": "Bu tizim boshqaruvi uchun hisob — xodim profili biriktirilmagan.",
+    "companyOverview": "Kompaniya bo'yicha statistika"
   },
   "profile": {
     "title": "Mening profilim",

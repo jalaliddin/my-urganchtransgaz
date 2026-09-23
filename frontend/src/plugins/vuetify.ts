@@ -22,6 +22,12 @@ export const vuetify = createVuetify({
           surface: '#FFFFFF',
           sidebar: '#111C33',
           'sidebar-active': '#1E3A5F',
+          // The corporate flame mark's leaf green (matches the mobile app's
+          // `AppTheme._brandGreen`) — a genuine brand accent, kept separate
+          // from Vuetify's own duller Material "success" green so it reads
+          // as *the* brand color when used deliberately (a highlight, the
+          // dashboard hero's accent chip), not diluted into every success state.
+          'brand-accent': '#9ACC48',
           success: '#2E7D32',
           warning: '#ED6C02',
           error: '#D32F2F',
@@ -37,6 +43,7 @@ export const vuetify = createVuetify({
           surface: '#181C22',
           sidebar: '#0B1220',
           'sidebar-active': '#1E3A5F',
+          'brand-accent': '#9ACC48',
           success: '#4CAF50',
           warning: '#FFA726',
           error: '#EF5350',
@@ -46,7 +53,10 @@ export const vuetify = createVuetify({
     },
   },
   defaults: {
-    VCard: { rounded: 'lg', elevation: 1 },
+    // A thin border reads calmer than a drop shadow repeated under every
+    // card on the page — the shadow is reserved for the few surfaces that
+    // should visibly float (menus, dialogs), not the whole page's content.
+    VCard: { rounded: 'lg', elevation: 0, border: true },
     VBtn: { rounded: 'lg' },
     VTextField: { variant: 'outlined', density: 'comfortable' },
     VSelect: { variant: 'outlined', density: 'comfortable' },

@@ -1,6 +1,9 @@
+import '@fontsource-variable/onest/wght.css'
+
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 
+import '@/assets/global.css'
 import App from '@/App.vue'
 import { i18n } from '@/plugins/i18n'
 import { registerGlobalComponents } from '@/plugins/globalComponents'

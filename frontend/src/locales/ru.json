@@ -243,7 +243,17 @@
   "dashboard": {
     "title": "Панель управления",
     "welcome": "Добро пожаловать",
-    "profileCompletion": "Заполненность профиля"
+    "profileCompletion": "Заполненность профиля",
+    "greetingMorning": "Доброе утро",
+    "greetingAfternoon": "Добрый день",
+    "greetingEvening": "Добрый вечер",
+    "activeTasks": "Активные задачи",
+    "dueSoon": "Задачи с ближайшим сроком",
+    "seeAll": "Смотреть все",
+    "noDueDate": "Срок не указан",
+    "allCaughtUp": "Все задачи выполнены",
+    "adminAccount": "Это учётная запись для администрирования системы — профиль сотрудника не привязан.",
+    "companyOverview": "Статистика по компании"
   },
   "profile": {
     "title": "Мой профиль",

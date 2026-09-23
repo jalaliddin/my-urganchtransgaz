@@ -243,7 +243,17 @@
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome",
-    "profileCompletion": "Profile completion"
+    "profileCompletion": "Profile completion",
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "activeTasks": "Active tasks",
+    "dueSoon": "Due soon",
+    "seeAll": "See all",
+    "noDueDate": "No due date",
+    "allCaughtUp": "All tasks are done",
+    "adminAccount": "This is a system administration account with no employee profile attached.",
+    "companyOverview": "Company overview"
   },
   "profile": {
     "title": "My Profile",
