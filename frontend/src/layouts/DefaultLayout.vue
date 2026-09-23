@@ -48,6 +48,12 @@ const navItems = computed<NavItem[]>(() =>
       permission: 'departments.view',
     },
     {
+      title: 'nav.positions',
+      icon: 'mdi-badge-account-outline',
+      to: '/positions',
+      permission: 'positions.view',
+    },
+    {
       title: 'nav.employees',
       icon: 'mdi-account-group-outline',
       to: '/employees',

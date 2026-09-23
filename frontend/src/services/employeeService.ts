@@ -33,6 +33,18 @@ export interface UpdateEmployeePayload {
   corporate_email?: string | null
 }
 
+export interface CreateEmployeeAccountPayload {
+  username: string
+  corporate_email?: string | null
+  password: string
+  role: string
+}
+
+export interface ResetPasswordPayload {
+  password: string
+  password_confirmation: string
+}
+
 const base = createResourceService<Employee, CreateEmployeePayload, UpdateEmployeePayload>('/employees')
 
 export const employeeService = {
@@ -40,6 +52,17 @@ export const employeeService = {
 
   async updateRole(id: number, role: string): Promise<void> {
     await http.put(`/employees/${id}/role`, { role })
+  },
+
+  /** Opens a login for an employee who was added without one. */
+  async createAccount(id: number, payload: CreateEmployeeAccountPayload): Promise<Employee> {
+    const { data } = await http.post<ApiSuccessResponse<Employee>>(`/employees/${id}/account`, payload)
+    return data.data
+  },
+
+  /** Sets a new password for an employee's existing account (an admin reset, not self-service). */
+  async resetPassword(id: number, payload: ResetPasswordPayload): Promise<void> {
+    await http.put(`/employees/${id}/password`, payload)
   },
 
   /**

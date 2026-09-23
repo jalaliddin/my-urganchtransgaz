@@ -61,9 +61,11 @@ export interface Department {
 export interface Position {
   id: number
   organization_id: number
+  organization?: Organization
   title: string
   code: string | null
   status: ActiveStatus
+  employees_count?: number
   created_at: string
   updated_at: string
 }

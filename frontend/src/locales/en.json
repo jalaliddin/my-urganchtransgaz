@@ -117,7 +117,8 @@
     "myProfile": "My Profile",
     "myDocuments": "My Documents",
     "logout": "Logout",
-    "issueCategories": "Issue categories"
+    "issueCategories": "Issue categories",
+    "positions": "Positions"
   },
   "auth": {
     "login": "Login",
@@ -238,7 +239,11 @@
     "passportNumber": "Passport number",
     "pinfl": "PINFL",
     "changeOnlyHint": "Enter to change",
-    "changeRole": "Change role"
+    "changeRole": "Change role",
+    "openAccount": "Open an account",
+    "resetPassword": "Reset password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -532,5 +537,11 @@
     "issuesCount": "Issues",
     "hint": "Reports group issues by these categories. A category already used by issues can't be deleted — deactivate it instead.",
     "deleteUsed": "This category is used by issues and can't be deleted. Deactivate it instead."
+  },
+  "positions": {
+    "title": "Positions",
+    "positionTitle": "Position title",
+    "code": "Code",
+    "organization": "Organization"
   }
 }

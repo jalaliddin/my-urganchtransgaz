@@ -6,8 +6,9 @@ import { usePaginatedResource } from '@/composables/usePaginatedResource'
 import { departmentService } from '@/services/departmentService'
 import { employeeImportService, employeeService } from '@/services/employeeService'
 import { organizationService } from '@/services/organizationService'
+import { positionService } from '@/services/positionService'
 import { useAuthStore } from '@/stores/auth'
-import type { Department, Employee, ImportResult, Organization } from '@/types/models'
+import type { Department, Employee, ImportResult, Organization, Position } from '@/types/models'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -17,6 +18,7 @@ const { items, total, loading, page, itemsPerPage, search, reload } =
 
 const organizations = ref<Organization[]>([])
 const departments = ref<Department[]>([])
+const positions = ref<Position[]>([])
 
 onMounted(async () => {
   const result = await organizationService.list({ per_page: 100 })
@@ -38,6 +40,7 @@ const editing = ref<Employee | null>(null)
 const form = ref({
   organization_id: null as number | null,
   department_id: null as number | null,
+  position_id: null as number | null,
   employee_number: '',
   dahua_person_id: '',
   first_name: '',
@@ -65,10 +68,15 @@ watch(
   async (organizationId) => {
     if (!organizationId) {
       departments.value = []
+      positions.value = []
       return
     }
-    const result = await departmentService.list({ per_page: 100, 'filter[organization_id]': organizationId })
-    departments.value = result.data
+    const [departmentResult, positionResult] = await Promise.all([
+      departmentService.list({ per_page: 100, 'filter[organization_id]': organizationId }),
+      positionService.list({ per_page: 100, 'filter[organization_id]': organizationId }),
+    ])
+    departments.value = departmentResult.data
+    positions.value = positionResult.data
   },
 )
 
@@ -77,6 +85,7 @@ function openCreate() {
   form.value = {
     organization_id: organizations.value[0]?.id ?? null,
     department_id: null,
+    position_id: null,
     employee_number: '',
     dahua_person_id: '',
     first_name: '',
@@ -98,6 +107,7 @@ function openEdit(employee: Employee) {
   form.value = {
     organization_id: employee.organization_id,
     department_id: employee.department_id,
+    position_id: employee.position_id,
     employee_number: employee.employee_number,
     dahua_person_id: employee.dahua_person_id ?? '',
     first_name: employee.first_name,
@@ -119,10 +129,11 @@ async function save() {
   formErrors.value = {}
   try {
     if (editing.value) {
-      const { organization_id, department_id, employee_number, dahua_person_id, first_name, last_name, middle_name, phone, corporate_email } = form.value
+      const { organization_id, department_id, position_id, employee_number, dahua_person_id, first_name, last_name, middle_name, phone, corporate_email } = form.value
       await employeeService.update(editing.value.id, {
         organization_id,
         department_id,
+        position_id,
         employee_number,
         // An empty field means "not enrolled on a device", i.e. null — not
         // the literal empty string, which would collide with every other
@@ -189,6 +200,61 @@ async function submitRoleChange() {
     await reload()
   } finally {
     changingRole.value = false
+  }
+}
+
+// ---- Open an account for an employee who doesn't have one yet ----
+const accountTarget = ref<Employee | null>(null)
+const accountForm = ref({ username: '', corporate_email: '', password: '', role: 'employee' })
+const accountErrors = ref<Record<string, string[]>>({})
+const creatingAccount = ref(false)
+
+function openAccountDialog(employee: Employee) {
+  accountTarget.value = employee
+  accountForm.value = { username: '', corporate_email: employee.corporate_email ?? '', password: '', role: 'employee' }
+  accountErrors.value = {}
+}
+
+async function submitCreateAccount() {
+  if (!accountTarget.value) return
+  creatingAccount.value = true
+  accountErrors.value = {}
+  try {
+    await employeeService.createAccount(accountTarget.value.id, accountForm.value)
+    accountTarget.value = null
+    await reload()
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { data?: { errors?: Record<string, string[]> } } }
+    accountErrors.value = axiosError.response?.data?.errors ?? {}
+  } finally {
+    creatingAccount.value = false
+  }
+}
+
+// ---- Reset an existing account's password ----
+const passwordTarget = ref<Employee | null>(null)
+const passwordForm = ref({ password: '', password_confirmation: '' })
+const passwordErrors = ref<Record<string, string[]>>({})
+const resettingPassword = ref(false)
+
+function openPasswordDialog(employee: Employee) {
+  passwordTarget.value = employee
+  passwordForm.value = { password: '', password_confirmation: '' }
+  passwordErrors.value = {}
+}
+
+async function submitResetPassword() {
+  if (!passwordTarget.value) return
+  resettingPassword.value = true
+  passwordErrors.value = {}
+  try {
+    await employeeService.resetPassword(passwordTarget.value.id, passwordForm.value)
+    passwordTarget.value = null
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { data?: { errors?: Record<string, string[]> } } }
+    passwordErrors.value = axiosError.response?.data?.errors ?? {}
+  } finally {
+    resettingPassword.value = false
   }
 }
 
@@ -286,7 +352,24 @@ async function confirmImport() {
         icon="mdi-account-key-outline"
         variant="text"
         size="small"
+        :title="$t('employees.changeRole')"
         @click="openRoleDialog(item)"
+      />
+      <v-btn
+        v-if="auth.can('users.update') && item.user_id"
+        icon="mdi-lock-reset"
+        variant="text"
+        size="small"
+        :title="$t('employees.resetPassword')"
+        @click="openPasswordDialog(item)"
+      />
+      <v-btn
+        v-if="auth.can('users.update') && !item.user_id"
+        icon="mdi-account-plus-outline"
+        variant="text"
+        size="small"
+        :title="$t('employees.openAccount')"
+        @click="openAccountDialog(item)"
       />
       <v-btn
         v-if="auth.can('employees.delete')"
@@ -322,6 +405,15 @@ async function confirmImport() {
                 :items="departments.map((d) => ({ title: d.name, value: d.id }))"
                 :label="$t('employees.department')"
                 :error-messages="formErrors.department_id"
+                clearable
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-select
+                v-model="form.position_id"
+                :items="positions.map((p) => ({ title: p.title, value: p.id }))"
+                :label="$t('employees.position')"
+                :error-messages="formErrors.position_id"
                 clearable
               />
             </v-col>
@@ -437,6 +529,75 @@ async function confirmImport() {
         <v-spacer />
         <v-btn variant="text" @click="roleTarget = null">{{ $t('common.cancel') }}</v-btn>
         <v-btn color="primary" variant="flat" :loading="changingRole" @click="submitRoleChange">{{ $t('common.save') }}</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog :model-value="accountTarget !== null" max-width="480" @update:model-value="(v: boolean) => !v && (accountTarget = null)">
+    <v-card v-if="accountTarget">
+      <v-card-title>{{ $t('employees.openAccount') }}</v-card-title>
+      <v-card-subtitle>{{ accountTarget.full_name }}</v-card-subtitle>
+      <v-card-text>
+        <v-form @submit.prevent="submitCreateAccount">
+          <v-text-field
+            v-model="accountForm.username"
+            :label="$t('employees.username')"
+            :error-messages="accountErrors.username"
+          />
+          <v-text-field
+            v-model="accountForm.corporate_email"
+            :label="$t('employees.corporateEmail')"
+            :error-messages="accountErrors.corporate_email"
+          />
+          <v-text-field
+            v-model="accountForm.password"
+            :label="$t('auth.password')"
+            type="password"
+            :error-messages="accountErrors.password"
+          />
+          <v-select
+            v-model="accountForm.role"
+            :items="assignableRoles"
+            :label="$t('employees.role')"
+            :error-messages="accountErrors.role"
+          />
+        </v-form>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="accountTarget = null">{{ $t('common.cancel') }}</v-btn>
+        <v-btn color="primary" variant="flat" :loading="creatingAccount" @click="submitCreateAccount">
+          {{ $t('common.save') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog :model-value="passwordTarget !== null" max-width="420" @update:model-value="(v: boolean) => !v && (passwordTarget = null)">
+    <v-card v-if="passwordTarget">
+      <v-card-title>{{ $t('employees.resetPassword') }}</v-card-title>
+      <v-card-subtitle>{{ passwordTarget.full_name }}</v-card-subtitle>
+      <v-card-text>
+        <v-form @submit.prevent="submitResetPassword">
+          <v-text-field
+            v-model="passwordForm.password"
+            :label="$t('employees.newPassword')"
+            type="password"
+            :error-messages="passwordErrors.password"
+          />
+          <v-text-field
+            v-model="passwordForm.password_confirmation"
+            :label="$t('employees.confirmPassword')"
+            type="password"
+          />
+        </v-form>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="passwordTarget = null">{{ $t('common.cancel') }}</v-btn>
+        <v-btn color="primary" variant="flat" :loading="resettingPassword" @click="submitResetPassword">
+          {{ $t('common.save') }}
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

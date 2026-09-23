@@ -117,7 +117,8 @@
     "myProfile": "Mening profilim",
     "myDocuments": "Mening hujjatlarim",
     "logout": "Tizimdan chiqish",
-    "issueCategories": "Muammo kategoriyalari"
+    "issueCategories": "Muammo kategoriyalari",
+    "positions": "Lavozimlar"
   },
   "auth": {
     "login": "Kirish",
@@ -238,7 +239,11 @@
     "passportNumber": "Passport raqami",
     "pinfl": "PINFL",
     "changeOnlyHint": "O'zgartirish uchun kiriting",
-    "changeRole": "Rolni o'zgartirish"
+    "changeRole": "Rolni o'zgartirish",
+    "openAccount": "Hisob ochish",
+    "resetPassword": "Parolni tiklash",
+    "newPassword": "Yangi parol",
+    "confirmPassword": "Parolni tasdiqlang"
   },
   "dashboard": {
     "title": "Boshqaruv paneli",
@@ -532,5 +537,11 @@
     "issuesCount": "Muammolar soni",
     "hint": "Hisobotlarda muammolar shu kategoriyalar bo'yicha guruhlanadi. Muammolarda ishlatilgan kategoriyani o'chirib bo'lmaydi — uni faolsiz qiling.",
     "deleteUsed": "Bu kategoriya muammolarda ishlatilgan, o'chirib bo'lmaydi. Uni faolsiz qiling."
+  },
+  "positions": {
+    "title": "Lavozimlar",
+    "positionTitle": "Lavozim nomi",
+    "code": "Kodi",
+    "organization": "Tashkilot"
   }
 }
