@@ -213,6 +213,8 @@
   "employees": {
     "title": "Сотрудники",
     "employeeNumber": "Табельный номер",
+    "dahuaPersonId": "ID на терминале Dahua",
+    "dahuaPersonIdHint": "ID, под которым сотрудник зарегистрирован на турникете (для автоматической отметки посещаемости через webhook)",
     "firstName": "Имя",
     "lastName": "Фамилия",
     "middleName": "Отчество",

@@ -79,6 +79,7 @@ export interface Employee {
   position?: Position | null
 
   employee_number: string
+  dahua_person_id: string | null
   first_name: string
   last_name: string
   middle_name: string | null

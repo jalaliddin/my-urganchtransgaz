@@ -39,6 +39,7 @@ const form = ref({
   organization_id: null as number | null,
   department_id: null as number | null,
   employee_number: '',
+  dahua_person_id: '',
   first_name: '',
   last_name: '',
   middle_name: '',
@@ -77,6 +78,7 @@ function openCreate() {
     organization_id: organizations.value[0]?.id ?? null,
     department_id: null,
     employee_number: '',
+    dahua_person_id: '',
     first_name: '',
     last_name: '',
     middle_name: '',
@@ -97,6 +99,7 @@ function openEdit(employee: Employee) {
     organization_id: employee.organization_id,
     department_id: employee.department_id,
     employee_number: employee.employee_number,
+    dahua_person_id: employee.dahua_person_id ?? '',
     first_name: employee.first_name,
     last_name: employee.last_name,
     middle_name: employee.middle_name ?? '',
@@ -116,11 +119,15 @@ async function save() {
   formErrors.value = {}
   try {
     if (editing.value) {
-      const { organization_id, department_id, employee_number, first_name, last_name, middle_name, phone, corporate_email } = form.value
+      const { organization_id, department_id, employee_number, dahua_person_id, first_name, last_name, middle_name, phone, corporate_email } = form.value
       await employeeService.update(editing.value.id, {
         organization_id,
         department_id,
         employee_number,
+        // An empty field means "not enrolled on a device", i.e. null — not
+        // the literal empty string, which would collide with every other
+        // not-yet-enrolled employee under the column's unique constraint.
+        dahua_person_id: dahua_person_id || null,
         first_name,
         last_name,
         middle_name,
@@ -128,7 +135,7 @@ async function save() {
         corporate_email,
       })
     } else {
-      await employeeService.create(form.value)
+      await employeeService.create({ ...form.value, dahua_person_id: form.value.dahua_person_id || null })
     }
     dialogOpen.value = false
     await reload()
@@ -330,6 +337,15 @@ async function confirmImport() {
                 v-model="form.phone"
                 :label="$t('employees.phone')"
                 :error-messages="formErrors.phone"
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="form.dahua_person_id"
+                :label="$t('employees.dahuaPersonId')"
+                :hint="$t('employees.dahuaPersonIdHint')"
+                persistent-hint
+                :error-messages="formErrors.dahua_person_id"
               />
             </v-col>
             <v-col cols="12" sm="4">

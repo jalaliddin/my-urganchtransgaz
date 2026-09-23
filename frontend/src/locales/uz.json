@@ -213,6 +213,8 @@
   "employees": {
     "title": "Xodimlar",
     "employeeNumber": "Tabel raqami",
+    "dahuaPersonId": "Dahua terminal ID",
+    "dahuaPersonIdHint": "Turniket terminalida ushbu xodim uchun ro'yxatdan o'tkazilgan ID (davomatni webhook orqali avtomatik yozish uchun)",
     "firstName": "Ismi",
     "lastName": "Familiyasi",
     "middleName": "Sharifi",

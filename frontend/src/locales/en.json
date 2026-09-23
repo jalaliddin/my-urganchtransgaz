@@ -213,6 +213,8 @@
   "employees": {
     "title": "Employees",
     "employeeNumber": "Employee number",
+    "dahuaPersonId": "Dahua terminal ID",
+    "dahuaPersonIdHint": "The id this employee is enrolled under on the turnstile terminal (used to record attendance automatically via webhook)",
     "firstName": "First name",
     "lastName": "Last name",
     "middleName": "Middle name",

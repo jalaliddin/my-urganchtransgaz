@@ -8,6 +8,7 @@ export interface CreateEmployeePayload {
   department_id?: number | null
   position_id?: number | null
   employee_number: string
+  dahua_person_id?: string | null
   first_name: string
   last_name: string
   middle_name?: string | null
@@ -24,6 +25,7 @@ export interface UpdateEmployeePayload {
   department_id?: number | null
   position_id?: number | null
   employee_number?: string
+  dahua_person_id?: string | null
   first_name?: string
   last_name?: string
   middle_name?: string | null
