@@ -19,6 +19,24 @@ onMounted(async () => {
   documentTypes.value = await documentTypeService.list()
 })
 
+/**
+ * Mirrors the thresholds `documents:check-expiration` notifies on
+ * (30/7/1 days, expired), so the badge a reviewer sees on this list
+ * matches what the document's owner was already told about.
+ */
+function expiryBadge(expiryDate: string | null): { text: string; color: string } | null {
+  if (!expiryDate) return null
+
+  const daysLeft = Math.ceil((new Date(expiryDate).getTime() - new Date().setHours(0, 0, 0, 0)) / 86_400_000)
+
+  if (daysLeft < 0) return { text: t('documents.expired'), color: 'error' }
+  if (daysLeft === 0) return { text: t('documents.expiresToday'), color: 'error' }
+  if (daysLeft <= 7) return { text: t('documents.expiresInDays', { days: daysLeft }), color: 'error' }
+  if (daysLeft <= 30) return { text: t('documents.expiresInDays', { days: daysLeft }), color: 'warning' }
+
+  return null
+}
+
 const headers = computed(() => [
   { title: t('documents.documentTitle'), key: 'title' },
   { title: t('documents.documentType'), key: 'document_type.name', sortable: false },
@@ -128,7 +146,12 @@ async function download(document: EmployeeDocument) {
       {{ item.employee?.full_name ?? '—' }}
     </template>
     <template #item.expiry_date="{ item }">
-      {{ item.expiry_date ?? $t('documents.noExpiry') }}
+      <div class="d-flex align-center ga-2">
+        <span>{{ item.expiry_date ?? $t('documents.noExpiry') }}</span>
+        <v-chip v-if="expiryBadge(item.expiry_date)" :color="expiryBadge(item.expiry_date)!.color" size="small" variant="tonal" label>
+          {{ expiryBadge(item.expiry_date)!.text }}
+        </v-chip>
+      </div>
     </template>
     <template #item.status="{ item }">
       <AppStatusChip :status="item.status" />

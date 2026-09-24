@@ -207,7 +207,11 @@
     "phone": "Phone",
     "email": "Email",
     "departmentsCount": "Departments",
-    "employeesCount": "Employees"
+    "employeesCount": "Employees",
+    "tabList": "List",
+    "tabTree": "Structure",
+    "noParent": "— (Top-level)",
+    "noDepartments": "No departments"
   },
   "departments": {
     "title": "Departments",
@@ -307,7 +311,10 @@
     "reject": "Reject",
     "rejectReason": "Rejection reason",
     "employee": "Employee",
-    "noExpiry": "No expiry"
+    "noExpiry": "No expiry",
+    "expired": "Expired",
+    "expiresInDays": "Expires in {days} days",
+    "expiresToday": "Expires today"
   },
   "changeRequests": {
     "title": "Requests",

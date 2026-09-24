@@ -207,7 +207,11 @@
     "phone": "Телефон",
     "email": "Email",
     "departmentsCount": "Отделы",
-    "employeesCount": "Сотрудники"
+    "employeesCount": "Сотрудники",
+    "tabList": "Список",
+    "tabTree": "Структура",
+    "noParent": "— (Головная организация)",
+    "noDepartments": "Нет отделов"
   },
   "departments": {
     "title": "Отделы",
@@ -307,7 +311,10 @@
     "reject": "Отклонить",
     "rejectReason": "Причина отклонения",
     "employee": "Сотрудник",
-    "noExpiry": "Без срока"
+    "noExpiry": "Без срока",
+    "expired": "Срок истёк",
+    "expiresInDays": "Истекает через {days} дн.",
+    "expiresToday": "Истекает сегодня"
   },
   "changeRequests": {
     "title": "Запросы",

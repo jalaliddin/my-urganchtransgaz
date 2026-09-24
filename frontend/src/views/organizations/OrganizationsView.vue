@@ -1,18 +1,20 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { departmentService } from '@/services/departmentService'
 import { usePaginatedResource } from '@/composables/usePaginatedResource'
 import { organizationService, type OrganizationPayload } from '@/services/organizationService'
 import { useAuthStore } from '@/stores/auth'
-import type { Organization } from '@/types/models'
+import type { Department, Organization } from '@/types/models'
 
 function emptyForm(): OrganizationPayload {
-  return { name: '', short_name: '', code: '', type: 'subordinate', director_name: '', address: '', phone: '', email: '' }
+  return { parent_id: null, name: '', short_name: '', code: '', type: 'subordinate', director_name: '', address: '', phone: '', email: '' }
 }
 
 const { t } = useI18n()
 const auth = useAuthStore()
+const tab = ref('list')
 
 const { items, total, loading, page, itemsPerPage, search, reload } =
   usePaginatedResource(organizationService.list)
@@ -41,11 +43,14 @@ function openCreate() {
   form.value = emptyForm()
   formErrors.value = {}
   dialogOpen.value = true
+  loadTree()
 }
 
 function openEdit(organization: Organization) {
   editing.value = organization
+  loadTree()
   form.value = {
+    parent_id: organization.parent_id,
     name: organization.name,
     short_name: organization.short_name ?? '',
     code: organization.code,
@@ -89,6 +94,44 @@ async function confirmDelete() {
     deleting.value = false
   }
 }
+
+// ---- Tuzilma (structure tree): every organization, parent/child, with
+// each organization's departments loaded lazily as its node expands ----
+const allOrganizations = ref<Organization[]>([])
+const loadingTree = ref(false)
+const departmentsByOrg = ref<Record<number, Department[]>>({})
+const loadingDepartmentsFor = ref<number | null>(null)
+
+const rootOrganizations = computed(() => allOrganizations.value.filter((o) => !o.parent_id))
+function childrenOf(organizationId: number): Organization[] {
+  return allOrganizations.value.filter((o) => o.parent_id === organizationId)
+}
+
+async function loadTree() {
+  if (allOrganizations.value.length) return
+  loadingTree.value = true
+  try {
+    allOrganizations.value = (await organizationService.list({ per_page: 100 })).data
+  } finally {
+    loadingTree.value = false
+  }
+}
+
+async function loadDepartments(organizationId: number) {
+  if (departmentsByOrg.value[organizationId]) return
+  loadingDepartmentsFor.value = organizationId
+  try {
+    departmentsByOrg.value[organizationId] = (
+      await departmentService.list({ 'filter[organization_id]': organizationId, per_page: 100 })
+    ).data
+  } finally {
+    loadingDepartmentsFor.value = null
+  }
+}
+
+watch(tab, (value) => {
+  if (value === 'tree') loadTree()
+})
 </script>
 
 <template>
@@ -105,6 +148,13 @@ async function confirmDelete() {
     </template>
   </AppPageHeader>
 
+  <v-tabs v-model="tab" class="mb-4">
+    <v-tab value="list">{{ $t('organizations.tabList') }}</v-tab>
+    <v-tab value="tree">{{ $t('organizations.tabTree') }}</v-tab>
+  </v-tabs>
+
+  <v-window v-model="tab">
+  <v-window-item value="list">
   <AppDataTable
     :headers="headers"
     :items="items"
@@ -143,6 +193,66 @@ async function confirmDelete() {
       <AppEmptyState icon="mdi-domain" />
     </template>
   </AppDataTable>
+  </v-window-item>
+
+  <v-window-item value="tree">
+    <v-progress-linear v-if="loadingTree" indeterminate class="mb-4" />
+    <v-card v-for="root in rootOrganizations" :key="root.id" class="mb-3">
+      <v-list nav>
+        <v-list-group :value="root.id">
+          <template #activator="{ props }">
+            <v-list-item
+              v-bind="props"
+              :title="root.name"
+              :subtitle="`${root.departments_count ?? 0} ${$t('organizations.departmentsCount').toLowerCase()} · ${root.employees_count ?? 0} ${$t('organizations.employeesCount').toLowerCase()}`"
+              prepend-icon="mdi-domain"
+              @click="loadDepartments(root.id)"
+            />
+          </template>
+
+          <v-list-item
+            v-for="department in departmentsByOrg[root.id] ?? []"
+            :key="`d-${department.id}`"
+            :title="department.name"
+            :subtitle="`${department.manager?.full_name ?? '—'} · ${department.employees_count ?? 0} ${$t('organizations.employeesCount').toLowerCase()}`"
+            prepend-icon="mdi-sitemap-outline"
+          />
+          <v-list-item v-if="loadingDepartmentsFor === root.id" :title="$t('common.loading')" />
+          <v-list-item
+            v-else-if="departmentsByOrg[root.id] && departmentsByOrg[root.id].length === 0 && childrenOf(root.id).length === 0"
+            :title="$t('organizations.noDepartments')"
+          />
+
+          <v-list-group v-for="child in childrenOf(root.id)" :key="child.id" :value="child.id">
+            <template #activator="{ props }">
+              <v-list-item
+                v-bind="props"
+                :title="child.name"
+                :subtitle="`${child.departments_count ?? 0} ${$t('organizations.departmentsCount').toLowerCase()} · ${child.employees_count ?? 0} ${$t('organizations.employeesCount').toLowerCase()}`"
+                prepend-icon="mdi-domain"
+                @click="loadDepartments(child.id)"
+              />
+            </template>
+
+            <v-list-item
+              v-for="department in departmentsByOrg[child.id] ?? []"
+              :key="`d-${department.id}`"
+              :title="department.name"
+              :subtitle="`${department.manager?.full_name ?? '—'} · ${department.employees_count ?? 0} ${$t('organizations.employeesCount').toLowerCase()}`"
+              prepend-icon="mdi-sitemap-outline"
+            />
+            <v-list-item v-if="loadingDepartmentsFor === child.id" :title="$t('common.loading')" />
+            <v-list-item
+              v-else-if="departmentsByOrg[child.id] && departmentsByOrg[child.id].length === 0"
+              :title="$t('organizations.noDepartments')"
+            />
+          </v-list-group>
+        </v-list-group>
+      </v-list>
+    </v-card>
+    <AppEmptyState v-if="!loadingTree && rootOrganizations.length === 0" icon="mdi-domain" />
+  </v-window-item>
+  </v-window>
 
   <v-dialog v-model="dialogOpen" max-width="560">
     <v-card>
@@ -172,6 +282,15 @@ async function confirmDelete() {
             ]"
             :label="$t('organizations.type')"
             :error-messages="formErrors.type"
+          />
+          <v-select
+            v-model="form.parent_id"
+            :items="[
+              { title: $t('organizations.noParent'), value: null },
+              ...allOrganizations.filter((o) => o.id !== editing?.id).map((o) => ({ title: o.name, value: o.id })),
+            ]"
+            :label="$t('organizations.parent')"
+            :error-messages="formErrors.parent_id"
           />
           <v-text-field
             v-model="form.director_name"

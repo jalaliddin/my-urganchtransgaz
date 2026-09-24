@@ -30,7 +30,7 @@ class DepartmentController extends Controller
         $user = request()->user();
 
         $departments = QueryBuilder::for(Department::class)
-            ->with(['organization'])
+            ->with(['organization', 'manager'])
             ->withCount('employees')
             ->allowedFilters(
                 'status',

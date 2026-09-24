@@ -207,7 +207,11 @@
     "phone": "Telefon",
     "email": "Email",
     "departmentsCount": "Bo'limlar",
-    "employeesCount": "Xodimlar"
+    "employeesCount": "Xodimlar",
+    "tabList": "Ro'yxat",
+    "tabTree": "Tuzilma",
+    "noParent": "— (Bosh tashkilot)",
+    "noDepartments": "Bo'limlar yo'q"
   },
   "departments": {
     "title": "Bo'limlar",
@@ -307,7 +311,10 @@
     "reject": "Rad etish",
     "rejectReason": "Rad etish sababi",
     "employee": "Xodim",
-    "noExpiry": "Muddatsiz"
+    "noExpiry": "Muddatsiz",
+    "expired": "Muddati o'tgan",
+    "expiresInDays": "{days} kundan so'ng tugaydi",
+    "expiresToday": "Bugun tugaydi"
   },
   "changeRequests": {
     "title": "So'rovlar",
