@@ -3,8 +3,12 @@
 use App\Enums\AttendanceStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\AttendanceRecord;
+use App\Models\Department;
 use App\Models\Employee;
+use App\Models\Organization;
 use App\Models\Setting;
+use App\Notifications\AttendanceIssue;
+use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Support\Carbon;
 
 beforeEach(function () {
@@ -13,6 +17,7 @@ beforeEach(function () {
     // pre-existing tests deterministic regardless of which real-world
     // weekday the suite happens to run on.
     Carbon::setTestNow(Carbon::parse('2026-09-16'));
+    $this->seed(RolePermissionSeeder::class);
 });
 
 afterEach(function () {
@@ -83,4 +88,47 @@ it('respects a Settings-configured working-days list instead of the Mon-Fri defa
     $this->artisan('attendance:mark-absentees')->assertSuccessful();
 
     $this->assertDatabaseHas('attendance_records', ['employee_id' => $employee->id]);
+});
+
+it('notifies the department manager about an unexcused absence', function () {
+    $organization = Organization::factory()->create();
+    $managerUser = userWithRole('department-manager', $organization);
+    $manager = $managerUser->employee;
+    $department = Department::factory()->create(['organization_id' => $organization->id, 'manager_id' => $manager->id]);
+    $employee = Employee::factory()->create([
+        'organization_id' => $organization->id,
+        'department_id' => $department->id,
+        'status' => EmployeeStatus::Active,
+    ]);
+
+    $this->artisan('attendance:mark-absentees')->assertSuccessful();
+
+    $this->assertDatabaseHas('notifications', [
+        'notifiable_id' => $manager->user_id,
+        'type' => AttendanceIssue::class,
+    ]);
+});
+
+it('does not notify anyone for an excused vacation/business-trip/sick-leave absence', function () {
+    $organization = Organization::factory()->create();
+    $managerUser = userWithRole('department-manager', $organization);
+    $manager = $managerUser->employee;
+    $department = Department::factory()->create(['organization_id' => $organization->id, 'manager_id' => $manager->id]);
+    Employee::factory()->create([
+        'organization_id' => $organization->id,
+        'department_id' => $department->id,
+        'status' => EmployeeStatus::Vacation,
+    ]);
+
+    $this->artisan('attendance:mark-absentees')->assertSuccessful();
+
+    $this->assertDatabaseMissing('notifications', ['type' => AttendanceIssue::class]);
+});
+
+it('does not fail when the absent employee has no department or manager', function () {
+    $employee = Employee::factory()->create(['department_id' => null, 'status' => EmployeeStatus::Active]);
+
+    $this->artisan('attendance:mark-absentees')->assertSuccessful();
+
+    $this->assertDatabaseMissing('notifications', ['type' => AttendanceIssue::class]);
 });

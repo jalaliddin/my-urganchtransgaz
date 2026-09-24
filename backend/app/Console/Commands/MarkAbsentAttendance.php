@@ -8,6 +8,7 @@ use App\Enums\EmployeeStatus;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
 use App\Models\Setting;
+use App\Notifications\AttendanceIssue;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -47,16 +48,28 @@ class MarkAbsentAttendance extends Command
                 EmployeeStatus::SickLeave,
             ])
             ->whereDoesntHave('attendanceRecords', fn ($query) => $query->where('date', $date))
+            ->with('department.manager.user')
             ->chunkById(200, function ($employees) use ($date) {
                 foreach ($employees as $employee) {
+                    $isUnexcused = $employee->status === EmployeeStatus::Active;
+
                     AttendanceRecord::create([
                         'employee_id' => $employee->id,
                         'date' => $date,
-                        'status' => $employee->status === EmployeeStatus::Active
+                        'status' => $isUnexcused
                             ? AttendanceStatus::Absent
                             : AttendanceStatus::from($employee->status->value),
                         'source' => AttendanceSource::System,
                     ]);
+
+                    // Only an unexcused absence is an "issue" worth a
+                    // manager's attention — vacation/business-trip/sick
+                    // leave are already-known, approved statuses.
+                    $manager = $employee->department?->manager;
+
+                    if ($isUnexcused && $manager && $manager->id !== $employee->id && $manager->user) {
+                        $manager->user->notify(new AttendanceIssue($employee, $date));
+                    }
                 }
             });
 
