@@ -11,8 +11,10 @@ use Illuminate\Support\Carbon;
 
 class RecordCheckOutAction
 {
-    public function __construct(private CalculateAttendanceStatus $calculateStatus)
-    {
+    public function __construct(
+        private CalculateAttendanceStatus $calculateStatus,
+        private CalculateWorkedMinutesFromEvents $calculateWorkedMinutes,
+    ) {
         //
     }
 
@@ -25,8 +27,13 @@ class RecordCheckOutAction
      * their final exit of the day being lost behind an earlier one. If a
      * check-out arrives with no prior check-in row for the day (an
      * out-of-order device event), a record is still created so the
-     * check-out isn't lost — just without worked_minutes, since there is
-     * nothing to measure from.
+     * check-out isn't lost.
+     *
+     * worked_minutes is the sum of every check-in/check-out session that
+     * day (see CalculateWorkedMinutesFromEvents), not just (this
+     * check-out minus the day's first check-in) — that difference would
+     * wrongly include a lunch break or any other gap between sessions as
+     * worked time.
      */
     public function handle(Employee $employee, Carbon $at, AttendanceSource $source): AttendanceRecord
     {
@@ -51,11 +58,7 @@ class RecordCheckOutAction
         }
 
         $record->status = $this->calculateStatus->handle($record->check_in, $record->check_out);
-
-        if ($record->check_in) {
-            $record->worked_minutes = (int) abs($record->check_in->diffInMinutes($record->check_out));
-        }
-
+        $record->worked_minutes = $this->calculateWorkedMinutes->handle($employee->id, $at->toDateString());
         $record->save();
 
         return $record;

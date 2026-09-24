@@ -178,3 +178,47 @@ it('advances the daily check-out to each new device scan instead of keeping only
     ]);
     expect(AttendanceEvent::where('employee_id', $employee->id)->where('type', 'check_out')->count())->toBe(2);
 });
+
+it('sums each check-in/check-out session separately, excluding the gap between them', function () {
+    AttendanceDevice::factory()->withToken('a-token')->create(['device_id' => 'DEV-1']);
+    $employee = Employee::factory()->create(['employee_number' => 'EMP-001']);
+
+    $scan = fn (string $type, string $time) => $this->withToken('a-token')->postJson('/api/v1/integrations/attendance/events', [
+        'device_id' => 'DEV-1',
+        'employee_number' => $employee->employee_number,
+        'event_type' => $type,
+        'event_time' => Carbon::today()->setTimeFromTimeString($time)->toDateTimeString(),
+    ]);
+
+    // Morning session (9:00-13:00, 240 min) + afternoon session
+    // (14:00-18:00, 240 min) = 480 min worked — not 540, which is what
+    // (last check-out minus first check-in) would wrongly give by also
+    // counting the hour-long lunch gap as worked time.
+    $scan('check_in', '09:00:00')->assertCreated();
+    $scan('check_out', '13:00:00')->assertCreated()->assertJsonPath('data.worked_minutes', 240);
+    $scan('check_in', '14:00:00')->assertCreated()->assertJsonPath('data.worked_minutes', 240);
+    $scan('check_out', '18:00:00')->assertCreated()->assertJsonPath('data.worked_minutes', 480);
+
+    $this->assertDatabaseHas('attendance_records', [
+        'employee_id' => $employee->id,
+        'worked_minutes' => 480,
+    ]);
+});
+
+it('does not count a session left open with no matching check-out yet', function () {
+    AttendanceDevice::factory()->withToken('a-token')->create(['device_id' => 'DEV-1']);
+    $employee = Employee::factory()->create(['employee_number' => 'EMP-001']);
+
+    $scan = fn (string $type, string $time) => $this->withToken('a-token')->postJson('/api/v1/integrations/attendance/events', [
+        'device_id' => 'DEV-1',
+        'employee_number' => $employee->employee_number,
+        'event_type' => $type,
+        'event_time' => Carbon::today()->setTimeFromTimeString($time)->toDateTimeString(),
+    ]);
+
+    $scan('check_in', '09:00:00')->assertCreated()->assertJsonPath('data.worked_minutes', 0);
+    $scan('check_out', '13:00:00')->assertCreated()->assertJsonPath('data.worked_minutes', 240);
+    // A second check-in with no check-out after it yet — the closed
+    // morning session still counts, the still-open one does not.
+    $scan('check_in', '14:00:00')->assertCreated()->assertJsonPath('data.worked_minutes', 240);
+});
