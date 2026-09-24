@@ -37,6 +37,11 @@ class MoreScreen extends ConsumerWidget {
                   onTap: () => context.push('/profile'),
                 ),
                 ListTile(
+                  leading: const Icon(Icons.calendar_month_outlined),
+                  title: Text(l10n.calendarTitle),
+                  onTap: () => context.push('/calendar'),
+                ),
+                ListTile(
                   leading: const Icon(Icons.folder_outlined),
                   title: Text(l10n.documentsTitle),
                   onTap: () => context.push('/documents'),
@@ -86,6 +91,15 @@ class MoreScreen extends ConsumerWidget {
                   const LanguageSwitcher(expand: true),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: ListTile(
+              leading: const Icon(Icons.lock_outline),
+              title: Text(l10n.authChangePassword),
+              onTap: () => context.push('/change-password'),
             ),
           ),
           const SizedBox(height: 16),

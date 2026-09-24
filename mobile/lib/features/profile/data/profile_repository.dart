@@ -4,6 +4,7 @@ import '../../../core/models/employee.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../domain/change_request.dart';
+import '../domain/profile_completion.dart';
 
 class ProfileRepository {
   ProfileRepository(this._client);
@@ -42,6 +43,16 @@ class ProfileRepository {
         '/profile/photo',
         data: FormData.fromMap({'photo': await MultipartFile.fromFile(filePath, filename: fileName)}),
       );
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<ProfileCompletion> completion() async {
+    try {
+      final response = await _client.dio.get<Map<String, dynamic>>('/profile/completion');
+
+      return ProfileCompletion.fromJson(response.data!['data'] as Map<String, dynamic>);
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }

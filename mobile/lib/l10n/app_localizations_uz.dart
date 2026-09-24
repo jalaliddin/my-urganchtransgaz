@@ -71,6 +71,9 @@ class AppLocalizationsUz extends AppLocalizations {
       'Login (email, foydalanuvchi nomi yoki tabel raqami)';
 
   @override
+  String get authEmail => 'Email';
+
+  @override
   String get authPassword => 'Parol';
 
   @override
@@ -103,6 +106,28 @@ class AppLocalizationsUz extends AppLocalizations {
       'Parolni tiklash havolasi emailingizga yuborildi. Havolani ochish uchun kompyuterdan veb-saytga o\'ting.';
 
   @override
+  String get authChangePassword => 'Parolni o\'zgartirish';
+
+  @override
+  String get authCurrentPassword => 'Joriy parol';
+
+  @override
+  String get authNewPassword => 'Yangi parol';
+
+  @override
+  String get authConfirmNewPassword => 'Yangi parolni tasdiqlang';
+
+  @override
+  String get authPasswordChanged => 'Parol muvaffaqiyatli o\'zgartirildi.';
+
+  @override
+  String get authPasswordsDoNotMatch => 'Parollar mos kelmadi.';
+
+  @override
+  String get authPasswordTooShort =>
+      'Parol kamida 8 belgidan iborat bo\'lishi kerak.';
+
+  @override
   String get navDashboard => 'Bosh sahifa';
 
   @override
@@ -128,6 +153,27 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get navNotifications => 'Bildirishnomalar';
+
+  @override
+  String get calendarTitle => 'Kalendar';
+
+  @override
+  String get calendarToday => 'Bugun';
+
+  @override
+  String get calendarNoEvents => 'Bu kunda voqealar yo\'q';
+
+  @override
+  String get calendarTaskDue => 'Topshiriq muddati';
+
+  @override
+  String get calendarExamStart => 'Imtihon boshlanishi';
+
+  @override
+  String get calendarExamEnd => 'Imtihon tugashi';
+
+  @override
+  String get calendarAnnouncement => 'E\'lon';
 
   @override
   String get dashboardTitle => 'Bosh sahifa';
@@ -275,6 +321,17 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get documentsNone => 'Hujjatlar yo\'q';
+
+  @override
+  String get documentsExpired => 'Muddati o\'tgan';
+
+  @override
+  String get documentsExpiresToday => 'Bugun tugaydi';
+
+  @override
+  String documentsExpiresInDays(int days) {
+    return '$days kundan so\'ng tugaydi';
+  }
 
   @override
   String get tasksTitle => 'Topshiriqlar';
@@ -603,6 +660,15 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get dashboardStatExams => 'Imtihonlar';
+
+  @override
+  String get dashboardStatKpi => 'KPI ball';
+
+  @override
+  String get dashboardProfileCompletion => 'Profil to\'ldirilishi';
+
+  @override
+  String get dashboardMyProfile => 'Mening profilim';
 
   @override
   String get dashboardQuickActions => 'Tezkor amallar';

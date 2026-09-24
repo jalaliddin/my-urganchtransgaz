@@ -9,6 +9,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../announcements/presentation/announcements_controller.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../exams/presentation/exams_controller.dart';
+import '../../kpi/presentation/kpi_controller.dart';
 import '../../notifications/presentation/notifications_controller.dart';
 import '../../tasks/presentation/tasks_controller.dart';
 import 'dashboard_providers.dart';
@@ -26,6 +27,8 @@ class DashboardScreen extends ConsumerWidget {
     ref.invalidate(examsControllerProvider);
     ref.invalidate(openIssuesCountProvider);
     ref.invalidate(unreadNotificationsCountProvider);
+    ref.invalidate(profileCompletionProvider);
+    ref.invalidate(kpiControllerProvider);
 
     // Held until the list is back so the spinner means something.
     try {
@@ -75,6 +78,8 @@ class DashboardScreen extends ConsumerWidget {
                                     children: [
                                       DashboardStats(),
                                       gap,
+                                      ProfileCompletionCard(),
+                                      gap,
                                       DueSoonSection(),
                                     ],
                                   ),
@@ -102,6 +107,8 @@ class DashboardScreen extends ConsumerWidget {
                                 QuickActions(),
                                 gap,
                                 DashboardStats(),
+                                gap,
+                                ProfileCompletionCard(),
                                 gap,
                                 DueSoonSection(),
                                 gap,

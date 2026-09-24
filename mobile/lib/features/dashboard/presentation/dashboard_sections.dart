@@ -50,34 +50,48 @@ class DashboardStats extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: _StatTile(
+            child: _StatTile<int>(
               icon: Icons.checklist,
               color: colorScheme.primary,
               label: l10n.dashboardStatTasks,
               value: ref.watch(activeTasksCountProvider),
+              format: (count) => '$count',
               onTap: () => context.go('/tasks'),
             ),
           ),
           if (showIssues) ...[
             const SizedBox(width: 12),
             Expanded(
-              child: _StatTile(
+              child: _StatTile<int>(
                 icon: Icons.report_problem_outlined,
                 color: const Color(0xFFD97706),
                 label: l10n.dashboardStatIssues,
                 value: ref.watch(openIssuesCountProvider),
+                format: (count) => '$count',
                 onTap: () => context.go('/issues'),
               ),
             ),
           ],
           const SizedBox(width: 12),
           Expanded(
-            child: _StatTile(
+            child: _StatTile<int>(
               icon: Icons.school_outlined,
               color: const Color(0xFF3F8F2F),
               label: l10n.dashboardStatExams,
               value: ref.watch(availableExamsCountProvider),
+              format: (count) => '$count',
               onTap: () => context.push('/exams'),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _StatTile<double?>(
+              icon: Icons.insights_outlined,
+              color: const Color(0xFF6D5DD3),
+              label: l10n.dashboardStatKpi,
+              value: ref.watch(kpiOverallScoreProvider),
+              format: (score) => score == null ? '—' : '${score.round()}%',
+              onTap: () => context.push('/kpi'),
             ),
           ),
         ],
@@ -86,19 +100,21 @@ class DashboardStats extends ConsumerWidget {
   }
 }
 
-class _StatTile extends StatelessWidget {
+class _StatTile<T> extends StatelessWidget {
   const _StatTile({
     required this.icon,
     required this.color,
     required this.label,
     required this.value,
+    required this.format,
     required this.onTap,
   });
 
   final IconData icon;
   final Color color;
   final String label;
-  final AsyncValue<int> value;
+  final AsyncValue<T> value;
+  final String Function(T) format;
   final VoidCallback onTap;
 
   @override
@@ -123,9 +139,9 @@ class _StatTile extends StatelessWidget {
                 child: Icon(icon, size: 20, color: color),
               ),
               const SizedBox(height: 12),
-              // A failed count shows a dash rather than a wrong number.
+              // A failed value shows a dash rather than a wrong number.
               Text(
-                value.when(data: (count) => '$count', loading: () => '…', error: (_, _) => '–'),
+                value.when(data: format, loading: () => '…', error: (_, _) => '–'),
                 style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 2),
@@ -454,6 +470,56 @@ class _ErrorCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// A single progress bar toward a complete profile — silent once it's
+/// already 100% (no reminder needed) or on load failure (this is a
+/// nice-to-have prompt, not something worth interrupting the dashboard
+/// over if it can't be fetched).
+class ProfileCompletionCard extends ConsumerWidget {
+  const ProfileCompletionCard({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final completion = ref.watch(profileCompletionProvider);
+
+    return completion.when(
+      data: (value) {
+        if (value.percentage >= 100) return const SizedBox.shrink();
+
+        return Card(
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => context.push('/profile'),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(child: Text(l10n.dashboardProfileCompletion, style: Theme.of(context).textTheme.titleSmall)),
+                      Text('${value.percentage}%', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(value: value.percentage / 100, minHeight: 8),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(l10n.dashboardMyProfile, style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }

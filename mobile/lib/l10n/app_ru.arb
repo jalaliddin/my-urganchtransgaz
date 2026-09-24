@@ -21,6 +21,7 @@
 
   "authLogin": "Вход",
   "authLoginField": "Логин (email, имя пользователя или табельный номер)",
+  "authEmail": "Email",
   "authPassword": "Пароль",
   "authLoginButton": "Войти",
   "authForgotPassword": "Забыли пароль?",
@@ -31,6 +32,13 @@
   "authForgotPasswordTitle": "Восстановление пароля",
   "authSendResetLink": "Отправить ссылку",
   "authCheckYourEmail": "Ссылка для сброса пароля отправлена на ваш email. Откройте её на компьютере в браузере.",
+  "authChangePassword": "Изменить пароль",
+  "authCurrentPassword": "Текущий пароль",
+  "authNewPassword": "Новый пароль",
+  "authConfirmNewPassword": "Подтвердите новый пароль",
+  "authPasswordChanged": "Пароль успешно изменён.",
+  "authPasswordsDoNotMatch": "Пароли не совпадают.",
+  "authPasswordTooShort": "Пароль должен содержать не менее 8 символов.",
 
   "navDashboard": "Главная",
   "navTasks": "Задачи",
@@ -41,6 +49,13 @@
   "navExams": "Экзамены",
   "navAnnouncements": "Объявления",
   "navNotifications": "Уведомления",
+  "calendarTitle": "Календарь",
+  "calendarToday": "Сегодня",
+  "calendarNoEvents": "В этот день событий нет",
+  "calendarTaskDue": "Срок задачи",
+  "calendarExamStart": "Начало экзамена",
+  "calendarExamEnd": "Окончание экзамена",
+  "calendarAnnouncement": "Объявление",
 
   "dashboardTitle": "Главная",
   "dashboardWelcome": "Добро пожаловать",
@@ -93,6 +108,12 @@
   "documentsDownload": "Скачать",
   "documentsNoExpiry": "Без срока",
   "documentsNone": "Нет документов",
+  "documentsExpired": "Срок истёк",
+  "documentsExpiresToday": "Истекает сегодня",
+  "documentsExpiresInDays": "Истекает через {days} дн.",
+  "@documentsExpiresInDays": {
+    "placeholders": {"days": {"type": "int"}}
+  },
 
   "tasksTitle": "Задачи",
   "tasksFieldTitle": "Название",
@@ -209,6 +230,9 @@
   "dashboardStatTasks": "Активные задачи",
   "dashboardStatIssues": "Открытые проблемы",
   "dashboardStatExams": "Экзамены",
+  "dashboardStatKpi": "Балл KPI",
+  "dashboardProfileCompletion": "Заполненность профиля",
+  "dashboardMyProfile": "Мой профиль",
   "dashboardQuickActions": "Быстрые действия",
   "dashboardReportIssue": "Сообщить о проблеме",
   "dashboardDueSoon": "Ближайшие сроки",

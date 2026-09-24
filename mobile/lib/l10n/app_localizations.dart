@@ -218,6 +218,12 @@ abstract class AppLocalizations {
   /// **'Login (email, foydalanuvchi nomi yoki tabel raqami)'**
   String get authLoginField;
 
+  /// No description provided for @authEmail.
+  ///
+  /// In uz, this message translates to:
+  /// **'Email'**
+  String get authEmail;
+
   /// No description provided for @authPassword.
   ///
   /// In uz, this message translates to:
@@ -278,6 +284,48 @@ abstract class AppLocalizations {
   /// **'Parolni tiklash havolasi emailingizga yuborildi. Havolani ochish uchun kompyuterdan veb-saytga o\'ting.'**
   String get authCheckYourEmail;
 
+  /// No description provided for @authChangePassword.
+  ///
+  /// In uz, this message translates to:
+  /// **'Parolni o\'zgartirish'**
+  String get authChangePassword;
+
+  /// No description provided for @authCurrentPassword.
+  ///
+  /// In uz, this message translates to:
+  /// **'Joriy parol'**
+  String get authCurrentPassword;
+
+  /// No description provided for @authNewPassword.
+  ///
+  /// In uz, this message translates to:
+  /// **'Yangi parol'**
+  String get authNewPassword;
+
+  /// No description provided for @authConfirmNewPassword.
+  ///
+  /// In uz, this message translates to:
+  /// **'Yangi parolni tasdiqlang'**
+  String get authConfirmNewPassword;
+
+  /// No description provided for @authPasswordChanged.
+  ///
+  /// In uz, this message translates to:
+  /// **'Parol muvaffaqiyatli o\'zgartirildi.'**
+  String get authPasswordChanged;
+
+  /// No description provided for @authPasswordsDoNotMatch.
+  ///
+  /// In uz, this message translates to:
+  /// **'Parollar mos kelmadi.'**
+  String get authPasswordsDoNotMatch;
+
+  /// No description provided for @authPasswordTooShort.
+  ///
+  /// In uz, this message translates to:
+  /// **'Parol kamida 8 belgidan iborat bo\'lishi kerak.'**
+  String get authPasswordTooShort;
+
   /// No description provided for @navDashboard.
   ///
   /// In uz, this message translates to:
@@ -331,6 +379,48 @@ abstract class AppLocalizations {
   /// In uz, this message translates to:
   /// **'Bildirishnomalar'**
   String get navNotifications;
+
+  /// No description provided for @calendarTitle.
+  ///
+  /// In uz, this message translates to:
+  /// **'Kalendar'**
+  String get calendarTitle;
+
+  /// No description provided for @calendarToday.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bugun'**
+  String get calendarToday;
+
+  /// No description provided for @calendarNoEvents.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bu kunda voqealar yo\'q'**
+  String get calendarNoEvents;
+
+  /// No description provided for @calendarTaskDue.
+  ///
+  /// In uz, this message translates to:
+  /// **'Topshiriq muddati'**
+  String get calendarTaskDue;
+
+  /// No description provided for @calendarExamStart.
+  ///
+  /// In uz, this message translates to:
+  /// **'Imtihon boshlanishi'**
+  String get calendarExamStart;
+
+  /// No description provided for @calendarExamEnd.
+  ///
+  /// In uz, this message translates to:
+  /// **'Imtihon tugashi'**
+  String get calendarExamEnd;
+
+  /// No description provided for @calendarAnnouncement.
+  ///
+  /// In uz, this message translates to:
+  /// **'E\'lon'**
+  String get calendarAnnouncement;
 
   /// No description provided for @dashboardTitle.
   ///
@@ -619,6 +709,24 @@ abstract class AppLocalizations {
   /// In uz, this message translates to:
   /// **'Hujjatlar yo\'q'**
   String get documentsNone;
+
+  /// No description provided for @documentsExpired.
+  ///
+  /// In uz, this message translates to:
+  /// **'Muddati o\'tgan'**
+  String get documentsExpired;
+
+  /// No description provided for @documentsExpiresToday.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bugun tugaydi'**
+  String get documentsExpiresToday;
+
+  /// No description provided for @documentsExpiresInDays.
+  ///
+  /// In uz, this message translates to:
+  /// **'{days} kundan so\'ng tugaydi'**
+  String documentsExpiresInDays(int days);
 
   /// No description provided for @tasksTitle.
   ///
@@ -1267,6 +1375,24 @@ abstract class AppLocalizations {
   /// In uz, this message translates to:
   /// **'Imtihonlar'**
   String get dashboardStatExams;
+
+  /// No description provided for @dashboardStatKpi.
+  ///
+  /// In uz, this message translates to:
+  /// **'KPI ball'**
+  String get dashboardStatKpi;
+
+  /// No description provided for @dashboardProfileCompletion.
+  ///
+  /// In uz, this message translates to:
+  /// **'Profil to\'ldirilishi'**
+  String get dashboardProfileCompletion;
+
+  /// No description provided for @dashboardMyProfile.
+  ///
+  /// In uz, this message translates to:
+  /// **'Mening profilim'**
+  String get dashboardMyProfile;
 
   /// No description provided for @dashboardQuickActions.
   ///

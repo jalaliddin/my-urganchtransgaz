@@ -71,6 +71,9 @@ class AppLocalizationsRu extends AppLocalizations {
       'Логин (email, имя пользователя или табельный номер)';
 
   @override
+  String get authEmail => 'Email';
+
+  @override
   String get authPassword => 'Пароль';
 
   @override
@@ -103,6 +106,28 @@ class AppLocalizationsRu extends AppLocalizations {
       'Ссылка для сброса пароля отправлена на ваш email. Откройте её на компьютере в браузере.';
 
   @override
+  String get authChangePassword => 'Изменить пароль';
+
+  @override
+  String get authCurrentPassword => 'Текущий пароль';
+
+  @override
+  String get authNewPassword => 'Новый пароль';
+
+  @override
+  String get authConfirmNewPassword => 'Подтвердите новый пароль';
+
+  @override
+  String get authPasswordChanged => 'Пароль успешно изменён.';
+
+  @override
+  String get authPasswordsDoNotMatch => 'Пароли не совпадают.';
+
+  @override
+  String get authPasswordTooShort =>
+      'Пароль должен содержать не менее 8 символов.';
+
+  @override
   String get navDashboard => 'Главная';
 
   @override
@@ -128,6 +153,27 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get navNotifications => 'Уведомления';
+
+  @override
+  String get calendarTitle => 'Календарь';
+
+  @override
+  String get calendarToday => 'Сегодня';
+
+  @override
+  String get calendarNoEvents => 'В этот день событий нет';
+
+  @override
+  String get calendarTaskDue => 'Срок задачи';
+
+  @override
+  String get calendarExamStart => 'Начало экзамена';
+
+  @override
+  String get calendarExamEnd => 'Окончание экзамена';
+
+  @override
+  String get calendarAnnouncement => 'Объявление';
 
   @override
   String get dashboardTitle => 'Главная';
@@ -275,6 +321,17 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get documentsNone => 'Нет документов';
+
+  @override
+  String get documentsExpired => 'Срок истёк';
+
+  @override
+  String get documentsExpiresToday => 'Истекает сегодня';
+
+  @override
+  String documentsExpiresInDays(int days) {
+    return 'Истекает через $days дн.';
+  }
 
   @override
   String get tasksTitle => 'Задачи';
@@ -603,6 +660,15 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get dashboardStatExams => 'Экзамены';
+
+  @override
+  String get dashboardStatKpi => 'Балл KPI';
+
+  @override
+  String get dashboardProfileCompletion => 'Заполненность профиля';
+
+  @override
+  String get dashboardMyProfile => 'Мой профиль';
 
   @override
   String get dashboardQuickActions => 'Быстрые действия';

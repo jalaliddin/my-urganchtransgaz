@@ -71,12 +71,59 @@ class _DocumentTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
 
+    final expiryBadge = _expiryBadge(context, l10n, document.expiryDate);
+
     return ListTile(
       leading: Icon(_statusIcon(document.status), color: _statusColor(context, document.status)),
       title: Text(document.title),
       subtitle: Text(document.documentTypeName ?? ''),
-      trailing: Text(document.expiryDate ?? l10n.documentsNoExpiry, style: Theme.of(context).textTheme.bodySmall),
+      trailing: expiryBadge ??
+          Text(document.expiryDate ?? l10n.documentsNoExpiry, style: Theme.of(context).textTheme.bodySmall),
       onTap: () => _download(context, ref, document),
+    );
+  }
+
+  /// Mirrors the thresholds the backend's `documents:check-expiration`
+  /// job already notifies the owner about (30/7/1 days, expired), and the
+  /// same day-count badge the web app shows on its documents list — so a
+  /// document that's about to expire is just as visible here.
+  Widget? _expiryBadge(BuildContext context, AppLocalizations l10n, String? expiryDate) {
+    if (expiryDate == null) return null;
+
+    final expiry = DateTime.tryParse(expiryDate);
+    if (expiry == null) return null;
+
+    final today = DateTime.now();
+    final daysLeft = DateTime(expiry.year, expiry.month, expiry.day)
+        .difference(DateTime(today.year, today.month, today.day))
+        .inDays;
+
+    if (daysLeft > 30) return null;
+
+    final String label;
+    final Color color;
+
+    if (daysLeft < 0) {
+      label = l10n.documentsExpired;
+      color = Colors.red;
+    } else if (daysLeft == 0) {
+      label = l10n.documentsExpiresToday;
+      color = Colors.red;
+    } else if (daysLeft <= 7) {
+      label = l10n.documentsExpiresInDays(daysLeft);
+      color = Colors.red;
+    } else {
+      label = l10n.documentsExpiresInDays(daysLeft);
+      color = Colors.orange;
+    }
+
+    return Chip(
+      label: Text(label, style: const TextStyle(fontSize: 11)),
+      backgroundColor: color.withValues(alpha: 0.12),
+      labelStyle: TextStyle(color: color),
+      visualDensity: VisualDensity.compact,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
     );
   }
 

@@ -78,7 +78,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(labelText: 'Email'),
+                            decoration: InputDecoration(labelText: l10n.authEmail),
                             validator: (value) =>
                                 (value == null || value.trim().isEmpty) ? l10n.commonRequired : null,
                           ),

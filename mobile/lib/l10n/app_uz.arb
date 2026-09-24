@@ -21,6 +21,7 @@
 
   "authLogin": "Kirish",
   "authLoginField": "Login (email, foydalanuvchi nomi yoki tabel raqami)",
+  "authEmail": "Email",
   "authPassword": "Parol",
   "authLoginButton": "Kirish",
   "authForgotPassword": "Parolni unutdingizmi?",
@@ -31,6 +32,13 @@
   "authForgotPasswordTitle": "Parolni tiklash",
   "authSendResetLink": "Havola yuborish",
   "authCheckYourEmail": "Parolni tiklash havolasi emailingizga yuborildi. Havolani ochish uchun kompyuterdan veb-saytga o'ting.",
+  "authChangePassword": "Parolni o'zgartirish",
+  "authCurrentPassword": "Joriy parol",
+  "authNewPassword": "Yangi parol",
+  "authConfirmNewPassword": "Yangi parolni tasdiqlang",
+  "authPasswordChanged": "Parol muvaffaqiyatli o'zgartirildi.",
+  "authPasswordsDoNotMatch": "Parollar mos kelmadi.",
+  "authPasswordTooShort": "Parol kamida 8 belgidan iborat bo'lishi kerak.",
 
   "navDashboard": "Bosh sahifa",
   "navTasks": "Topshiriqlar",
@@ -41,6 +49,13 @@
   "navExams": "Imtihonlar",
   "navAnnouncements": "E'lonlar",
   "navNotifications": "Bildirishnomalar",
+  "calendarTitle": "Kalendar",
+  "calendarToday": "Bugun",
+  "calendarNoEvents": "Bu kunda voqealar yo'q",
+  "calendarTaskDue": "Topshiriq muddati",
+  "calendarExamStart": "Imtihon boshlanishi",
+  "calendarExamEnd": "Imtihon tugashi",
+  "calendarAnnouncement": "E'lon",
 
   "dashboardTitle": "Bosh sahifa",
   "dashboardWelcome": "Xush kelibsiz",
@@ -93,6 +108,12 @@
   "documentsDownload": "Yuklab olish",
   "documentsNoExpiry": "Muddatsiz",
   "documentsNone": "Hujjatlar yo'q",
+  "documentsExpired": "Muddati o'tgan",
+  "documentsExpiresToday": "Bugun tugaydi",
+  "documentsExpiresInDays": "{days} kundan so'ng tugaydi",
+  "@documentsExpiresInDays": {
+    "placeholders": {"days": {"type": "int"}}
+  },
 
   "tasksTitle": "Topshiriqlar",
   "tasksFieldTitle": "Sarlavha",
@@ -209,6 +230,9 @@
   "dashboardStatTasks": "Faol topshiriqlar",
   "dashboardStatIssues": "Ochiq muammolar",
   "dashboardStatExams": "Imtihonlar",
+  "dashboardStatKpi": "KPI ball",
+  "dashboardProfileCompletion": "Profil to'ldirilishi",
+  "dashboardMyProfile": "Mening profilim",
   "dashboardQuickActions": "Tezkor amallar",
   "dashboardReportIssue": "Muammo qayd etish",
   "dashboardDueSoon": "Muddati yaqin topshiriqlar",

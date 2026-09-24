@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../features/announcements/presentation/announcement_detail_screen.dart';
 import '../../features/announcements/presentation/announcements_screen.dart';
 import '../../features/auth/presentation/auth_controller.dart';
+import '../../features/auth/presentation/change_password_screen.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
+import '../../features/calendar/presentation/calendar_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
 import '../../features/documents/presentation/documents_screen.dart';
 import '../../features/exams/presentation/exam_attempt_screen.dart';
@@ -68,6 +70,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => TaskDetailScreen(id: int.parse(state.pathParameters['id']!)),
       ),
       GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
+      GoRoute(path: '/change-password', builder: (context, state) => const ChangePasswordScreen()),
+      GoRoute(path: '/calendar', builder: (context, state) => const CalendarScreen()),
       GoRoute(path: '/documents', builder: (context, state) => const DocumentsScreen()),
       GoRoute(path: '/kpi', builder: (context, state) => const KpiScreen()),
       GoRoute(path: '/exams', builder: (context, state) => const ExamsScreen()),
