@@ -25,6 +25,7 @@ class UserResource extends JsonResource
             'last_login_at' => $this->last_login_at,
             'roles' => $this->getRoleNames(),
             'permissions' => $this->getAllPermissions()->pluck('name'),
+            'assignable_roles' => $this->assignableRoles(),
             'employee' => new EmployeeResource($this->whenLoaded('employee')),
         ];
     }

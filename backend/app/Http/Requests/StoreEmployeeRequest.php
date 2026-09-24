@@ -15,20 +15,6 @@ class StoreEmployeeRequest extends FormRequest
     use ChecksOrganizationScope;
 
     /**
-     * Roles a creator without administrative-role-granting privilege may
-     * assign to a new employee. Assigning super-admin, central-admin, or
-     * organization-admin is a separate privilege from hasCentralAccess()'s
-     * company-wide *data* scope (which hr also holds) — an hr user seeing
-     * every organization's employees must not thereby be able to mint a
-     * new central-admin account.
-     *
-     * @var string[]
-     */
-    private array $assignableRolesForScopedCreators = [
-        'department-manager', 'hr', 'safety-manager', 'technical-policy', 'manager', 'employee',
-    ];
-
-    /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
@@ -49,10 +35,6 @@ class StoreEmployeeRequest extends FormRequest
      */
     public function rules(): array
     {
-        $assignableRoles = $this->user()->hasRole('central-admin')
-            ? array_merge($this->assignableRolesForScopedCreators, ['organization-admin', 'central-admin', 'super-admin'])
-            : $this->assignableRolesForScopedCreators;
-
         return [
             'organization_id' => ['required', 'integer', Rule::exists('organizations', 'id')],
             'department_id' => ['nullable', 'integer', Rule::exists('departments', 'id')],
@@ -85,7 +67,7 @@ class StoreEmployeeRequest extends FormRequest
             'create_account' => ['sometimes', 'boolean'],
             'username' => ['required_if:create_account,true', 'nullable', 'string', 'max:255', Rule::unique('users', 'username')],
             'password' => ['required_if:create_account,true', 'nullable', 'string', 'min:8'],
-            'role' => ['required_if:create_account,true', 'nullable', Rule::in($assignableRoles)],
+            'role' => ['required_if:create_account,true', 'nullable', Rule::in($this->user()->assignableRoles())],
         ];
     }
 }

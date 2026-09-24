@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Employee;
+use App\Policies\Concerns\ChecksOrganizationScope;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -15,22 +17,20 @@ use Illuminate\Validation\Rule;
  */
 class StoreEmployeeAccountRequest extends FormRequest
 {
-    /**
-     * Same role list StoreEmployeeRequest/UpdateUserRoleRequest already
-     * restrict a scoped creator to.
-     *
-     * @var string[]
-     */
-    private array $assignableRolesForScopedCreators = [
-        'department-manager', 'hr', 'safety-manager', 'technical-policy', 'manager', 'employee',
-    ];
+    use ChecksOrganizationScope;
 
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user()->can('users.update');
+        $user = $this->user();
+
+        /** @var Employee $employee */
+        $employee = $this->route('employee');
+
+        return $user->can('users.update')
+            && $this->withinScope($user, $employee->organization_id, $employee->department_id);
     }
 
     /**
@@ -40,15 +40,11 @@ class StoreEmployeeAccountRequest extends FormRequest
      */
     public function rules(): array
     {
-        $assignableRoles = $this->user()->hasRole('central-admin')
-            ? array_merge($this->assignableRolesForScopedCreators, ['organization-admin', 'central-admin', 'super-admin'])
-            : $this->assignableRolesForScopedCreators;
-
         return [
             'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')],
             'corporate_email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')],
             'password' => ['required', 'string', 'min:8'],
-            'role' => ['required', Rule::in($assignableRoles)],
+            'role' => ['required', Rule::in($this->user()->assignableRoles())],
         ];
     }
 }

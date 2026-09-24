@@ -102,6 +102,28 @@ it('returns the authenticated user from the me endpoint', function () {
         ->assertJsonPath('data.id', $user->id);
 });
 
+it('exposes which roles the current user may grant, so the UI offers only those', function (string $role, array $expected) {
+    $user = User::factory()->create();
+    $user->assignRole($role);
+
+    $assignable = $this->actingAs($user, 'sanctum')->getJson('/api/v1/auth/me')->json('data.assignable_roles');
+
+    expect($assignable)->toEqualCanonicalizing($expected);
+})->with([
+    'organization-admin: organization-scoped roles only' => [
+        'organization-admin',
+        ['department-manager', 'safety-manager', 'manager', 'employee'],
+    ],
+    'hr: plus the central-access roles' => [
+        'hr',
+        ['department-manager', 'safety-manager', 'manager', 'employee', 'hr', 'technical-policy'],
+    ],
+    'central-admin: every role' => [
+        'central-admin',
+        ['department-manager', 'safety-manager', 'manager', 'employee', 'hr', 'technical-policy', 'organization-admin', 'central-admin', 'super-admin'],
+    ],
+]);
+
 it('revokes the current token on logout', function () {
     $user = User::factory()->create();
     $user->assignRole('employee');

@@ -62,15 +62,16 @@ class IssuePolicy
     /**
      * "Only Technical Policy Service's own response, given when they mark
      * it fixed, counts as resolution" — deliberately narrower than every
-     * other role that can merely view or report issues, including
-     * central-admin's own reach elsewhere in this app (central-admin/
-     * super-admin still resolve issues through the universal Gate::before
-     * bypass, the same as every other "only role X" rule in this
-     * codebase — this policy method is never consulted for them).
+     * other role that can merely view or report issues. Checked through
+     * the `issues.resolve` permission (seeded only to technical-policy,
+     * plus central-admin's '*') rather than the role name, so the grant is
+     * the real source of truth: Gate::before only bypasses super-admin,
+     * and a role-name check here had left central-admin shown a Resolve
+     * button (it holds the permission) that then answered 403.
      */
     public function resolve(User $user, Issue $issue): bool
     {
-        return $user->hasRole('technical-policy');
+        return $user->can('issues.resolve');
     }
 
     /**

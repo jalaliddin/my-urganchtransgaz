@@ -64,9 +64,7 @@ const saving = ref(false)
 const deleteTarget = ref<Employee | null>(null)
 const deleting = ref(false)
 
-const assignableRoles = [
-  'employee', 'manager', 'department-manager', 'hr', 'safety-manager', 'technical-policy',
-]
+const assignableRoles = computed(() => auth.user?.assignable_roles ?? [])
 
 watch(
   () => form.value.organization_id,

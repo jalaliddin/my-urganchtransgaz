@@ -372,6 +372,18 @@ it('forbids a department-manager from resolving an issue, even one they can view
     ])->assertStatus(403);
 });
 
+it('lets central-admin resolve an issue, since it holds the issues.resolve permission', function () {
+    $organization = Organization::factory()->create();
+    $centralAdmin = userWithRole('central-admin', $organization);
+    $issue = Issue::factory()->create(['organization_id' => $organization->id]);
+
+    $this->actingAs($centralAdmin, 'sanctum')->postJson("/api/v1/issues/{$issue->id}/resolve", [
+        'resolution_note' => 'Markaziy ofis tomonidan hal qilindi.',
+    ])->assertOk();
+
+    expect($issue->fresh()->status)->toBe(IssueStatus::Resolved);
+});
+
 it('will not resolve an issue that is already resolved', function () {
     $organization = Organization::factory()->create();
     $technicalPolicyUser = userWithRole('technical-policy', $organization);

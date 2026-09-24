@@ -50,7 +50,7 @@ class RolePermissionSeeder extends Seeder
             'departments.view', 'departments.create', 'departments.update',
             'positions.view', 'positions.create', 'positions.update',
             'employees.view', 'employees.create', 'employees.update',
-            'users.view',
+            'users.view', 'users.update',
             'documents.view', 'documents.approve',
             'attendance.view', 'attendance.manage',
             'tasks.view', 'tasks.create', 'tasks.update', 'tasks.assign',

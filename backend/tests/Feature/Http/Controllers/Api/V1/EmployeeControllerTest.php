@@ -192,14 +192,61 @@ it('forbids a scoped hr user from promoting an employee to central-admin via a r
         ->assertJsonValidationErrors(['role']);
 });
 
-it('forbids an organization-admin (no users.update) from changing a role', function () {
+it('lets an organization-admin change the role of an employee in their own organization', function () {
     $organization = Organization::factory()->create();
     $orgAdmin = userWithRole('organization-admin', $organization);
     $employeeUser = userWithRole('employee', $organization);
 
     $this->actingAs($orgAdmin, 'sanctum')
         ->putJson("/api/v1/employees/{$employeeUser->employee->id}/role", ['role' => 'manager'])
+        ->assertOk();
+
+    expect($employeeUser->fresh()->hasRole('manager'))->toBeTrue();
+});
+
+it('forbids an organization-admin from changing the role of an employee in another organization', function () {
+    $orgAdmin = userWithRole('organization-admin', Organization::factory()->create());
+    $employeeUser = userWithRole('employee', Organization::factory()->create());
+
+    $this->actingAs($orgAdmin, 'sanctum')
+        ->putJson("/api/v1/employees/{$employeeUser->employee->id}/role", ['role' => 'manager'])
         ->assertStatus(403);
+
+    expect($employeeUser->fresh()->hasRole('employee'))->toBeTrue();
+});
+
+it('forbids an organization-admin from granting a central-access role (hr, technical-policy) via a role change', function (string $centralRole) {
+    $organization = Organization::factory()->create();
+    $orgAdmin = userWithRole('organization-admin', $organization);
+    $employeeUser = userWithRole('employee', $organization);
+
+    $this->actingAs($orgAdmin, 'sanctum')
+        ->putJson("/api/v1/employees/{$employeeUser->employee->id}/role", ['role' => $centralRole])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['role']);
+})->with(['hr', 'technical-policy']);
+
+it('forbids anyone from changing their own role', function () {
+    $organization = Organization::factory()->create();
+    $hr = userWithRole('hr', $organization);
+
+    $this->actingAs($hr, 'sanctum')
+        ->putJson("/api/v1/employees/{$hr->employee->id}/role", ['role' => 'employee'])
+        ->assertStatus(403);
+
+    expect($hr->fresh()->hasRole('hr'))->toBeTrue();
+});
+
+it('forbids an organization-admin from changing the role of a peer organization-admin', function () {
+    $organization = Organization::factory()->create();
+    $orgAdmin = userWithRole('organization-admin', $organization);
+    $peer = userWithRole('organization-admin', $organization);
+
+    $this->actingAs($orgAdmin, 'sanctum')
+        ->putJson("/api/v1/employees/{$peer->employee->id}/role", ['role' => 'employee'])
+        ->assertStatus(403);
+
+    expect($peer->fresh()->hasRole('organization-admin'))->toBeTrue();
 });
 
 it('lets hr open an account for an employee who was created without one', function () {
@@ -247,7 +294,7 @@ it('forbids a scoped hr user from opening a central-admin account via the accoun
     ])->assertStatus(422)->assertJsonValidationErrors(['role']);
 });
 
-it('forbids an organization-admin (no users.update) from opening an account', function () {
+it('lets an organization-admin open an account for an employee in their own organization', function () {
     $organization = Organization::factory()->create();
     $orgAdmin = userWithRole('organization-admin', $organization);
     $employee = Employee::factory()->create(['organization_id' => $organization->id, 'user_id' => null]);
@@ -256,8 +303,56 @@ it('forbids an organization-admin (no users.update) from opening an account', fu
         'username' => 'newlogin',
         'password' => 'password123',
         'role' => 'employee',
-    ])->assertStatus(403);
+    ])->assertCreated();
+
+    expect(User::find($employee->fresh()->user_id)->hasRole('employee'))->toBeTrue();
 });
+
+it('forbids an organization-admin from opening an account for an employee in another organization', function () {
+    $orgAdmin = userWithRole('organization-admin', Organization::factory()->create());
+    $employee = Employee::factory()->create(['organization_id' => Organization::factory()->create()->id, 'user_id' => null]);
+
+    $this->actingAs($orgAdmin, 'sanctum')->postJson("/api/v1/employees/{$employee->id}/account", [
+        'username' => 'newlogin',
+        'password' => 'password123',
+        'role' => 'employee',
+    ])->assertStatus(403);
+
+    expect($employee->fresh()->user_id)->toBeNull();
+});
+
+it('forbids an organization-admin from opening an account with a central-access role (hr, technical-policy)', function (string $centralRole) {
+    $organization = Organization::factory()->create();
+    $orgAdmin = userWithRole('organization-admin', $organization);
+    $employee = Employee::factory()->create(['organization_id' => $organization->id, 'user_id' => null]);
+
+    $this->actingAs($orgAdmin, 'sanctum')->postJson("/api/v1/employees/{$employee->id}/account", [
+        'username' => 'newlogin',
+        'password' => 'password123',
+        'role' => $centralRole,
+    ])->assertStatus(422)->assertJsonValidationErrors(['role']);
+
+    expect($employee->fresh()->user_id)->toBeNull();
+})->with(['hr', 'technical-policy']);
+
+it('forbids an organization-admin from creating a new employee account with a central-access role (hr, technical-policy)', function (string $centralRole) {
+    $organization = Organization::factory()->create();
+    $orgAdmin = userWithRole('organization-admin', $organization);
+
+    $this->actingAs($orgAdmin, 'sanctum')->postJson('/api/v1/employees', [
+        'organization_id' => $organization->id,
+        'employee_number' => 'EMP00099',
+        'first_name' => 'Aziz',
+        'last_name' => 'Karimov',
+        'create_account' => true,
+        'username' => 'newlogin',
+        'corporate_email' => 'newlogin@urtg.uz',
+        'password' => 'password123',
+        'role' => $centralRole,
+    ])->assertStatus(422)->assertJsonValidationErrors(['role']);
+
+    $this->assertDatabaseMissing('users', ['username' => 'newlogin']);
+})->with(['hr', 'technical-policy']);
 
 it('lets hr reset an employee\'s password', function () {
     $organization = Organization::factory()->create();
@@ -293,7 +388,7 @@ it('rejects a password reset without confirmation', function () {
     ])->assertStatus(422)->assertJsonValidationErrors(['password']);
 });
 
-it('forbids an organization-admin (no users.update) from resetting a password', function () {
+it('lets an organization-admin reset the password of an employee in their own organization', function () {
     $organization = Organization::factory()->create();
     $orgAdmin = userWithRole('organization-admin', $organization);
     $employeeUser = userWithRole('employee', $organization);
@@ -301,8 +396,40 @@ it('forbids an organization-admin (no users.update) from resetting a password', 
     $this->actingAs($orgAdmin, 'sanctum')->putJson("/api/v1/employees/{$employeeUser->employee->id}/password", [
         'password' => 'newpassword123',
         'password_confirmation' => 'newpassword123',
-    ])->assertStatus(403);
+    ])->assertOk();
+
+    expect(Hash::check('newpassword123', $employeeUser->fresh()->password))->toBeTrue();
 });
+
+it('forbids an organization-admin from resetting the password of an employee in another organization', function () {
+    $orgAdmin = userWithRole('organization-admin', Organization::factory()->create());
+    $employeeUser = userWithRole('employee', Organization::factory()->create());
+
+    $this->actingAs($orgAdmin, 'sanctum')->putJson("/api/v1/employees/{$employeeUser->employee->id}/password", [
+        'password' => 'newpassword123',
+        'password_confirmation' => 'newpassword123',
+    ])->assertStatus(403);
+
+    expect(Hash::check('newpassword123', $employeeUser->fresh()->password))->toBeFalse();
+});
+
+it('forbids a password reset that would take over a more privileged account', function (string $actorRole, string $targetRole) {
+    $organization = Organization::factory()->create();
+    $actor = userWithRole($actorRole, $organization);
+    $target = userWithRole($targetRole, $organization);
+
+    $this->actingAs($actor, 'sanctum')->putJson("/api/v1/employees/{$target->employee->id}/password", [
+        'password' => 'newpassword123',
+        'password_confirmation' => 'newpassword123',
+    ])->assertStatus(403);
+
+    expect(Hash::check('newpassword123', $target->fresh()->password))->toBeFalse();
+})->with([
+    'hr taking over central-admin' => ['hr', 'central-admin'],
+    'hr taking over super-admin' => ['hr', 'super-admin'],
+    'organization-admin taking over a peer organization-admin' => ['organization-admin', 'organization-admin'],
+    'organization-admin taking over hr' => ['organization-admin', 'hr'],
+]);
 
 it('rejects a duplicate employee number', function () {
     $organization = Organization::factory()->create();

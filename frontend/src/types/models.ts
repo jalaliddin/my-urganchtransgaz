@@ -658,5 +658,7 @@ export interface AuthUser {
   last_login_at: string | null
   roles: string[]
   permissions: string[]
+  // Roles this user may grant; the backend rejects any other.
+  assignable_roles: string[]
   employee: Employee | null
 }

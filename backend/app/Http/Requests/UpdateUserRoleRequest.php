@@ -2,27 +2,34 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Employee;
+use App\Policies\Concerns\ChecksOrganizationScope;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateUserRoleRequest extends FormRequest
 {
-    /**
-     * Same role list StoreEmployeeRequest already restricts a scoped
-     * creator to — granting super-admin/central-admin/organization-admin
-     * stays a central-admin-only privilege, whether at account creation
-     * or a later role change.
-     *
-     * @var string[]
-     */
-    private array $assignableRolesForScopedCreators = [
-        'department-manager', 'hr', 'safety-manager', 'technical-policy', 'manager', 'employee',
-    ];
+    use ChecksOrganizationScope;
 
+    /**
+     * Nobody changes their own role (claude.md §60), and nobody changes
+     * the role of an account more privileged than one they could create.
+     * An employee with no account falls through to the controller's 404.
+     */
     public function authorize(): bool
     {
-        return $this->user()->can('users.update');
+        $user = $this->user();
+
+        /** @var Employee $employee */
+        $employee = $this->route('employee');
+
+        if (! $user->can('users.update') || ! $this->withinScope($user, $employee->organization_id, $employee->department_id)) {
+            return false;
+        }
+
+        return ! $employee->user
+            || ($employee->user_id !== $user->id && $user->canManageAccountOf($employee->user));
     }
 
     /**
@@ -32,12 +39,8 @@ class UpdateUserRoleRequest extends FormRequest
      */
     public function rules(): array
     {
-        $assignableRoles = $this->user()->hasRole('central-admin')
-            ? array_merge($this->assignableRolesForScopedCreators, ['organization-admin', 'central-admin', 'super-admin'])
-            : $this->assignableRolesForScopedCreators;
-
         return [
-            'role' => ['required', Rule::in($assignableRoles)],
+            'role' => ['required', Rule::in($this->user()->assignableRoles())],
         ];
     }
 }
