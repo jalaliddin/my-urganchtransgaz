@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\Export\ExportRecords;
 use App\Actions\Kpi\CalculateKpiScore;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GenerateEmployeeKpiRequest;
@@ -20,6 +21,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
+use Symfony\Component\HttpFoundation\Response;
 
 class KpiController extends Controller
 {
@@ -213,7 +215,7 @@ class KpiController extends Controller
      * Database-aggregated overall score + department ranking for a
      * period, per Module 11's dashboard (§53: never loop-summing in PHP).
      */
-    public function report(): JsonResponse
+    public function report(ExportRecords $export): JsonResponse|Response
     {
         Gate::authorize('viewAny', EmployeeKpi::class);
 
@@ -224,7 +226,7 @@ class KpiController extends Controller
             return $this->error('period_id talab qilinadi.', 422);
         }
 
-        $rows = EmployeeKpi::query()
+        $query = EmployeeKpi::query()
             ->join('employees', 'employees.id', '=', 'employee_kpis.employee_id')
             ->leftJoin('departments', 'departments.id', '=', 'employees.department_id')
             ->where('employee_kpis.kpi_period_id', $periodId)
@@ -242,10 +244,17 @@ class KpiController extends Controller
             ->selectRaw('COUNT(DISTINCT employee_kpis.employee_id) as employees_count')
             ->selectRaw('ROUND(SUM(employee_kpis.weighted_score) / COUNT(DISTINCT employee_kpis.employee_id), 2) as average_score')
             ->groupBy('department_id', 'department_name')
-            ->orderByDesc('average_score')
-            ->get();
+            ->orderByDesc('average_score');
 
-        return $this->success($rows);
+        if ($format = request()->string('export')->toString()) {
+            return $export->stream($query, [
+                'department_name' => 'Bo\'lim',
+                'employees_count' => 'Xodimlar soni',
+                'average_score' => 'O\'rtacha ball',
+            ], $format, 'kpi-report');
+        }
+
+        return $this->success($query->get());
     }
 
     private function isSupervisor(User $user): bool

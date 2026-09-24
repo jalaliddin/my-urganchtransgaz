@@ -203,6 +203,30 @@ it('aggregates a department report from published results only', function () {
         ->and((float) $row['average_score'])->toBe(90.0);
 });
 
+it('exports the department report as a downloadable csv', function () {
+    $organization = Organization::factory()->create();
+    $orgAdmin = userWithRole('organization-admin', $organization);
+    $employeeUser = userWithRole('employee', $organization);
+    $period = KpiPeriod::factory()->create();
+
+    EmployeeKpi::factory()->create([
+        'employee_id' => $employeeUser->employee->id,
+        'kpi_period_id' => $period->id,
+        'weight' => 100,
+        'actual_value' => 90,
+        'score' => 90,
+        'weighted_score' => 90,
+        'approved_at' => now(),
+    ]);
+
+    $response = $this->actingAs($orgAdmin, 'sanctum')
+        ->get("/api/v1/kpi/report?period_id={$period->id}&export=csv");
+
+    $response->assertOk();
+    expect($response->headers->get('Content-Type'))->toContain('text/csv');
+    expect($response->streamedContent())->toContain('90')->toContain('O\'rtacha ball');
+});
+
 describe('CalculateKpiScore', function () {
     it('scores manual and formula types as the entered actual value directly', function () {
         $calculator = app(CalculateKpiScore::class);
