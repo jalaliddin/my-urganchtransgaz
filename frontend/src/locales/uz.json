@@ -124,7 +124,8 @@
     "groupOperations": "Ish jarayoni",
     "groupReports": "Hisobotlar",
     "groupSystem": "Tizim",
-    "reports": "Hisobotlar"
+    "reports": "Hisobotlar",
+    "calendar": "Kalendar"
   },
   "auth": {
     "login": "Kirish",
@@ -574,5 +575,37 @@
     "positionTitle": "Lavozim nomi",
     "code": "Kodi",
     "organization": "Tashkilot"
+  },
+  "calendar": {
+    "title": "Kalendar",
+    "today": "Bugun",
+    "months": [
+      "Yanvar",
+      "Fevral",
+      "Mart",
+      "Aprel",
+      "May",
+      "Iyun",
+      "Iyul",
+      "Avgust",
+      "Sentabr",
+      "Oktabr",
+      "Noyabr",
+      "Dekabr"
+    ],
+    "weekdaysShort": [
+      "Du",
+      "Se",
+      "Cho",
+      "Pa",
+      "Ju",
+      "Sha",
+      "Ya"
+    ],
+    "noEvents": "Bu kunda voqealar yo'q",
+    "taskDue": "Topshiriq muddati",
+    "examStart": "Imtihon boshlanishi",
+    "examEnd": "Imtihon tugashi",
+    "announcementPublish": "E'lon"
   }
 }

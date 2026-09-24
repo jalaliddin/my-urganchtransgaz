@@ -121,6 +121,11 @@ const router = createRouter({
           component: () => import('@/views/announcements/AnnouncementsView.vue'),
         },
         {
+          path: 'calendar',
+          name: 'calendar',
+          component: () => import('@/views/calendar/CalendarView.vue'),
+        },
+        {
           path: 'announcements/:id',
           name: 'announcement-detail',
           component: () => import('@/views/announcements/AnnouncementDetailView.vue'),

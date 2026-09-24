@@ -105,6 +105,11 @@ const allNavGroups: NavGroup[] = [
         permission: 'tasks.view',
       },
       {
+        title: 'nav.calendar',
+        icon: 'mdi-calendar-month-outline',
+        to: '/calendar',
+      },
+      {
         title: 'nav.exams',
         icon: 'mdi-school-outline',
         to: '/exams',

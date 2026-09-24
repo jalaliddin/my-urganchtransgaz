@@ -124,7 +124,8 @@
     "groupOperations": "Workflow",
     "groupReports": "Reports",
     "groupSystem": "System",
-    "reports": "Reports"
+    "reports": "Reports",
+    "calendar": "Calendar"
   },
   "auth": {
     "login": "Login",
@@ -574,5 +575,37 @@
     "positionTitle": "Position title",
     "code": "Code",
     "organization": "Organization"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "today": "Today",
+    "months": [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ],
+    "weekdaysShort": [
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun"
+    ],
+    "noEvents": "No events this day",
+    "taskDue": "Task due",
+    "examStart": "Exam starts",
+    "examEnd": "Exam ends",
+    "announcementPublish": "Announcement"
   }
 }
