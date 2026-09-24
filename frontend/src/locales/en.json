@@ -118,7 +118,13 @@
     "myDocuments": "My Documents",
     "logout": "Logout",
     "issueCategories": "Issue categories",
-    "positions": "Positions"
+    "positions": "Positions",
+    "groupOrganization": "Organization",
+    "groupHr": "Employees",
+    "groupOperations": "Workflow",
+    "groupReports": "Reports",
+    "groupSystem": "System",
+    "reports": "Reports"
   },
   "auth": {
     "login": "Login",
@@ -148,7 +154,8 @@
     "deletedSuccess": "Successfully deleted.",
     "genericError": "An error occurred while loading data.",
     "forbiddenError": "You do not have permission to perform this action.",
-    "total": "Total"
+    "total": "Total",
+    "view": "View"
   },
   "status": {
     "active": "Active",
@@ -529,7 +536,23 @@
   },
   "reports": {
     "employeeDistribution": "Employee distribution",
-    "taskStatusBreakdown": "Task status breakdown"
+    "taskStatusBreakdown": "Task status breakdown",
+    "hub": {
+      "attendanceGroup": "Attendance",
+      "attendanceReport": "Attendance report",
+      "attendanceReportText": "Check-in, check-out, lateness, and absence statistics — by department and organization.",
+      "timesheet": "Monthly timesheet",
+      "timesheetText": "A daily status grid for every employee, with export options.",
+      "hrGroup": "Employees",
+      "employeesList": "Employee list",
+      "employeesListText": "Download the full employee list as CSV, Excel, or PDF.",
+      "operationsGroup": "Workflow",
+      "kpiReport": "KPI ranking",
+      "kpiReportText": "Average score by department for the selected period.",
+      "systemGroup": "System",
+      "auditLog": "Audit log",
+      "auditLogText": "The full history of every significant action in the system."
+    }
   },
   "issueCategories": {
     "title": "Issue categories",

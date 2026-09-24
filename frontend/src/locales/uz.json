@@ -118,7 +118,13 @@
     "myDocuments": "Mening hujjatlarim",
     "logout": "Tizimdan chiqish",
     "issueCategories": "Muammo kategoriyalari",
-    "positions": "Lavozimlar"
+    "positions": "Lavozimlar",
+    "groupOrganization": "Tashkilot",
+    "groupHr": "Xodimlar",
+    "groupOperations": "Ish jarayoni",
+    "groupReports": "Hisobotlar",
+    "groupSystem": "Tizim",
+    "reports": "Hisobotlar"
   },
   "auth": {
     "login": "Kirish",
@@ -148,7 +154,8 @@
     "deletedSuccess": "Muvaffaqiyatli o'chirildi.",
     "genericError": "Ma'lumotlarni yuklashda xatolik yuz berdi.",
     "forbiddenError": "Sizda ushbu amalni bajarish uchun ruxsat mavjud emas.",
-    "total": "Jami"
+    "total": "Jami",
+    "view": "Ko'rish"
   },
   "status": {
     "active": "Faol",
@@ -529,7 +536,23 @@
   },
   "reports": {
     "employeeDistribution": "Xodimlar taqsimoti",
-    "taskStatusBreakdown": "Topshiriqlar holati"
+    "taskStatusBreakdown": "Topshiriqlar holati",
+    "hub": {
+      "attendanceGroup": "Davomat",
+      "attendanceReport": "Davomat hisoboti",
+      "attendanceReportText": "Kelish, ketish, kechikish va kelmagan xodimlar statistikasi — bo'lim va tashkilot kesimida.",
+      "timesheet": "Oylik tabel",
+      "timesheetText": "Har bir xodim uchun kunlik holat jadvali, eksport qilish imkoniyati bilan.",
+      "hrGroup": "Xodimlar",
+      "employeesList": "Xodimlar ro'yxati",
+      "employeesListText": "Barcha xodimlar ro'yxatini CSV, Excel yoki PDF formatida yuklab oling.",
+      "operationsGroup": "Ish jarayoni",
+      "kpiReport": "KPI reytingi",
+      "kpiReportText": "Tanlangan davr uchun bo'limlar bo'yicha o'rtacha ball reytingi.",
+      "systemGroup": "Tizim",
+      "auditLog": "Audit jurnali",
+      "auditLogText": "Tizimdagi barcha muhim amallarning to'liq tarixi."
+    }
   },
   "issueCategories": {
     "title": "Muammo kategoriyalari",

@@ -22,6 +22,17 @@ async function loadReport() {
   }
 }
 
+const exporting = ref(false)
+async function exportAs(format: 'csv' | 'xlsx' | 'pdf') {
+  if (!selectedPeriodId.value) return
+  exporting.value = true
+  try {
+    await kpiService.exportReport(selectedPeriodId.value, format)
+  } finally {
+    exporting.value = false
+  }
+}
+
 onMounted(async () => {
   periods.value = (await kpiPeriodService.list({ per_page: 50 })).data
   selectedPeriodId.value = periods.value[0]?.id ?? null
@@ -36,6 +47,18 @@ function goBack() {
 <template>
   <AppPageHeader :title="$t('kpi.report')">
     <template #actions>
+      <v-menu>
+        <template #activator="{ props }">
+          <v-btn v-bind="props" variant="tonal" prepend-icon="mdi-download" :loading="exporting" :disabled="!rows.length">
+            {{ $t('export.export') }}
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item title="CSV" @click="exportAs('csv')" />
+          <v-list-item title="Excel" @click="exportAs('xlsx')" />
+          <v-list-item title="PDF" @click="exportAs('pdf')" />
+        </v-list>
+      </v-menu>
       <v-btn variant="text" prepend-icon="mdi-arrow-left" @click="goBack">{{ $t('common.close') }}</v-btn>
     </template>
   </AppPageHeader>

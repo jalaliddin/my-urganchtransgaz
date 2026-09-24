@@ -105,4 +105,17 @@ export const kpiService = {
     const { data } = await http.get<ApiSuccessResponse<KpiReportRow[]>>('/kpi/report', { params: { period_id: periodId } })
     return data.data
   },
+
+  async exportReport(periodId: number, format: 'csv' | 'xlsx' | 'pdf'): Promise<void> {
+    const response = await http.get('/kpi/report', {
+      params: { period_id: periodId, export: format },
+      responseType: 'blob',
+    })
+    const url = URL.createObjectURL(response.data as Blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `kpi-report.${format}`
+    link.click()
+    URL.revokeObjectURL(url)
+  },
 }

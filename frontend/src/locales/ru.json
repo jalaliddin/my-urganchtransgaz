@@ -118,7 +118,13 @@
     "myDocuments": "Мои документы",
     "logout": "Выйти",
     "issueCategories": "Категории проблем",
-    "positions": "Должности"
+    "positions": "Должности",
+    "groupOrganization": "Организация",
+    "groupHr": "Сотрудники",
+    "groupOperations": "Рабочий процесс",
+    "groupReports": "Отчёты",
+    "groupSystem": "Система",
+    "reports": "Отчёты"
   },
   "auth": {
     "login": "Вход",
@@ -148,7 +154,8 @@
     "deletedSuccess": "Успешно удалено.",
     "genericError": "Произошла ошибка при загрузке данных.",
     "forbiddenError": "У вас нет прав для выполнения этого действия.",
-    "total": "Всего"
+    "total": "Всего",
+    "view": "Просмотр"
   },
   "status": {
     "active": "Активен",
@@ -529,7 +536,23 @@
   },
   "reports": {
     "employeeDistribution": "Распределение сотрудников",
-    "taskStatusBreakdown": "Статусы задач"
+    "taskStatusBreakdown": "Статусы задач",
+    "hub": {
+      "attendanceGroup": "Посещаемость",
+      "attendanceReport": "Отчёт по посещаемости",
+      "attendanceReportText": "Статистика прихода, ухода, опозданий и отсутствий — по отделам и организациям.",
+      "timesheet": "Месячный табель",
+      "timesheetText": "Таблица ежедневного статуса для каждого сотрудника, с возможностью экспорта.",
+      "hrGroup": "Сотрудники",
+      "employeesList": "Список сотрудников",
+      "employeesListText": "Скачайте список всех сотрудников в формате CSV, Excel или PDF.",
+      "operationsGroup": "Рабочий процесс",
+      "kpiReport": "Рейтинг KPI",
+      "kpiReportText": "Средний балл по отделам за выбранный период.",
+      "systemGroup": "Система",
+      "auditLog": "Журнал аудита",
+      "auditLogText": "Полная история всех важных действий в системе."
+    }
   },
   "issueCategories": {
     "title": "Категории проблем",

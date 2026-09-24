@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 
 import { attendanceService } from '@/services/attendanceService'
 import { departmentService } from '@/services/departmentService'
@@ -18,9 +19,14 @@ import type {
 } from '@/types/models'
 
 const { t } = useI18n()
+const route = useRoute()
 const auth = useAuthStore()
 const canManage = computed(() => auth.can('attendance.manage'))
-const tab = ref('today')
+
+// Lets the Reports hub deep-link straight into a tab, e.g. /attendance?tab=report.
+const validTabs = ['today', 'report', 'timesheet']
+const initialTab = typeof route.query.tab === 'string' && validTabs.includes(route.query.tab) ? route.query.tab : 'today'
+const tab = ref(initialTab)
 
 /**
  * Local calendar date, not toISOString().slice(0, 10) — that reads the UTC
@@ -267,6 +273,7 @@ const dayHeaders = computed(() => (timesheet.value ? Array.from({ length: timesh
 onMounted(() => {
   loadToday()
   loadReport()
+  if (tab.value === 'timesheet') loadTimesheet()
   organizationService.list({ per_page: 100 }).then((result) => (organizations.value = result.data))
 })
 

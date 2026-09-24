@@ -15,6 +15,11 @@ interface NavItem {
   permission?: string
 }
 
+interface NavGroup {
+  header: string | null
+  items: NavItem[]
+}
+
 const auth = useAuthStore()
 const router = useRouter()
 const { mobile } = useDisplay()
@@ -32,99 +37,137 @@ watch(mobile, (isMobile) => {
   drawer.value = !isMobile
 })
 
-const navItems = computed<NavItem[]>(() =>
-  [
-    { title: 'nav.dashboard', icon: 'mdi-view-dashboard-outline', to: '/dashboard' },
-    {
-      title: 'nav.organizations',
-      icon: 'mdi-domain',
-      to: '/organizations',
-      permission: 'organizations.view',
-    },
-    {
-      title: 'nav.departments',
-      icon: 'mdi-sitemap-outline',
-      to: '/departments',
-      permission: 'departments.view',
-    },
-    {
-      title: 'nav.positions',
-      icon: 'mdi-badge-account-outline',
-      to: '/positions',
-      permission: 'positions.view',
-    },
-    {
-      title: 'nav.employees',
-      icon: 'mdi-account-group-outline',
-      to: '/employees',
-      permission: 'employees.view',
-    },
-    {
-      title: 'nav.attendance',
-      icon: 'mdi-calendar-check-outline',
-      to: '/attendance',
-      permission: 'attendance.view',
-    },
-    {
-      title: 'nav.tasks',
-      icon: 'mdi-clipboard-check-multiple-outline',
-      to: '/tasks',
-      permission: 'tasks.view',
-    },
-    {
-      title: 'nav.exams',
-      icon: 'mdi-school-outline',
-      to: '/exams',
-      permission: 'exams.view',
-    },
-    {
-      title: 'nav.kpi',
-      icon: 'mdi-chart-line',
-      to: '/kpi',
-      permission: 'kpi.view',
-    },
-    {
-      title: 'nav.announcements',
-      icon: 'mdi-bullhorn-outline',
-      to: '/announcements',
-      permission: 'announcements.view',
-    },
-    {
-      title: 'nav.issues',
-      icon: 'mdi-map-marker-alert-outline',
-      to: '/issues',
-      permission: 'issues.view',
-    },
-    {
-      title: 'nav.issueCategories',
-      icon: 'mdi-tag-multiple-outline',
-      to: '/issue-categories',
-      permission: 'issue_categories.manage',
-    },
-    {
-      title: 'nav.documents',
-      icon: 'mdi-file-document-outline',
-      to: '/documents',
-    },
-    {
-      title: 'nav.changeRequests',
-      icon: 'mdi-file-document-edit-outline',
-      to: '/change-requests',
-      permission: 'employees.update',
-    },
-    {
-      title: 'nav.auditLogs',
-      icon: 'mdi-history',
-      to: '/audit-logs',
-      permission: 'audit_logs.view',
-    },
-    {
-      title: 'nav.settings',
-      icon: 'mdi-cog-outline',
-      to: '/settings',
-      permission: 'settings.manage',
-    },
-  ].filter((item) => !item.permission || auth.can(item.permission)),
+const allNavGroups: NavGroup[] = [
+  {
+    header: null,
+    items: [
+      { title: 'nav.dashboard', icon: 'mdi-view-dashboard-outline', to: '/dashboard' },
+    ],
+  },
+  {
+    header: 'nav.groupOrganization',
+    items: [
+      {
+        title: 'nav.organizations',
+        icon: 'mdi-domain',
+        to: '/organizations',
+        permission: 'organizations.view',
+      },
+      {
+        title: 'nav.departments',
+        icon: 'mdi-sitemap-outline',
+        to: '/departments',
+        permission: 'departments.view',
+      },
+      {
+        title: 'nav.positions',
+        icon: 'mdi-badge-account-outline',
+        to: '/positions',
+        permission: 'positions.view',
+      },
+    ],
+  },
+  {
+    header: 'nav.groupHr',
+    items: [
+      {
+        title: 'nav.employees',
+        icon: 'mdi-account-group-outline',
+        to: '/employees',
+        permission: 'employees.view',
+      },
+      {
+        title: 'nav.attendance',
+        icon: 'mdi-calendar-check-outline',
+        to: '/attendance',
+        permission: 'attendance.view',
+      },
+      {
+        title: 'nav.documents',
+        icon: 'mdi-file-document-outline',
+        to: '/documents',
+      },
+      {
+        title: 'nav.changeRequests',
+        icon: 'mdi-file-document-edit-outline',
+        to: '/change-requests',
+        permission: 'employees.update',
+      },
+    ],
+  },
+  {
+    header: 'nav.groupOperations',
+    items: [
+      {
+        title: 'nav.tasks',
+        icon: 'mdi-clipboard-check-multiple-outline',
+        to: '/tasks',
+        permission: 'tasks.view',
+      },
+      {
+        title: 'nav.exams',
+        icon: 'mdi-school-outline',
+        to: '/exams',
+        permission: 'exams.view',
+      },
+      {
+        title: 'nav.kpi',
+        icon: 'mdi-chart-line',
+        to: '/kpi',
+        permission: 'kpi.view',
+      },
+      {
+        title: 'nav.announcements',
+        icon: 'mdi-bullhorn-outline',
+        to: '/announcements',
+        permission: 'announcements.view',
+      },
+      {
+        title: 'nav.issues',
+        icon: 'mdi-map-marker-alert-outline',
+        to: '/issues',
+        permission: 'issues.view',
+      },
+      {
+        title: 'nav.issueCategories',
+        icon: 'mdi-tag-multiple-outline',
+        to: '/issue-categories',
+        permission: 'issue_categories.manage',
+      },
+    ],
+  },
+  {
+    header: 'nav.groupReports',
+    items: [
+      { title: 'nav.reports', icon: 'mdi-chart-box-outline', to: '/reports' },
+    ],
+  },
+  {
+    header: 'nav.groupSystem',
+    items: [
+      {
+        title: 'nav.auditLogs',
+        icon: 'mdi-history',
+        to: '/audit-logs',
+        permission: 'audit_logs.view',
+      },
+      {
+        title: 'nav.settings',
+        icon: 'mdi-cog-outline',
+        to: '/settings',
+        permission: 'settings.manage',
+      },
+    ],
+  },
+]
+
+const navGroups = computed<NavGroup[]>(() =>
+  allNavGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !item.permission || auth.can(item.permission)),
+    }))
+    .filter((group) => group.items.length > 0),
 )
 
 async function handleLogout() {
@@ -198,17 +241,22 @@ function goToResult(type: SearchGroup['type']) {
       <v-divider opacity="0.1" />
 
       <v-list nav density="comfortable">
-        <v-list-item
-          v-for="item in navItems"
-          :key="item.to"
-          :to="item.to"
-          :prepend-icon="item.icon"
-          :title="$t(item.title)"
-          rounded="lg"
-          color="sidebar-active"
-          active-color="white"
-          base-color="rgba(255,255,255,0.72)"
-        />
+        <template v-for="group in navGroups" :key="group.header ?? 'main'">
+          <v-list-subheader v-if="group.header && !rail" class="text-uppercase text-caption" style="opacity: 0.55; letter-spacing: 0.04em">
+            {{ $t(group.header) }}
+          </v-list-subheader>
+          <v-list-item
+            v-for="item in group.items"
+            :key="item.to"
+            :to="item.to"
+            :prepend-icon="item.icon"
+            :title="$t(item.title)"
+            rounded="lg"
+            color="sidebar-active"
+            active-color="white"
+            base-color="rgba(255,255,255,0.72)"
+          />
+        </template>
       </v-list>
 
       <template #append>
