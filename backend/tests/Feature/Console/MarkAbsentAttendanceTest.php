@@ -1,10 +1,12 @@
 <?php
 
+use App\Enums\AbsenceType;
 use App\Enums\AttendanceStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\AttendanceRecord;
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\EmployeeAbsence;
 use App\Models\Organization;
 use App\Models\Setting;
 use App\Notifications\AttendanceIssue;
@@ -131,4 +133,40 @@ it('does not fail when the absent employee has no department or manager', functi
     $this->artisan('attendance:mark-absentees')->assertSuccessful();
 
     $this->assertDatabaseMissing('notifications', ['type' => AttendanceIssue::class]);
+});
+
+it('records a day covered by an "other" excused absence as excused and links it, without notifying anyone', function () {
+    $organization = Organization::factory()->create();
+    $managerUser = userWithRole('department-manager', $organization);
+    $department = Department::factory()->create(['organization_id' => $organization->id, 'manager_id' => $managerUser->employee->id]);
+    $employee = Employee::factory()->create([
+        'organization_id' => $organization->id,
+        'department_id' => $department->id,
+        'status' => EmployeeStatus::Active,
+    ]);
+    $absence = EmployeeAbsence::factory()->for($employee)->ofType(AbsenceType::Other)->between('2026-09-15', '2026-09-15')->create();
+
+    $this->artisan('attendance:mark-absentees')->assertSuccessful();
+
+    $this->assertDatabaseHas('attendance_records', [
+        'employee_id' => $employee->id,
+        'date' => '2026-09-15',
+        'status' => AttendanceStatus::Excused->value,
+        'employee_absence_id' => $absence->id,
+    ]);
+    $this->assertDatabaseMissing('notifications', ['type' => AttendanceIssue::class]);
+});
+
+it('marks yesterday absent for an employee whose recorded leave only starts today', function () {
+    $employee = Employee::factory()->create(['status' => EmployeeStatus::Vacation]);
+    EmployeeAbsence::factory()->for($employee)->between('2026-09-16', '2026-09-30')->create();
+
+    $this->artisan('attendance:mark-absentees')->assertSuccessful();
+
+    $this->assertDatabaseHas('attendance_records', [
+        'employee_id' => $employee->id,
+        'date' => '2026-09-15',
+        'status' => AttendanceStatus::Absent->value,
+        'employee_absence_id' => null,
+    ]);
 });

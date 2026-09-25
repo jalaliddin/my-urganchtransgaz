@@ -1,4 +1,4 @@
-enum CalendarEventType { taskDue, examStart, examEnd, announcement }
+enum CalendarEventType { taskDue, examStart, examEnd, announcement, absence }
 
 /// One dated item on the calendar — a task due date, an exam start/end
 /// date, or an announcement publish date. `route` is where tapping the
@@ -9,6 +9,7 @@ class CalendarEvent {
     required this.title,
     required this.type,
     required this.route,
+    this.absenceType,
   });
 
   /// A calendar date only (`yyyy-MM-dd`), never a full timestamp — events
@@ -17,4 +18,8 @@ class CalendarEvent {
   final String title;
   final CalendarEventType type;
   final String route;
+
+  /// Set only for [CalendarEventType.absence]: the absence's type, which
+  /// the screen localizes and colors (the repository has no l10n).
+  final String? absenceType;
 }

@@ -75,6 +75,16 @@ class IssuePolicy
     }
 
     /**
+     * The map report for leaders. What it counts is still limited to
+     * `Issue::visibleTo()`, so an organization-admin or department-manager
+     * only ever sees statistics for issues they could open one by one.
+     */
+    public function viewReport(User $user): bool
+    {
+        return $user->can('issues.report');
+    }
+
+    /**
      * Central leadership sees every issue on the map/list regardless of
      * department — deliberately not the broader `hasCentralAccess()` set
      * (which also includes hr and safety-manager): the user asked

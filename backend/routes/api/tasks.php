@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('tasks')->name('tasks.')->group(function () {
     Route::get('/', [TaskController::class, 'index'])->name('index');
     Route::post('/', [TaskController::class, 'store'])->name('store');
+    Route::get('summary', [TaskController::class, 'summary'])->name('summary');
+    Route::get('options', [TaskController::class, 'options'])->name('options');
     Route::get('{task}', [TaskController::class, 'show'])->name('show');
     Route::put('{task}', [TaskController::class, 'update'])->name('update');
     Route::patch('{task}/progress', [TaskController::class, 'updateProgress'])->name('progress');

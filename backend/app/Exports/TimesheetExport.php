@@ -47,6 +47,7 @@ class TimesheetExport implements FromArray, WithHeadings
                 $row['totals']['business_trip_count'],
                 $row['totals']['vacation_count'],
                 $row['totals']['sick_leave_count'],
+                $row['totals']['excused_count'],
                 round($row['totals']['total_worked_minutes'] / 60, 1),
             ];
         })->all();
@@ -62,7 +63,7 @@ class TimesheetExport implements FromArray, WithHeadings
         return [
             'Tabel raqami', 'F.I.Sh.', "Bo'lim",
             ...$dayHeadings,
-            'Keldi', 'Kech keldi', 'Erta ketdi', 'Kelmadi', 'Xizmat safarida', "Ta'tilda", 'Bemor varaqasida', 'Jami soat',
+            'Keldi', 'Kech keldi', 'Erta ketdi', 'Kelmadi', 'Xizmat safarida', "Ta'tilda", 'Bemor varaqasida', 'Sababli', 'Jami soat',
         ];
     }
 }

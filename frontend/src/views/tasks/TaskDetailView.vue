@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
+import TaskCategoryChip from '@/components/tasks/TaskCategoryChip.vue'
+import TaskDueDate from '@/components/tasks/TaskDueDate.vue'
+import { employeeService } from '@/services/employeeService'
 import { taskService } from '@/services/taskService'
 import { useAuthStore } from '@/stores/auth'
-import type { Task } from '@/types/models'
+import type { Employee, Task, TaskCategory, TaskPriority } from '@/types/models'
+import { formatDate, formatDateTime } from '@/utils/date'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const taskId = Number(route.params.id)
 const task = ref<Task | null>(null)
@@ -17,6 +23,9 @@ const loading = ref(true)
 async function load() {
   loading.value = true
   task.value = await taskService.get(taskId)
+  // The slider starts from the task's real progress, not 0 — otherwise
+  // pressing "update" without touching it would reset the progress.
+  progressValue.value = task.value.progress
   loading.value = false
 }
 
@@ -146,6 +155,91 @@ async function removeAttachment(attachmentId: number) {
 function goBack() {
   router.push({ name: 'tasks' })
 }
+
+const canEdit = computed(() => isManager.value && task.value?.status !== 'cancelled')
+const editOpen = ref(false)
+const editSaving = ref(false)
+const editErrors = ref<Record<string, string[]>>({})
+const editForm = ref({
+  title: '',
+  description: '',
+  task_category_id: null as number | null,
+  priority: 'normal' as TaskPriority,
+  start_date: '',
+  due_date: '',
+  assignee_ids: [] as number[],
+})
+const categories = ref<TaskCategory[]>([])
+const employees = ref<Employee[]>([])
+
+const priorityItems = computed(() => [
+  { title: t('status.low'), value: 'low' },
+  { title: t('status.normal'), value: 'normal' },
+  { title: t('status.high'), value: 'high' },
+  { title: t('status.urgent'), value: 'urgent' },
+])
+
+// A category deactivated since the task was filed stays selectable for this
+// task (the server accepts it), so it's added back to the active list here.
+const categoryItems = computed(() => {
+  const current = task.value?.category
+  return current && !categories.value.some((category) => category.id === current.id)
+    ? [...categories.value, current]
+    : categories.value
+})
+
+// Current assignees are kept in the options even if the 200-employee page
+// doesn't include them, so the autocomplete never shows a bare id.
+const employeeItems = computed(() => {
+  const byId = new Map<number, { title: string; value: number }>()
+  for (const employee of [...employees.value, ...(task.value?.assignees ?? [])]) {
+    byId.set(employee.id, { title: employee.full_name, value: employee.id })
+  }
+  return [...byId.values()]
+})
+
+async function openEdit() {
+  if (!task.value) return
+  editForm.value = {
+    title: task.value.title,
+    description: task.value.description ?? '',
+    task_category_id: task.value.task_category_id,
+    priority: task.value.priority,
+    start_date: task.value.start_date ?? '',
+    due_date: task.value.due_date ?? '',
+    assignee_ids: (task.value.assignees ?? []).map((assignee) => assignee.id),
+  }
+  editErrors.value = {}
+  editOpen.value = true
+
+  const [options, employeePage] = await Promise.all([taskService.options(), employeeService.list({ per_page: 200 })])
+  categories.value = options.categories
+  employees.value = employeePage.data
+}
+
+async function saveEdit() {
+  if (!task.value) return
+  editSaving.value = true
+  editErrors.value = {}
+  try {
+    await taskService.update(task.value.id, {
+      title: editForm.value.title,
+      description: editForm.value.description || null,
+      task_category_id: editForm.value.task_category_id,
+      priority: editForm.value.priority,
+      start_date: editForm.value.start_date || null,
+      due_date: editForm.value.due_date || null,
+      assignee_ids: editForm.value.assignee_ids,
+    })
+    editOpen.value = false
+    await load()
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { data?: { errors?: Record<string, string[]> } } }
+    editErrors.value = axiosError.response?.data?.errors ?? {}
+  } finally {
+    editSaving.value = false
+  }
+}
 </script>
 
 <template>
@@ -154,6 +248,9 @@ function goBack() {
   <template v-else-if="task">
     <AppPageHeader :title="task.title">
       <template #actions>
+        <v-btn v-if="canEdit" variant="tonal" prepend-icon="mdi-pencil-outline" class="mr-2" @click="openEdit">
+          {{ $t('common.edit') }}
+        </v-btn>
         <v-btn variant="text" prepend-icon="mdi-arrow-left" @click="goBack">{{ $t('common.close') }}</v-btn>
       </template>
     </AppPageHeader>
@@ -165,6 +262,7 @@ function goBack() {
             <div class="d-flex flex-wrap ga-2 mb-3">
               <AppStatusChip :status="task.status" />
               <AppStatusChip :status="task.priority" />
+              <TaskCategoryChip v-if="task.category" :category="task.category" />
             </div>
             <p class="text-body-1 mb-4">{{ task.description || '—' }}</p>
 
@@ -270,7 +368,10 @@ function goBack() {
             />
             <v-list-item v-if="task.organization" :title="task.organization.name" :subtitle="$t('employees.organization')" prepend-icon="mdi-domain" />
             <v-list-item v-if="task.department" :title="task.department.name" :subtitle="$t('employees.department')" prepend-icon="mdi-sitemap-outline" />
-            <v-list-item :title="task.due_date ?? '—'" :subtitle="$t('tasks.dueDate')" prepend-icon="mdi-calendar-outline" />
+            <v-list-item v-if="task.start_date" :title="formatDate(task.start_date)" :subtitle="$t('tasks.startDate')" prepend-icon="mdi-calendar-start-outline" />
+            <v-list-item prepend-icon="mdi-calendar-outline" :subtitle="$t('tasks.dueDate')">
+              <TaskDueDate :due-date="task.due_date" :status="task.status" />
+            </v-list-item>
           </v-list>
         </v-card>
 
@@ -279,12 +380,58 @@ function goBack() {
           <v-timeline density="compact" side="end" class="pa-4">
             <v-timeline-item v-for="activity in task.activities" :key="activity.id" size="x-small" dot-color="primary">
               <div class="text-body-2">{{ activity.description }}</div>
-              <div class="text-caption text-medium-emphasis">{{ activity.created_at }}</div>
+              <div class="text-caption text-medium-emphasis">{{ formatDateTime(activity.created_at) }}</div>
             </v-timeline-item>
           </v-timeline>
           <AppEmptyState v-if="!task.activities?.length" icon="mdi-history" />
         </v-card>
       </v-col>
     </v-row>
+
+    <v-dialog v-model="editOpen" max-width="560">
+      <v-card>
+        <v-card-title>{{ $t('tasks.editTask') }}</v-card-title>
+        <v-card-text>
+          <v-text-field v-model="editForm.title" :label="$t('tasks.taskTitle')" :error-messages="editErrors.title" />
+          <v-textarea v-model="editForm.description" :label="$t('tasks.description')" rows="3" :error-messages="editErrors.description" />
+          <v-row dense>
+            <v-col cols="12" sm="6">
+              <v-select
+                v-model="editForm.task_category_id"
+                :items="categoryItems"
+                item-title="name"
+                item-value="id"
+                :label="$t('tasks.category')"
+                clearable
+                :error-messages="editErrors.task_category_id"
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-select v-model="editForm.priority" :items="priorityItems" :label="$t('tasks.priority')" :error-messages="editErrors.priority" />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field v-model="editForm.start_date" type="date" :label="$t('tasks.startDate')" :error-messages="editErrors.start_date" />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field v-model="editForm.due_date" type="date" :label="$t('tasks.dueDate')" :error-messages="editErrors.due_date" />
+            </v-col>
+          </v-row>
+          <v-autocomplete
+            v-model="editForm.assignee_ids"
+            :items="employeeItems"
+            :label="$t('tasks.assignees')"
+            multiple
+            chips
+            closable-chips
+            :error-messages="editErrors.assignee_ids"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="editOpen = false">{{ $t('common.cancel') }}</v-btn>
+          <v-btn color="primary" variant="flat" :loading="editSaving" @click="saveEdit">{{ $t('common.save') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </template>
 </template>

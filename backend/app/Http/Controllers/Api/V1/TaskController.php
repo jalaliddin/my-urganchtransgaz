@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\Tasks\RecordTaskActivity;
+use App\Enums\ActiveStatus;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use App\Http\Controllers\Controller;
@@ -10,9 +11,11 @@ use App\Http\Requests\CompleteTaskRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskProgressRequest;
 use App\Http\Requests\UpdateTaskRequest;
+use App\Http\Resources\Api\V1\TaskCategoryResource;
 use App\Http\Resources\Api\V1\TaskResource;
 use App\Models\Employee;
 use App\Models\Task;
+use App\Models\TaskCategory;
 use App\Notifications\TaskApproved;
 use App\Notifications\TaskAssigned;
 use App\Notifications\TaskReopened;
@@ -38,40 +41,51 @@ class TaskController extends Controller
     {
         Gate::authorize('viewAny', Task::class);
 
-        $user = request()->user();
-
-        $tasks = QueryBuilder::for(Task::class)
-            ->with(['assignees', 'creator'])
-            ->allowedFilters(
-                'status',
-                'priority',
-                AllowedFilter::exact('organization_id'),
-                AllowedFilter::exact('department_id'),
-                AllowedFilter::callback(
-                    'assignee_id',
-                    fn ($query, $value) => $query->whereHas('assignees', fn ($assigneeQuery) => $assigneeQuery->where('employees.id', $value))
-                ),
-            )
+        $tasks = $this->filteredTasks()
+            ->with(['assignees', 'creator', 'category'])
+            ->allowedSorts('created_at', 'due_date', 'title')
             ->defaultSort('-created_at')
-            ->when(! $user->hasCentralAccess(), function ($query) use ($user) {
-                $query->where(function ($involvedOrScoped) use ($user) {
-                    $involvedOrScoped->where('creator_id', $user->id)
-                        ->orWhereHas('assignees', fn ($assigneeQuery) => $assigneeQuery->where('employees.id', $user->employee?->id));
-
-                    if ($user->can('tasks.view')) {
-                        $involvedOrScoped->orWhere(function ($orgQuery) use ($user) {
-                            $orgQuery->where('organization_id', $user->employee?->organization_id);
-
-                            if ($user->hasRole('department-manager')) {
-                                $orgQuery->where('department_id', $user->employee?->department_id);
-                            }
-                        });
-                    }
-                });
-            })
             ->paginate(request()->integer('per_page', 15));
 
         return $this->success(TaskResource::collection($tasks), meta: $this->paginationMeta($tasks));
+    }
+
+    /**
+     * How many tasks fall in each status under the same visibility and
+     * filters as the list — the counts on the list's status tabs. The
+     * client leaves `filter[status]` off so every tab gets its number.
+     */
+    public function summary(): JsonResponse
+    {
+        Gate::authorize('viewAny', Task::class);
+
+        $counts = $this->filteredTasks()->getEloquentBuilder()->toBase()
+            ->select('status')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $byStatus = collect(TaskStatus::cases())
+            ->mapWithKeys(fn (TaskStatus $status) => [$status->value => (int) ($counts[$status->value] ?? 0)]);
+
+        return $this->success([
+            'total' => $byStatus->sum(),
+            'by_status' => $byStatus,
+        ]);
+    }
+
+    /**
+     * What the task form and list filters need: the active categories.
+     */
+    public function options(): JsonResponse
+    {
+        Gate::authorize('viewAny', Task::class);
+
+        $categories = TaskCategory::where('status', ActiveStatus::Active)->orderBy('sort_order')->orderBy('name')->get();
+
+        return $this->success([
+            'categories' => TaskCategoryResource::collection($categories),
+        ]);
     }
 
     /**
@@ -94,6 +108,7 @@ class TaskController extends Controller
             'creator_id' => $user->id,
             'organization_id' => $organizationId,
             'department_id' => $data['department_id'] ?? null,
+            'task_category_id' => $data['task_category_id'] ?? null,
             'priority' => $data['priority'] ?? TaskPriority::Normal,
             'status' => TaskStatus::New,
             'start_date' => $data['start_date'] ?? null,
@@ -112,7 +127,7 @@ class TaskController extends Controller
 
         $this->auditLog->log('created', 'tasks', $task, newValues: ['title' => $task->title]);
 
-        return $this->success(new TaskResource($task->load(['creator', 'organization', 'department', 'assignees'])), 'Topshiriq yaratildi.', 201);
+        return $this->success(new TaskResource($task->load(['creator', 'organization', 'department', 'category', 'assignees'])), 'Topshiriq yaratildi.', 201);
     }
 
     /**
@@ -123,7 +138,7 @@ class TaskController extends Controller
         Gate::authorize('view', $task);
 
         $task->load([
-            'creator', 'organization', 'department', 'assignees',
+            'creator', 'organization', 'department', 'category', 'assignees',
             'comments.user', 'activities.causer', 'attachments',
         ]);
 
@@ -159,7 +174,7 @@ class TaskController extends Controller
         $this->recordActivity->handle($task, $user, 'updated', "{$user->name} vazifa ma'lumotlarini yangiladi.");
         $this->auditLog->log('updated', 'tasks', $task, newValues: $data);
 
-        return $this->success(new TaskResource($task->load(['creator', 'organization', 'department', 'assignees'])), 'Topshiriq yangilandi.');
+        return $this->success(new TaskResource($task->load(['creator', 'organization', 'department', 'category', 'assignees'])), 'Topshiriq yangilandi.');
     }
 
     /**
@@ -182,7 +197,7 @@ class TaskController extends Controller
 
         $this->recordActivity->handle($task, $request->user(), 'progress_changed', "Bajarilishi {$progress}% ga o'zgartirildi.");
 
-        return $this->success(new TaskResource($task->load(['creator', 'organization', 'department', 'assignees'])), 'Bajarilish darajasi yangilandi.');
+        return $this->success(new TaskResource($task->load(['creator', 'organization', 'department', 'category', 'assignees'])), 'Bajarilish darajasi yangilandi.');
     }
 
     /**
@@ -206,7 +221,7 @@ class TaskController extends Controller
 
         $this->recordActivity->handle($task, $request->user(), 'completed', "{$request->user()->name} vazifani bajarilgan deb belgiladi.");
 
-        return $this->success(new TaskResource($task->load(['creator', 'organization', 'department', 'assignees'])), 'Vazifa tasdiqlash uchun yuborildi.');
+        return $this->success(new TaskResource($task->load(['creator', 'organization', 'department', 'category', 'assignees'])), 'Vazifa tasdiqlash uchun yuborildi.');
     }
 
     /**
@@ -226,7 +241,7 @@ class TaskController extends Controller
         $this->recordActivity->handle($task, $user, 'approved', "{$user->name} bajarilishni tasdiqladi.");
         $this->auditLog->log('approved', 'tasks', $task);
 
-        $task->load(['creator', 'organization', 'department', 'assignees']);
+        $task->load(['creator', 'organization', 'department', 'category', 'assignees']);
         $task->assignees->each(fn ($employee) => $employee->user?->notify(new TaskApproved($task)));
 
         return $this->success(new TaskResource($task), 'Vazifa tasdiqlandi.');
@@ -249,7 +264,7 @@ class TaskController extends Controller
         $this->recordActivity->handle($task, $user, 'reopened', "{$user->name} vazifani qayta ochdi.");
         $this->auditLog->log('reopened', 'tasks', $task);
 
-        $task->load(['creator', 'organization', 'department', 'assignees']);
+        $task->load(['creator', 'organization', 'department', 'category', 'assignees']);
         $task->assignees->each(fn ($employee) => $employee->user?->notify(new TaskReopened($task)));
 
         return $this->success(new TaskResource($task), 'Vazifa qayta ochildi.');
@@ -273,6 +288,36 @@ class TaskController extends Controller
         $this->recordActivity->handle($task, $user, 'cancelled', "{$user->name} vazifani bekor qildi.");
         $this->auditLog->log('cancelled', 'tasks', $task);
 
-        return $this->success(new TaskResource($task->load(['creator', 'organization', 'department', 'assignees'])), 'Vazifa bekor qilindi.');
+        return $this->success(new TaskResource($task->load(['creator', 'organization', 'department', 'category', 'assignees'])), 'Vazifa bekor qilindi.');
+    }
+
+    /**
+     * The visible tasks narrowed by the request's filters — shared by the
+     * list and its status counts so the two can never disagree. `mine`
+     * narrows to tasks assigned to (`assigned`) or created by (`created`)
+     * the current user.
+     */
+    private function filteredTasks(): QueryBuilder
+    {
+        $user = request()->user();
+
+        return QueryBuilder::for(Task::query()->visibleTo($user))
+            ->allowedFilters(
+                'status',
+                'priority',
+                AllowedFilter::exact('organization_id'),
+                AllowedFilter::exact('department_id'),
+                AllowedFilter::exact('task_category_id'),
+                AllowedFilter::partial('search', 'title'),
+                AllowedFilter::callback(
+                    'assignee_id',
+                    fn ($query, $value) => $query->whereHas('assignees', fn ($assigneeQuery) => $assigneeQuery->where('employees.id', $value))
+                ),
+                AllowedFilter::callback('mine', fn ($query, $value) => match ($value) {
+                    'assigned' => $query->whereHas('assignees', fn ($assigneeQuery) => $assigneeQuery->where('employees.id', $user->employee?->id)),
+                    'created' => $query->where('creator_id', $user->id),
+                    default => $query,
+                }),
+            );
     }
 }

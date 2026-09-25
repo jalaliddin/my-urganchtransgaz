@@ -3,9 +3,12 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
+import { absenceService } from '@/services/absenceService'
 import { announcementService } from '@/services/announcementService'
 import { examService } from '@/services/examService'
 import { taskService } from '@/services/taskService'
+import { useAuthStore } from '@/stores/auth'
+import { absenceCategory, CATEGORY_COLOR } from '@/utils/absences'
 
 interface CalendarEvent {
   date: string
@@ -21,6 +24,7 @@ interface CalendarCell {
 }
 
 const { t, tm } = useI18n()
+const auth = useAuthStore()
 
 /**
  * Local calendar date, not toISOString().slice(0, 10) — see
@@ -85,22 +89,24 @@ const events = ref<CalendarEvent[]>([])
 
 /**
  * Aggregates from the same list endpoints each source page already
- * uses (tasks/exams/announcements) instead of a dedicated backend
- * endpoint — this inherits each module's existing visibility/scoping
- * exactly as already enforced there, with no separate authorization
- * logic to keep in sync. There is no date-ranged vacation/business-trip
- * record to place on a calendar (Employee.status is a point-in-time
- * state, not a date range — the earlier Leave Requests/Business Trips
- * module that tracked date ranges was deliberately removed), so those
- * are intentionally not shown here.
+ * uses (tasks/exams/announcements/absences) instead of a dedicated
+ * backend endpoint — this inherits each module's existing
+ * visibility/scoping exactly as already enforced there, with no
+ * separate authorization logic to keep in sync. Absences are the
+ * viewer's own only: this is a personal calendar, and the absences page
+ * already has a month schedule for a whole team.
  */
 async function loadEvents() {
   loading.value = true
+  const ownEmployeeId = auth.user?.employee?.id
   try {
-    const [tasksResult, examsResult, announcementsResult] = await Promise.all([
+    const [tasksResult, examsResult, announcementsResult, absencesResult] = await Promise.all([
       taskService.list({ per_page: 100 }),
       examService.list({ per_page: 100 }),
       announcementService.list({ per_page: 100 }),
+      ownEmployeeId
+        ? absenceService.list({ 'filter[employee_id]': ownEmployeeId, 'filter[state]': 'active', per_page: 100 })
+        : Promise.resolve({ data: [] }),
     ])
 
     const list: CalendarEvent[] = []
@@ -134,6 +140,21 @@ async function loadEvents() {
         color: 'info',
         to: { name: 'announcement-detail', params: { id: announcement.id } },
       })
+    }
+
+    for (const absence of absencesResult.data) {
+      const day = new Date(`${absence.start_date}T00:00:00`)
+      const end = new Date(`${absence.end_date}T00:00:00`)
+      while (day <= end) {
+        list.push({
+          date: toLocalDateString(day),
+          title: t(`absences.types.${absence.type}`),
+          label: absence.destination ?? t(`absences.categories.${absenceCategory(absence.type)}`),
+          color: CATEGORY_COLOR[absenceCategory(absence.type)],
+          to: { name: 'absences' },
+        })
+        day.setDate(day.getDate() + 1)
+      }
     }
 
     events.value = list

@@ -41,48 +41,23 @@ class IssueController extends Controller
      * "my reported issues" (department-manager) and the leadership map
      * (Technical Policy Service / central-admin / super-admin): the
      * latter simply gets every row back, filtered client-side to
-     * `status=open` for the map. Never `.when()` on this QueryBuilder —
-     * see the Phase 7/9 gotcha (Spatie's QueryBuilder forwards `when()`
-     * to the underlying Eloquent builder, silently downgrading the
-     * chain) — plain `if` statements instead.
+     * `status=open` for the map. The role scoping is `Issue::visibleTo()`,
+     * applied to the base query before Spatie's QueryBuilder wraps it.
      */
     public function index(): JsonResponse
     {
         Gate::authorize('viewAny', Issue::class);
 
-        $user = request()->user();
-
-        $query = QueryBuilder::for(Issue::class)
+        $query = QueryBuilder::for(Issue::query()->visibleTo(request()->user()))
             ->with(['reporter', 'organization', 'department', 'category', 'executors'])
             ->allowedFilters(
                 AllowedFilter::exact('status'),
                 AllowedFilter::exact('issue_category_id'),
                 AllowedFilter::exact('organization_id'),
                 AllowedFilter::exact('executor_id', 'executors.id'),
+                AllowedFilter::partial('search', 'title'),
             )
             ->defaultSort('-created_at');
-
-        if (! $this->isLeadership($user)) {
-            $employee = $user->employee;
-
-            // Below leadership: what you reported or are executing — plus,
-            // for a department-manager, what their department raised or is
-            // executing, and for an organization-admin their whole
-            // organization. `IssuePolicy::view()` mirrors this exactly.
-            $query->where(function ($scope) use ($user, $employee) {
-                $scope->where('reporter_employee_id', $employee?->id ?? 0)
-                    ->orWhereHas('executors', fn ($executors) => $executors->whereKey($employee?->id ?? 0));
-
-                if ($user->hasRole('organization-admin') && $employee) {
-                    $scope->orWhere('organization_id', $employee->organization_id);
-                }
-
-                if ($user->hasRole('department-manager') && $employee?->department_id) {
-                    $scope->orWhere('department_id', $employee->department_id)
-                        ->orWhereHas('executors', fn ($executors) => $executors->where('employees.department_id', $employee->department_id));
-                }
-            });
-        }
 
         $issues = $query->paginate(request()->integer('per_page', 50));
 
@@ -269,12 +244,5 @@ class IssueController extends Controller
             new IssueResource($issue->load(['reporter', 'organization', 'department', 'category', 'executors', 'resolvedBy'])),
             'Muammo bartaraf etildi.'
         );
-    }
-
-    private function isLeadership(User $user): bool
-    {
-        return $user->hasRole('technical-policy')
-            || $user->hasRole('central-admin')
-            || $user->hasRole('super-admin');
     }
 }

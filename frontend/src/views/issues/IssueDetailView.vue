@@ -6,6 +6,7 @@ import LeafletMap, { type MapMarker } from '@/components/issues/LeafletMap.vue'
 import { issueService } from '@/services/issueService'
 import { useAuthStore } from '@/stores/auth'
 import type { Issue } from '@/types/models'
+import { formatDateTime } from '@/utils/date'
 
 const route = useRoute()
 const router = useRouter()
@@ -86,13 +87,21 @@ function goBack() {
             </div>
             <p class="text-body-1 mb-4">{{ issue.description || '—' }}</p>
 
-            <LeafletMap :markers="marker" :center="[issue.latitude, issue.longitude]" :zoom="14" :height="260" />
+            <LeafletMap
+              :markers="marker"
+              :center="[issue.latitude, issue.longitude]"
+              :zoom="15"
+              :height="300"
+              :fit-to-markers="false"
+              :details-button="false"
+              :legend="[]"
+            />
 
             <div v-if="issue.status === 'resolved'" class="mt-4">
               <div class="text-subtitle-2 text-medium-emphasis">{{ $t('issues.resolutionNote') }}</div>
               <p class="text-body-2">{{ issue.resolution_note }}</p>
               <div class="text-caption text-medium-emphasis">
-                {{ $t('issues.resolvedBy') }}: {{ issue.resolved_by_name }} · {{ issue.resolved_at }}
+                {{ $t('issues.resolvedBy') }}: {{ issue.resolved_by_name }} · {{ formatDateTime(issue.resolved_at) }}
               </div>
             </div>
 
@@ -144,7 +153,7 @@ function goBack() {
           <v-timeline density="compact" side="end" class="pa-4">
             <v-timeline-item v-for="activity in issue.activities" :key="activity.id" size="x-small" dot-color="primary">
               <div class="text-body-2">{{ activity.description }}</div>
-              <div class="text-caption text-medium-emphasis">{{ activity.created_at }}</div>
+              <div class="text-caption text-medium-emphasis">{{ formatDateTime(activity.created_at) }}</div>
             </v-timeline-item>
           </v-timeline>
           <AppEmptyState v-if="!issue.activities?.length" icon="mdi-history" />

@@ -116,7 +116,11 @@ docker compose run --rm artisan migrate --force
 ```bash
 docker compose run --rm artisan db:seed --class=RolePermissionSeeder --force
 docker compose run --rm artisan db:seed --class=DocumentTypeSeeder --force
+docker compose run --rm artisan db:seed --class=IssueCategorySeeder --force
+docker compose run --rm artisan db:seed --class=TaskCategorySeeder --force
 ```
+
+> `IssueCategorySeeder` va `TaskCategorySeeder` — muammo va topshiriq kategoriyalarining boshlang'ich ro'yxati (keyin ilova ichida tahrirlanadi). Muammo qayd etish formasi kategoriyasiz ishlamaydi, shuning uchun `IssueCategorySeeder` majburiy.
 
 > `Organization/Department/Position/EmployeeSeeder` (oddiy `db:seed --force` shularni ham ishga tushiradi) — demo ma'lumotlar, haqiqiy production bazaga **ishlatmang**. Haqiqiy tashkilot/bo'lim/xodimlarni ilova ichidan yoki CSV import orqali qo'shing.
 
@@ -377,6 +381,14 @@ docker compose run --rm artisan migrate --force   # faqat yangi migratsiyalar bo
 docker compose up -d
 ```
 
+Yangi rol ruxsatlari (masalan, `issues.report`, `task_categories.manage`) migratsiya orqali mavjud rollarga avtomatik qo'shiladi — `RolePermissionSeeder`ni qayta ishga tushirish shart emas. Agar relizda yangi reference-seeder paydo bo'lsa, uni bir marta ishga tushiring; masalan, topshiriq kategoriyalari qo'shilgan reliz uchun:
+
+```bash
+docker compose run --rm artisan db:seed --class=TaskCategorySeeder --force
+```
+
+Reference-seederlar `firstOrCreate` bilan yozilgan, ularni qayta ishga tushirish mavjud yozuvlarni takrorlamaydi va o'zgartirmaydi.
+
 Eski, endi ishlatilmayotgan imijlarni vaqti-vaqti bilan tozalash:
 
 ```bash
@@ -409,7 +421,7 @@ sudo systemctl enable docker
 - [ ] `ufw`: faqat 22/80/443 ochiq
 - [ ] `.env`: kuchli `DB_PASSWORD`, `MYSQL_ROOT_PASSWORD`, to'g'ri `APP_KEY`
 - [ ] `APP_DEBUG=false`
-- [ ] Migratsiya + `RolePermissionSeeder` + `DocumentTypeSeeder` bajarilgan
+- [ ] Migratsiya + `RolePermissionSeeder` + `DocumentTypeSeeder` + `IssueCategorySeeder` + `TaskCategorySeeder` bajarilgan
 - [ ] Demo seederlar (`OrganizationSeeder` va h.k.) **ishlatilmagan**
 - [ ] Birinchi super-admin qo'lda yaratilgan
 - [ ] HTTPS ishlayapti, `http://` avtomatik `https://` ga yo'naltiriladi

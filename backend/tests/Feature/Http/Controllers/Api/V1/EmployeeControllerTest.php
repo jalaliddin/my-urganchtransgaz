@@ -564,3 +564,20 @@ it('exports employees as pdf', function () {
     $response->assertOk();
     expect($response->headers->get('Content-Type'))->toContain('application/pdf');
 });
+
+it('finds employees by last name or personnel number, not just first name', function () {
+    $hr = userWithRole('hr', Organization::factory()->create());
+    $byLastName = Employee::factory()->create(['last_name' => 'Saidov', 'first_name' => 'Jamshid']);
+    $byNumber = Employee::factory()->create(['employee_number' => 'T-90417']);
+    Employee::factory()->create(['last_name' => 'Karimov', 'first_name' => 'Bekzod', 'employee_number' => 'T-11111']);
+
+    $this->actingAs($hr, 'sanctum')->getJson('/api/v1/employees?filter[search]=Saidov')
+        ->assertOk()
+        ->assertJsonPath('meta.total', 1)
+        ->assertJsonPath('data.0.id', $byLastName->id);
+
+    $this->actingAs($hr, 'sanctum')->getJson('/api/v1/employees?filter[search]=90417')
+        ->assertOk()
+        ->assertJsonPath('meta.total', 1)
+        ->assertJsonPath('data.0.id', $byNumber->id);
+});

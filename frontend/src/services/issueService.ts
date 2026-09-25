@@ -1,7 +1,7 @@
 import { createResourceService } from '@/services/resourceService'
 import { http } from '@/services/http'
 import type { ApiSuccessResponse } from '@/types/api'
-import type { Issue, IssueComment, IssueExecutorCandidate, IssueOptions } from '@/types/models'
+import type { Issue, IssueComment, IssueExecutorCandidate, IssueOptions, IssueReport, IssueReportFilters } from '@/types/models'
 
 export interface IssuePayload {
   title: string
@@ -42,4 +42,28 @@ export const issueService = {
     const { data } = await http.post<ApiSuccessResponse<IssueComment>>(`/issues/${issueId}/comments`, { body })
     return data.data
   },
+
+  async report(filters: IssueReportFilters): Promise<IssueReport> {
+    const { data } = await http.get<ApiSuccessResponse<IssueReport>>('/issues/report', { params: compact(filters) })
+    return data.data
+  },
+
+  async exportReport(filters: IssueReportFilters, format: 'csv' | 'xlsx' | 'pdf'): Promise<void> {
+    const response = await http.get('/issues/report', {
+      params: { ...compact(filters), export: format },
+      responseType: 'blob',
+    })
+    const url = URL.createObjectURL(response.data as Blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `muammolar-hisoboti.${format}`
+    link.click()
+    URL.revokeObjectURL(url)
+  },
+}
+
+function compact(filters: IssueReportFilters): Record<string, string | number> {
+  return Object.fromEntries(
+    Object.entries(filters).filter(([, value]) => value !== null && value !== undefined && value !== ''),
+  ) as Record<string, string | number>
 }

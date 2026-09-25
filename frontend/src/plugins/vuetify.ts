@@ -22,6 +22,7 @@ export const vuetify = createVuetify({
           surface: '#FFFFFF',
           sidebar: '#111C33',
           'sidebar-active': '#1E3A5F',
+          'absence-other': '#7B6FA8',
           // The corporate flame mark's leaf green (matches the mobile app's
           // `AppTheme._brandGreen`) — a genuine brand accent, kept separate
           // from Vuetify's own duller Material "success" green so it reads
@@ -43,6 +44,7 @@ export const vuetify = createVuetify({
           surface: '#181C22',
           sidebar: '#0B1220',
           'sidebar-active': '#1E3A5F',
+          'absence-other': '#7B6FA8',
           'brand-accent': '#9ACC48',
           success: '#4CAF50',
           warning: '#FFA726',

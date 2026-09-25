@@ -245,5 +245,35 @@
     "placeholders": {"count": {"type": "int"}}
   },
   "notificationsChannelName": "Bildirishnomalar",
-  "notificationsChannelDescription": "Topshiriqlar, muammolar va e'lonlar haqida xabarlar"
+  "notificationsChannelDescription": "Topshiriqlar, muammolar va e'lonlar haqida xabarlar",
+  "absencesTitle": "Ta'til va safarlar",
+  "absencesBalanceTitle": "{year}-yil yillik ta'tili",
+  "@absencesBalanceTitle": {
+    "placeholders": {"year": {"type": "int"}}
+  },
+  "absencesRemaining": "Qoldi",
+  "absencesUsed": "Ishlatilgan",
+  "absencesEntitlement": "Jami",
+  "absencesNone": "Hozircha yozuv yo'q",
+  "absencesDays": "{count} kun",
+  "@absencesDays": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "absencesCancelledReason": "Bekor qilindi: {reason}",
+  "@absencesCancelledReason": {
+    "placeholders": {"reason": {"type": "String"}}
+  },
+  "absenceTypeAnnualLeave": "Yillik mehnat ta'tili",
+  "absenceTypeUnpaidLeave": "Haq to'lanmaydigan ta'til",
+  "absenceTypeStudyLeave": "O'quv ta'tili",
+  "absenceTypeMaternityLeave": "Homiladorlik va tug'ish ta'tili",
+  "absenceTypeChildcareLeave": "Bola parvarishi ta'tili",
+  "absenceTypeSickLeave": "Kasallik varaqasi",
+  "absenceTypeBusinessTrip": "Xizmat safari",
+  "absenceTypeOther": "Boshqa sababli yo'qlik",
+  "absenceStateUpcoming": "Rejalashtirilgan",
+  "absenceStateCurrent": "Amalda",
+  "absenceStateCompleted": "Yakunlangan",
+  "absenceStateCancelled": "Bekor qilingan",
+  "calendarAbsence": "Ta'til / safar"
 }

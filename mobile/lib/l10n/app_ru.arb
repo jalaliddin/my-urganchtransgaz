@@ -245,5 +245,35 @@
     "placeholders": {"count": {"type": "int"}}
   },
   "notificationsChannelName": "Уведомления",
-  "notificationsChannelDescription": "Сообщения о задачах, проблемах и объявлениях"
+  "notificationsChannelDescription": "Сообщения о задачах, проблемах и объявлениях",
+  "absencesTitle": "Отпуска и командировки",
+  "absencesBalanceTitle": "Ежегодный отпуск за {year} год",
+  "@absencesBalanceTitle": {
+    "placeholders": {"year": {"type": "int"}}
+  },
+  "absencesRemaining": "Осталось",
+  "absencesUsed": "Использовано",
+  "absencesEntitlement": "Положено",
+  "absencesNone": "Записей пока нет",
+  "absencesDays": "{count} дн.",
+  "@absencesDays": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "absencesCancelledReason": "Отменено: {reason}",
+  "@absencesCancelledReason": {
+    "placeholders": {"reason": {"type": "String"}}
+  },
+  "absenceTypeAnnualLeave": "Ежегодный трудовой отпуск",
+  "absenceTypeUnpaidLeave": "Отпуск без сохранения зарплаты",
+  "absenceTypeStudyLeave": "Учебный отпуск",
+  "absenceTypeMaternityLeave": "Отпуск по беременности и родам",
+  "absenceTypeChildcareLeave": "Отпуск по уходу за ребёнком",
+  "absenceTypeSickLeave": "Больничный лист",
+  "absenceTypeBusinessTrip": "Командировка",
+  "absenceTypeOther": "Отсутствие по другой уважительной причине",
+  "absenceStateUpcoming": "Запланировано",
+  "absenceStateCurrent": "Действует",
+  "absenceStateCompleted": "Завершено",
+  "absenceStateCancelled": "Отменено",
+  "calendarAbsence": "Отпуск / командировка"
 }

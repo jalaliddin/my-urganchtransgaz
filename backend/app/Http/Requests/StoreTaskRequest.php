@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\ActiveStatus;
 use App\Enums\TaskPriority;
 use App\Models\Employee;
 use App\Policies\Concerns\ChecksOrganizationScope;
@@ -57,6 +58,10 @@ class StoreTaskRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'organization_id' => ['nullable', 'integer', Rule::exists('organizations', 'id')],
             'department_id' => ['nullable', 'integer', Rule::exists('departments', 'id')],
+            'task_category_id' => [
+                'nullable', 'integer',
+                Rule::exists('task_categories', 'id')->where('status', ActiveStatus::Active->value),
+            ],
             'priority' => ['nullable', Rule::enum(TaskPriority::class)],
             'start_date' => ['nullable', 'date'],
             'due_date' => ['nullable', 'date', 'after_or_equal:start_date'],

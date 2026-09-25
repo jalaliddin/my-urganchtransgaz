@@ -6,6 +6,7 @@ use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'title', 'description', 'creator_id', 'organization_id', 'department_id',
+    'task_category_id',
     'priority', 'status', 'start_date', 'due_date', 'completed_at',
     'progress', 'result',
 ])]
@@ -21,6 +23,41 @@ class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */
     use HasFactory;
+
+    /**
+     * Tasks this user may see in lists and counts: everything for a central
+     * role; otherwise what they created or are assigned to, plus — with
+     * `tasks.view` — their organization's tasks (only their department's
+     * for a department-manager). `TaskPolicy::view()` mirrors this rule.
+     */
+    public function scopeVisibleTo(Builder $query, User $user): void
+    {
+        if ($user->hasCentralAccess()) {
+            return;
+        }
+
+        $employee = $user->employee;
+
+        $query->where(function ($involvedOrScoped) use ($user, $employee) {
+            $involvedOrScoped->where('creator_id', $user->id)
+                ->orWhereHas('assignees', fn ($assigneeQuery) => $assigneeQuery->where('employees.id', $employee?->id));
+
+            if ($user->can('tasks.view')) {
+                $involvedOrScoped->orWhere(function ($orgQuery) use ($user, $employee) {
+                    $orgQuery->where('organization_id', $employee?->organization_id);
+
+                    if ($user->hasRole('department-manager')) {
+                        $orgQuery->where('department_id', $employee?->department_id);
+                    }
+                });
+            }
+        });
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(TaskCategory::class, 'task_category_id');
+    }
 
     public function creator(): BelongsTo
     {

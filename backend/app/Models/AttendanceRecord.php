@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'employee_id', 'date', 'check_in', 'check_out',
-    'worked_minutes', 'status', 'source', 'notes',
+    'worked_minutes', 'status', 'source', 'employee_absence_id', 'notes',
 ])]
 class AttendanceRecord extends Model
 {
@@ -22,6 +22,11 @@ class AttendanceRecord extends Model
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function absence(): BelongsTo
+    {
+        return $this->belongsTo(EmployeeAbsence::class, 'employee_absence_id');
     }
 
     /**

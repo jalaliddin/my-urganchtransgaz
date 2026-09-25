@@ -11,6 +11,7 @@ enum AttendanceStatus: string
     case BusinessTrip = 'business_trip';
     case Vacation = 'vacation';
     case SickLeave = 'sick_leave';
+    case Excused = 'excused';
 
     /**
      * The single-letter/short code a printed monthly tabel (timesheet)
@@ -28,6 +29,7 @@ enum AttendanceStatus: string
             self::BusinessTrip => 'X',
             self::Vacation => 'T',
             self::SickLeave => 'B',
+            self::Excused => 'S',
         };
     }
 }

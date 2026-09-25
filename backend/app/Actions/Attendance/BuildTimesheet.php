@@ -100,6 +100,7 @@ class BuildTimesheet
             'business_trip_count' => 0,
             'vacation_count' => 0,
             'sick_leave_count' => 0,
+            'excused_count' => 0,
             'total_worked_minutes' => 0,
         ];
     }

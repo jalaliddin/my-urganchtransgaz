@@ -83,6 +83,11 @@ const allNavGroups: NavGroup[] = [
         permission: 'attendance.view',
       },
       {
+        title: 'nav.absences',
+        icon: 'mdi-calendar-account-outline',
+        to: '/absences',
+      },
+      {
         title: 'nav.documents',
         icon: 'mdi-file-document-outline',
         to: '/documents',
@@ -139,12 +144,24 @@ const allNavGroups: NavGroup[] = [
         to: '/issue-categories',
         permission: 'issue_categories.manage',
       },
+      {
+        title: 'nav.taskCategories',
+        icon: 'mdi-shape-outline',
+        to: '/task-categories',
+        permission: 'task_categories.manage',
+      },
     ],
   },
   {
     header: 'nav.groupReports',
     items: [
       { title: 'nav.reports', icon: 'mdi-chart-box-outline', to: '/reports' },
+      {
+        title: 'nav.issuesReport',
+        icon: 'mdi-map-search-outline',
+        to: '/issues/report',
+        permission: 'issues.report',
+      },
     ],
   },
   {

@@ -125,7 +125,10 @@
     "groupReports": "Reports",
     "groupSystem": "System",
     "reports": "Reports",
-    "calendar": "Calendar"
+    "calendar": "Calendar",
+    "absences": "Leave & absences",
+    "taskCategories": "Task categories",
+    "issuesReport": "Issues map report"
   },
   "auth": {
     "login": "Login",
@@ -194,7 +197,8 @@
     "failed": "Failed",
     "not_taken": "Not taken",
     "open": "Open",
-    "resolved": "Resolved"
+    "resolved": "Resolved",
+    "excused": "Excused"
   },
   "organizations": {
     "title": "Organizations",
@@ -349,7 +353,21 @@
     "addComment": "Write a comment",
     "attachments": "Attachments",
     "creator": "Creator",
-    "activity": "History"
+    "activity": "History",
+    "category": "Category",
+    "allCategories": "All categories",
+    "noCategory": "Uncategorized",
+    "startDate": "Start date",
+    "editTask": "Edit task",
+    "all": "All",
+    "mineAll": "All tasks",
+    "mineAssigned": "Assigned to me",
+    "mineCreated": "Created by me",
+    "allPriorities": "All priorities",
+    "overdueBy": "{n} days overdue",
+    "dueToday": "Due today",
+    "daysLeft": "{n} days left",
+    "noTasks": "No tasks found"
   },
   "attendance": {
     "tabToday": "Today",
@@ -488,7 +506,13 @@
     "noCandidates": "No employee in this organization can be made an executor",
     "executors": "Executors",
     "selectExecutors": "Pick one or more executors",
-    "noExecutors": "No executor assigned"
+    "noExecutors": "No executor assigned",
+    "report": "Report",
+    "searchByTitle": "Search by title",
+    "showingLimited": "The map shows the latest {shown} issues ({total} in total).",
+    "openDays": "Open for {n} days",
+    "reportedAt": "Reported",
+    "showOnMap": "Show on map"
   },
   "search": {
     "placeholder": "Search...",
@@ -540,7 +564,10 @@
     "lateGraceMinutes": "Late grace (minutes)",
     "earlyLeaveGraceMinutes": "Early leave grace (minutes)",
     "workingDays": "Working days",
-    "timezone": "Timezone"
+    "timezone": "Timezone",
+    "absences": "Leave",
+    "annualLeaveDays": "Annual leave (calendar days)",
+    "annualLeaveDaysHint": "The Labour Code sets at least 21 calendar days"
   },
   "reports": {
     "employeeDistribution": "Employee distribution",
@@ -559,7 +586,9 @@
       "kpiReportText": "Average score by department for the selected period.",
       "systemGroup": "System",
       "auditLog": "Audit log",
-      "auditLogText": "The full history of every significant action in the system."
+      "auditLogText": "The full history of every significant action in the system.",
+      "issuesReport": "Issues map",
+      "issuesReportText": "Issues on a map and by organization and category — open, resolved, and long-waiting ones."
     }
   },
   "issueCategories": {
@@ -607,5 +636,120 @@
     "examStart": "Exam starts",
     "examEnd": "Exam ends",
     "announcementPublish": "Announcement"
+  },
+  "absences": {
+    "title": "Leave & absences",
+    "myTitle": "My leave",
+    "create": "New record",
+    "edit": "Edit record",
+    "employee": "Employee",
+    "type": "Type",
+    "period": "Period",
+    "startDate": "Starts",
+    "endDate": "Ends",
+    "days": "{count} days",
+    "documentNumber": "Order / certificate number",
+    "documentDate": "Order date",
+    "destination": "Trip destination",
+    "notes": "Notes",
+    "file": "Copy of the order or certificate",
+    "currentFile": "Attached file: {name}",
+    "state": "State",
+    "cancel": "Cancel record",
+    "cancelTitle": "Cancel this record",
+    "cancelHint": "A cancelled record stays in the history, but it no longer excuses any day or counts toward the leave balance.",
+    "cancelReason": "Reason",
+    "cancelledReason": "Cancelled: {reason}",
+    "awayToday": "Away today",
+    "nobodyAway": "Everyone is in today",
+    "list": "List",
+    "schedule": "Month schedule",
+    "scheduleEmpty": "No records this month",
+    "allTypes": "All types",
+    "allStates": "All states",
+    "balanceTitle": "Annual leave {year}",
+    "balanceEntitlement": "Entitled",
+    "balanceUsed": "Used",
+    "balanceRemaining": "Left",
+    "balanceHint": "{year}: {used} of {entitlement} days used, {remaining} left.",
+    "overEntitlement": "This record takes annual leave {over} days over the entitlement.",
+    "noAbsences": "No records yet",
+    "searchEmployee": "Name or personnel number",
+    "legend": "Codes: T — leave, X — business trip, B — sick, S — other reason",
+    "types": {
+      "annual_leave": "Annual leave",
+      "unpaid_leave": "Unpaid leave",
+      "study_leave": "Study leave",
+      "maternity_leave": "Maternity leave",
+      "childcare_leave": "Childcare leave",
+      "sick_leave": "Sick leave",
+      "business_trip": "Business trip",
+      "other": "Other excused absence"
+    },
+    "categories": {
+      "vacation": "On leave",
+      "business_trip": "On a business trip",
+      "sick_leave": "On sick leave",
+      "excused": "Other reason"
+    },
+    "states": {
+      "upcoming": "Upcoming",
+      "current": "In effect",
+      "completed": "Ended",
+      "cancelled": "Cancelled"
+    }
+  },
+  "taskCategories": {
+    "title": "Task categories",
+    "name": "Name",
+    "color": "Color",
+    "sortOrder": "Sort order",
+    "tasksCount": "Tasks",
+    "hint": "Tasks are grouped and filtered by these categories. A category used by tasks can't be deleted — deactivate it instead.",
+    "deleteUsed": "This category is used by tasks and can't be deleted. Deactivate it instead."
+  },
+  "map": {
+    "openDetails": "Details",
+    "street": "Map",
+    "satellite": "Satellite",
+    "fullscreen": "Full screen",
+    "exitFullscreen": "Exit full screen",
+    "fitAll": "Show all points",
+    "myLocation": "My location",
+    "locationFailed": "Couldn't determine your location. Allow location access in the browser."
+  },
+  "issueReport": {
+    "title": "Issues map report",
+    "dateFrom": "From",
+    "dateTo": "To",
+    "presetMonth": "This month",
+    "preset3Months": "3 months",
+    "presetYear": "12 months",
+    "presetAll": "All time",
+    "allOrganizations": "All organizations",
+    "total": "Total issues",
+    "open": "Open",
+    "resolved": "Resolved",
+    "stale": "Open over {days} days",
+    "resolutionRate": "Resolution rate",
+    "avgResolution": "Average time to resolve",
+    "hours": "{n} h",
+    "days": "{n} d",
+    "mapPoints": "Points",
+    "mapBubbles": "By organization",
+    "openOnly": "Open only",
+    "byOrganization": "By organization",
+    "byCategory": "By category",
+    "monthlyTrend": "Monthly trend",
+    "created": "Reported",
+    "organization": "Organization",
+    "category": "Category",
+    "noCategory": "Uncategorized",
+    "pointsTruncated": "The map shows the latest {n} issues.",
+    "empty": "No issues in the selected period",
+    "showTable": "Table",
+    "showChart": "Chart",
+    "month": "Month",
+    "bubbleLegend": "Circle size shows the number of issues"
   }
 }

@@ -702,4 +702,73 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get notificationsChannelDescription =>
       'Сообщения о задачах, проблемах и объявлениях';
+
+  @override
+  String get absencesTitle => 'Отпуска и командировки';
+
+  @override
+  String absencesBalanceTitle(int year) {
+    return 'Ежегодный отпуск за $year год';
+  }
+
+  @override
+  String get absencesRemaining => 'Осталось';
+
+  @override
+  String get absencesUsed => 'Использовано';
+
+  @override
+  String get absencesEntitlement => 'Положено';
+
+  @override
+  String get absencesNone => 'Записей пока нет';
+
+  @override
+  String absencesDays(int count) {
+    return '$count дн.';
+  }
+
+  @override
+  String absencesCancelledReason(String reason) {
+    return 'Отменено: $reason';
+  }
+
+  @override
+  String get absenceTypeAnnualLeave => 'Ежегодный трудовой отпуск';
+
+  @override
+  String get absenceTypeUnpaidLeave => 'Отпуск без сохранения зарплаты';
+
+  @override
+  String get absenceTypeStudyLeave => 'Учебный отпуск';
+
+  @override
+  String get absenceTypeMaternityLeave => 'Отпуск по беременности и родам';
+
+  @override
+  String get absenceTypeChildcareLeave => 'Отпуск по уходу за ребёнком';
+
+  @override
+  String get absenceTypeSickLeave => 'Больничный лист';
+
+  @override
+  String get absenceTypeBusinessTrip => 'Командировка';
+
+  @override
+  String get absenceTypeOther => 'Отсутствие по другой уважительной причине';
+
+  @override
+  String get absenceStateUpcoming => 'Запланировано';
+
+  @override
+  String get absenceStateCurrent => 'Действует';
+
+  @override
+  String get absenceStateCompleted => 'Завершено';
+
+  @override
+  String get absenceStateCancelled => 'Отменено';
+
+  @override
+  String get calendarAbsence => 'Отпуск / командировка';
 }

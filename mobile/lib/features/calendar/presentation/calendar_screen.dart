@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../absences/domain/employee_absence.dart';
+import '../../absences/presentation/absences_screen.dart';
 import '../domain/calendar_event.dart';
 import 'calendar_controller.dart';
 
@@ -86,12 +88,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     return [for (var i = 0; i < cells.length; i += 7) cells.sublist(i, i + 7)];
   }
 
-  Color _eventColor(BuildContext context, CalendarEventType type) {
+  Color _eventColor(BuildContext context, CalendarEvent event) {
     final colorScheme = Theme.of(context).colorScheme;
-    return switch (type) {
+    return switch (event.type) {
       CalendarEventType.taskDue => colorScheme.tertiary,
       CalendarEventType.examStart || CalendarEventType.examEnd => colorScheme.primary,
       CalendarEventType.announcement => colorScheme.secondary,
+      CalendarEventType.absence => categoryColor(context, absenceCategoryOf(event.absenceType ?? '')),
     };
   }
 
@@ -101,6 +104,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       CalendarEventType.examStart => l10n.calendarExamStart,
       CalendarEventType.examEnd => l10n.calendarExamEnd,
       CalendarEventType.announcement => l10n.calendarAnnouncement,
+      CalendarEventType.absence => l10n.calendarAbsence,
     };
   }
 
@@ -171,7 +175,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                               isToday: day == today,
                               isSelected: day == _selectedDate,
                               dotColors: (byDate[day] ?? const [])
-                                  .map((e) => _eventColor(context, e.type))
+                                  .map((e) => _eventColor(context, e))
                                   .toSet()
                                   .toList(),
                               onTap: () => setState(() => _selectedDate = day),
@@ -197,9 +201,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         children: [
                           for (final event in selectedEvents)
                             ListTile(
-                              leading: CircleAvatar(radius: 6, backgroundColor: _eventColor(context, event.type)),
-                              title: Text(event.title),
-                              subtitle: Text(_eventLabel(l10n, event.type)),
+                              leading: CircleAvatar(radius: 6, backgroundColor: _eventColor(context, event)),
+                              title: Text(
+                                event.absenceType != null ? absenceTypeLabel(l10n, event.absenceType!) : event.title,
+                              ),
+                              subtitle: Text(
+                                event.absenceType != null && event.title.isNotEmpty ? event.title : _eventLabel(l10n, event.type),
+                              ),
                               onTap: () => context.push(event.route),
                             ),
                         ],

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\Absences\CalculateLeaveBalance;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Services\AuditLogService;
@@ -32,6 +33,7 @@ class SettingsController extends Controller
         'attendance.working_days' => ['attendance', [1, 2, 3, 4, 5]],
         'documents.max_upload_kb' => ['documents', 10240],
         'exams.reminder_thresholds' => ['exams', [3, 1]],
+        'absences.annual_leave_days' => ['absences', CalculateLeaveBalance::DEFAULT_ANNUAL_LEAVE_DAYS],
     ];
 
     public function __construct(private AuditLogService $auditLog)

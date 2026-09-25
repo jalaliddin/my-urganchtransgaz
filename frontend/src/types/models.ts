@@ -14,6 +14,17 @@ export type AttendanceStatus =
   | 'business_trip'
   | 'vacation'
   | 'sick_leave'
+  | 'excused'
+export type AbsenceType =
+  | 'annual_leave'
+  | 'unpaid_leave'
+  | 'study_leave'
+  | 'maternity_leave'
+  | 'childcare_leave'
+  | 'sick_leave'
+  | 'business_trip'
+  | 'other'
+export type AbsenceState = 'upcoming' | 'current' | 'completed' | 'cancelled'
 export type AttendanceSource = 'biometric' | 'manual' | 'mobile' | 'web' | 'api' | 'system'
 export type TaskPriority = 'low' | 'normal' | 'high' | 'urgent'
 export type TaskStatus = 'new' | 'in_progress' | 'waiting' | 'completed' | 'cancelled' | 'overdue'
@@ -148,6 +159,38 @@ export interface EmployeeDocument {
   updated_at: string
 }
 
+export interface EmployeeAbsence {
+  id: number
+  employee_id: number
+  employee?: Employee
+  type: AbsenceType
+  type_label: string
+  start_date: string
+  end_date: string
+  days: number
+  state: AbsenceState
+  document_number: string | null
+  document_date: string | null
+  destination: string | null
+  notes: string | null
+  file_name: string | null
+  download_url: string | null
+  created_by: number | null
+  creator_name?: string | null
+  cancelled_at: string | null
+  cancellation_reason: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface LeaveBalance {
+  year: number
+  entitlement_days: number
+  used_days: number
+  remaining_days: number
+  days_by_type: Record<AbsenceType, number>
+}
+
 export interface EmployeeChangeRequest {
   id: number
   employee_id: number
@@ -206,6 +249,7 @@ export interface AttendanceReportRow {
   business_trip_count: number
   vacation_count: number
   sick_leave_count: number
+  excused_count: number
 }
 
 export interface TimesheetDayCell {
@@ -224,6 +268,7 @@ export interface TimesheetTotals {
   business_trip_count: number
   vacation_count: number
   sick_leave_count: number
+  excused_count: number
   total_worked_minutes: number
 }
 
@@ -282,6 +327,8 @@ export interface Task {
   organization?: Organization | null
   department_id: number | null
   department?: Department | null
+  task_category_id: number | null
+  category?: TaskCategory | null
 
   assignees?: Employee[]
 
@@ -505,7 +552,77 @@ export interface Announcement {
   updated_at: string
 }
 
+export interface TaskCategory {
+  id: number
+  name: string
+  code: string
+  color: string
+  sort_order: number
+  status: 'active' | 'inactive'
+  tasks_count?: number
+}
+
+export interface TaskSummary {
+  total: number
+  by_status: Record<TaskStatus, number>
+}
+
 export type IssueStatus = 'open' | 'resolved'
+
+export interface IssueReportTotals {
+  total: number
+  open_count: number
+  resolved_count: number
+  stale_open_count: number
+  resolution_rate: number
+  avg_resolution_hours: number | null
+}
+
+export interface IssueReportOrganizationRow extends IssueReportTotals {
+  organization_id: number
+  organization_name: string
+  latitude: number
+  longitude: number
+}
+
+export interface IssueReportCategoryRow {
+  issue_category_id: number | null
+  category_name: string | null
+  total: number
+  open_count: number
+  resolved_count: number
+}
+
+export interface IssueReportPoint {
+  id: number
+  title: string
+  object_name: string | null
+  status: IssueStatus
+  latitude: number
+  longitude: number
+  category: string | null
+  organization: string | null
+  created_at: string
+  resolved_at: string | null
+  open_days: number | null
+}
+
+export interface IssueReport {
+  totals: IssueReportTotals
+  by_organization: IssueReportOrganizationRow[]
+  by_category: IssueReportCategoryRow[]
+  monthly: { month: string; created: number; resolved: number }[]
+  points: IssueReportPoint[]
+  points_truncated: boolean
+  stale_after_days: number
+}
+
+export interface IssueReportFilters {
+  date_from?: string | null
+  date_to?: string | null
+  organization_id?: number | null
+  issue_category_id?: number | null
+}
 
 export interface IssueCategory {
   id: number
@@ -600,6 +717,7 @@ export interface SettingsValues {
   'attendance.working_days': number[]
   'documents.max_upload_kb': number
   'exams.reminder_thresholds': number[]
+  'absences.annual_leave_days': number
 }
 
 export interface SettingsResponse {

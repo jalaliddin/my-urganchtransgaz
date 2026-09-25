@@ -4,6 +4,7 @@ use App\Enums\TaskStatus;
 use App\Models\Employee;
 use App\Models\Organization;
 use App\Models\Task;
+use App\Models\TaskCategory;
 use App\Notifications\TaskApproved;
 use App\Notifications\TaskAssigned;
 use Database\Seeders\RolePermissionSeeder;
@@ -255,4 +256,163 @@ it('uploads and downloads a task attachment', function () {
         ->assertOk();
 
     $this->assertDatabaseHas('task_activities', ['task_id' => $task->id, 'action' => 'file_uploaded']);
+});
+
+it('creates a task in an active category and returns that category', function () {
+    $organization = Organization::factory()->create();
+    $manager = userWithRole('manager', $organization);
+    $assigneeUser = userWithRole('employee', $organization);
+    $category = TaskCategory::factory()->create(['name' => 'Ta\'mirlash ishlari']);
+
+    $response = $this->actingAs($manager, 'sanctum')->postJson('/api/v1/tasks', [
+        'title' => 'Quvurni ta\'mirlash',
+        'task_category_id' => $category->id,
+        'assignee_ids' => [$assigneeUser->employee->id],
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.task_category_id', $category->id)
+        ->assertJsonPath('data.category.name', 'Ta\'mirlash ishlari');
+    $this->assertDatabaseHas('tasks', ['title' => 'Quvurni ta\'mirlash', 'task_category_id' => $category->id]);
+});
+
+it('rejects an inactive category when creating a task with 422', function () {
+    $organization = Organization::factory()->create();
+    $manager = userWithRole('manager', $organization);
+    $assigneeUser = userWithRole('employee', $organization);
+    $inactive = TaskCategory::factory()->inactive()->create();
+
+    $this->actingAs($manager, 'sanctum')->postJson('/api/v1/tasks', [
+        'title' => 'Eski kategoriyada',
+        'task_category_id' => $inactive->id,
+        'assignee_ids' => [$assigneeUser->employee->id],
+    ])->assertUnprocessable()->assertJsonValidationErrors('task_category_id');
+
+    $this->assertDatabaseMissing('tasks', ['title' => 'Eski kategoriyada']);
+});
+
+it('lets an edited task keep a category that was deactivated after it was assigned', function () {
+    $organization = Organization::factory()->create();
+    $manager = userWithRole('manager', $organization);
+    $deactivatedSince = TaskCategory::factory()->inactive()->create();
+    $task = Task::factory()->create([
+        'creator_id' => $manager->id,
+        'organization_id' => $organization->id,
+        'task_category_id' => $deactivatedSince->id,
+    ]);
+
+    $this->actingAs($manager, 'sanctum')->putJson("/api/v1/tasks/{$task->id}", [
+        'title' => 'Yangilangan sarlavha',
+        'task_category_id' => $deactivatedSince->id,
+    ])->assertOk();
+
+    $this->assertDatabaseHas('tasks', ['id' => $task->id, 'title' => 'Yangilangan sarlavha', 'task_category_id' => $deactivatedSince->id]);
+});
+
+it('rejects switching an edited task to a different inactive category with 422', function () {
+    $organization = Organization::factory()->create();
+    $manager = userWithRole('manager', $organization);
+    $current = TaskCategory::factory()->create();
+    $otherInactive = TaskCategory::factory()->inactive()->create();
+    $task = Task::factory()->create([
+        'creator_id' => $manager->id,
+        'organization_id' => $organization->id,
+        'task_category_id' => $current->id,
+    ]);
+
+    $this->actingAs($manager, 'sanctum')->putJson("/api/v1/tasks/{$task->id}", ['task_category_id' => $otherInactive->id])
+        ->assertUnprocessable()->assertJsonValidationErrors('task_category_id');
+
+    $this->assertDatabaseHas('tasks', ['id' => $task->id, 'task_category_id' => $current->id]);
+});
+
+it('filters the task list by category', function () {
+    $organization = Organization::factory()->create();
+    $manager = userWithRole('manager', $organization);
+    $repair = TaskCategory::factory()->create();
+    $inCategory = Task::factory()->create(['organization_id' => $organization->id, 'task_category_id' => $repair->id]);
+    Task::factory()->create(['organization_id' => $organization->id]);
+
+    $response = $this->actingAs($manager, 'sanctum')->getJson("/api/v1/tasks?filter[task_category_id]={$repair->id}");
+
+    $response->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $inCategory->id)
+        ->assertJsonPath('data.0.category.id', $repair->id);
+});
+
+it('searches the task list by title', function () {
+    $organization = Organization::factory()->create();
+    $manager = userWithRole('manager', $organization);
+    $report = Task::factory()->create(['organization_id' => $organization->id, 'title' => 'Oylik hisobotni tayyorlash']);
+    Task::factory()->create(['organization_id' => $organization->id, 'title' => 'Quvurni tekshirish']);
+
+    $response = $this->actingAs($manager, 'sanctum')->getJson('/api/v1/tasks?filter[search]=hisobot');
+
+    $response->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $report->id);
+});
+
+it('narrows the list to tasks assigned to the current user with filter[mine]=assigned', function () {
+    $organization = Organization::factory()->create();
+    $manager = userWithRole('manager', $organization);
+    $assignedToMe = Task::factory()->create(['organization_id' => $organization->id]);
+    $assignedToMe->assignees()->attach($manager->employee->id);
+    Task::factory()->create(['organization_id' => $organization->id, 'creator_id' => $manager->id]);
+
+    $response = $this->actingAs($manager, 'sanctum')->getJson('/api/v1/tasks?filter[mine]=assigned');
+
+    $response->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $assignedToMe->id);
+});
+
+it('narrows the list to tasks the current user created with filter[mine]=created', function () {
+    $organization = Organization::factory()->create();
+    $manager = userWithRole('manager', $organization);
+    $createdByMe = Task::factory()->create(['organization_id' => $organization->id, 'creator_id' => $manager->id]);
+    Task::factory()->create(['organization_id' => $organization->id]);
+
+    $response = $this->actingAs($manager, 'sanctum')->getJson('/api/v1/tasks?filter[mine]=created');
+
+    $response->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $createdByMe->id);
+});
+
+it('counts visible tasks per status for the list tabs, leaving out other organizations', function () {
+    $organization = Organization::factory()->create();
+    $manager = userWithRole('manager', $organization);
+    Task::factory()->count(2)->create(['organization_id' => $organization->id]);
+    Task::factory()->create(['organization_id' => $organization->id, 'status' => TaskStatus::Completed]);
+    Task::factory()->create(['organization_id' => Organization::factory()->create()->id]);
+
+    $response = $this->actingAs($manager, 'sanctum')->getJson('/api/v1/tasks/summary');
+
+    $response->assertOk()
+        ->assertJsonPath('data.total', 3)
+        ->assertJsonPath('data.by_status.new', 2)
+        ->assertJsonPath('data.by_status.completed', 1)
+        ->assertJsonPath('data.by_status.overdue', 0);
+});
+
+it('applies the list filters to the status counts', function () {
+    $organization = Organization::factory()->create();
+    $manager = userWithRole('manager', $organization);
+    $repair = TaskCategory::factory()->create();
+    Task::factory()->create(['organization_id' => $organization->id, 'task_category_id' => $repair->id]);
+    Task::factory()->count(2)->create(['organization_id' => $organization->id]);
+
+    $response = $this->actingAs($manager, 'sanctum')->getJson("/api/v1/tasks/summary?filter[task_category_id]={$repair->id}");
+
+    $response->assertOk()->assertJsonPath('data.total', 1)->assertJsonPath('data.by_status.new', 1);
+});
+
+it('offers only active task categories, in sort order, for the task form', function () {
+    $employeeUser = userWithRole('employee', Organization::factory()->create());
+    $second = TaskCategory::factory()->create(['sort_order' => 2]);
+    $first = TaskCategory::factory()->create(['sort_order' => 1]);
+    TaskCategory::factory()->inactive()->create(['sort_order' => 0]);
+
+    $response = $this->actingAs($employeeUser, 'sanctum')->getJson('/api/v1/tasks/options');
+
+    $response->assertOk()
+        ->assertJsonCount(2, 'data.categories')
+        ->assertJsonPath('data.categories.0.id', $first->id)
+        ->assertJsonPath('data.categories.1.id', $second->id);
 });

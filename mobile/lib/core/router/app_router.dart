@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/absences/presentation/absences_screen.dart';
 import '../../features/announcements/presentation/announcement_detail_screen.dart';
 import '../../features/announcements/presentation/announcements_screen.dart';
 import '../../features/auth/presentation/auth_controller.dart';
@@ -72,6 +73,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
       GoRoute(path: '/change-password', builder: (context, state) => const ChangePasswordScreen()),
       GoRoute(path: '/calendar', builder: (context, state) => const CalendarScreen()),
+      GoRoute(path: '/absences', builder: (context, state) => const AbsencesScreen()),
       GoRoute(path: '/documents', builder: (context, state) => const DocumentsScreen()),
       GoRoute(path: '/kpi', builder: (context, state) => const KpiScreen()),
       GoRoute(path: '/exams', builder: (context, state) => const ExamsScreen()),

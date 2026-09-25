@@ -91,6 +91,11 @@ const router = createRouter({
           component: () => import('@/views/tasks/TaskDetailView.vue'),
         },
         {
+          path: 'task-categories',
+          name: 'task-categories',
+          component: () => import('@/views/tasks/TaskCategoriesView.vue'),
+        },
+        {
           path: 'exams',
           name: 'exams',
           component: () => import('@/views/exams/ExamsView.vue'),
@@ -141,9 +146,19 @@ const router = createRouter({
           component: () => import('@/views/issues/IssueCategoriesView.vue'),
         },
         {
+          path: 'issues/report',
+          name: 'issues-report',
+          component: () => import('@/views/issues/IssuesReportView.vue'),
+        },
+        {
           path: 'issues/:id',
           name: 'issue-detail',
           component: () => import('@/views/issues/IssueDetailView.vue'),
+        },
+        {
+          path: 'absences',
+          name: 'absences',
+          component: () => import('@/views/absences/AbsencesView.vue'),
         },
         {
           path: 'documents',

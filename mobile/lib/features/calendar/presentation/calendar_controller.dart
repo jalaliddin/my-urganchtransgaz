@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../absences/presentation/absences_controller.dart';
 import '../../announcements/presentation/announcements_controller.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../../exams/presentation/exams_controller.dart';
 import '../../tasks/presentation/tasks_controller.dart';
 import '../data/calendar_repository.dart';
@@ -11,6 +13,12 @@ final calendarRepositoryProvider = Provider<CalendarRepository>((ref) {
     fetchTasks: ref.watch(tasksRepositoryProvider).list,
     fetchExams: ref.watch(examsRepositoryProvider).list,
     fetchAnnouncements: ref.watch(announcementsRepositoryProvider).list,
+    fetchAbsences: () async {
+      final employeeId = (await ref.read(authControllerProvider.future))?.employee?.id;
+      if (employeeId == null) return [];
+
+      return ref.read(absencesRepositoryProvider).list(employeeId, state: 'active');
+    },
   );
 });
 

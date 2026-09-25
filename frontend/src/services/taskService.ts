@@ -1,13 +1,14 @@
 import { createResourceService } from '@/services/resourceService'
 import { http } from '@/services/http'
-import type { ApiSuccessResponse } from '@/types/api'
-import type { Task, TaskComment, TaskPriority } from '@/types/models'
+import type { ApiSuccessResponse, ListParams } from '@/types/api'
+import type { Task, TaskCategory, TaskComment, TaskPriority, TaskSummary } from '@/types/models'
 
 export interface TaskPayload {
   title: string
   description?: string | null
   organization_id?: number | null
   department_id?: number | null
+  task_category_id?: number | null
   priority?: TaskPriority
   start_date?: string | null
   due_date?: string | null
@@ -18,6 +19,16 @@ const base = createResourceService<Task, TaskPayload, Partial<TaskPayload>>('/ta
 
 export const taskService = {
   ...base,
+
+  async summary(params: ListParams = {}): Promise<TaskSummary> {
+    const { data } = await http.get<ApiSuccessResponse<TaskSummary>>('/tasks/summary', { params })
+    return data.data
+  },
+
+  async options(): Promise<{ categories: TaskCategory[] }> {
+    const { data } = await http.get<ApiSuccessResponse<{ categories: TaskCategory[] }>>('/tasks/options')
+    return data.data
+  },
 
   async updateProgress(id: number, progress: number): Promise<Task> {
     const { data } = await http.patch<ApiSuccessResponse<Task>>(`/tasks/${id}/progress`, { progress })

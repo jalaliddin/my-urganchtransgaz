@@ -14,6 +14,7 @@ const colorMap: Record<string, string> = {
   vacation: 'info',
   business_trip: 'info',
   sick_leave: 'warning',
+  excused: 'secondary',
   terminated: 'error',
   central: 'primary',
   subordinate: 'secondary',

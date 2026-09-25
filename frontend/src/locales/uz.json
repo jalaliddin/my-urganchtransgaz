@@ -125,7 +125,10 @@
     "groupReports": "Hisobotlar",
     "groupSystem": "Tizim",
     "reports": "Hisobotlar",
-    "calendar": "Kalendar"
+    "calendar": "Kalendar",
+    "absences": "Ta'til va yo'qliklar",
+    "taskCategories": "Topshiriq kategoriyalari",
+    "issuesReport": "Muammolar xaritasi hisoboti"
   },
   "auth": {
     "login": "Kirish",
@@ -194,7 +197,8 @@
     "failed": "O'ta olmadi",
     "not_taken": "Topshirilmagan",
     "open": "Ochiq",
-    "resolved": "Bartaraf etilgan"
+    "resolved": "Bartaraf etilgan",
+    "excused": "Sababli"
   },
   "organizations": {
     "title": "Tashkilotlar",
@@ -349,7 +353,21 @@
     "addComment": "Izoh yozing",
     "attachments": "Fayllar",
     "creator": "Yaratuvchi",
-    "activity": "Tarix"
+    "activity": "Tarix",
+    "category": "Kategoriya",
+    "allCategories": "Barcha kategoriyalar",
+    "noCategory": "Kategoriyasiz",
+    "startDate": "Boshlanish sanasi",
+    "editTask": "Topshiriqni tahrirlash",
+    "all": "Barchasi",
+    "mineAll": "Barcha topshiriqlar",
+    "mineAssigned": "Menga berilgan",
+    "mineCreated": "Men bergan",
+    "allPriorities": "Barcha darajalar",
+    "overdueBy": "{n} kun kechikdi",
+    "dueToday": "Bugun muddati",
+    "daysLeft": "{n} kun qoldi",
+    "noTasks": "Topshiriqlar topilmadi"
   },
   "attendance": {
     "tabToday": "Bugun",
@@ -488,7 +506,13 @@
     "noCandidates": "Bu tashkilotda ijrochi bo'la oladigan xodim topilmadi",
     "executors": "Ijrochilar",
     "selectExecutors": "Bir yoki bir nechta ijrochini tanlang",
-    "noExecutors": "Ijrochi tayinlanmagan"
+    "noExecutors": "Ijrochi tayinlanmagan",
+    "report": "Hisobot",
+    "searchByTitle": "Sarlavha bo'yicha qidirish",
+    "showingLimited": "Xaritada oxirgi {shown} ta muammo ko'rsatilmoqda (jami {total}).",
+    "openDays": "{n} kundan beri ochiq",
+    "reportedAt": "Qayd etilgan",
+    "showOnMap": "Xaritada ko'rsatish"
   },
   "search": {
     "placeholder": "Qidirish...",
@@ -540,7 +564,10 @@
     "lateGraceMinutes": "Kechikish uchun ruxsat (daqiqa)",
     "earlyLeaveGraceMinutes": "Erta ketish uchun ruxsat (daqiqa)",
     "workingDays": "Ish kunlari",
-    "timezone": "Vaqt mintaqasi"
+    "timezone": "Vaqt mintaqasi",
+    "absences": "Ta'tillar",
+    "annualLeaveDays": "Yillik ta'til (kalendar kun)",
+    "annualLeaveDaysHint": "Mehnat kodeksi bo'yicha kamida 21 kalendar kun"
   },
   "reports": {
     "employeeDistribution": "Xodimlar taqsimoti",
@@ -559,7 +586,9 @@
       "kpiReportText": "Tanlangan davr uchun bo'limlar bo'yicha o'rtacha ball reytingi.",
       "systemGroup": "Tizim",
       "auditLog": "Audit jurnali",
-      "auditLogText": "Tizimdagi barcha muhim amallarning to'liq tarixi."
+      "auditLogText": "Tizimdagi barcha muhim amallarning to'liq tarixi.",
+      "issuesReport": "Muammolar xaritasi",
+      "issuesReportText": "Muammolar xaritada, tashkilotlar va kategoriyalar kesimida — ochiq, bartaraf etilgan va uzoq kutayotganlari bilan."
     }
   },
   "issueCategories": {
@@ -607,5 +636,120 @@
     "examStart": "Imtihon boshlanishi",
     "examEnd": "Imtihon tugashi",
     "announcementPublish": "E'lon"
+  },
+  "absences": {
+    "title": "Ta'til va yo'qliklar",
+    "myTitle": "Mening ta'tillarim",
+    "create": "Yangi yozuv",
+    "edit": "Yozuvni tahrirlash",
+    "employee": "Xodim",
+    "type": "Turi",
+    "period": "Davr",
+    "startDate": "Boshlanishi",
+    "endDate": "Tugashi",
+    "days": "{count} kun",
+    "documentNumber": "Buyruq / varaqa raqami",
+    "documentDate": "Buyruq sanasi",
+    "destination": "Safar manzili",
+    "notes": "Izoh",
+    "file": "Buyruq yoki varaqa nusxasi",
+    "currentFile": "Biriktirilgan fayl: {name}",
+    "state": "Holati",
+    "cancel": "Bekor qilish",
+    "cancelTitle": "Yozuvni bekor qilish",
+    "cancelHint": "Bekor qilingan yozuv tarixda qoladi, lekin kunlarni oqlamaydi va ta'til qoldig'iga hisoblanmaydi.",
+    "cancelReason": "Sababi",
+    "cancelledReason": "Bekor qilish sababi: {reason}",
+    "awayToday": "Bugun ishda emas",
+    "nobodyAway": "Bugun hamma ishda",
+    "list": "Ro'yxat",
+    "schedule": "Oylik jadval",
+    "scheduleEmpty": "Bu oyda yozuvlar yo'q",
+    "allTypes": "Barcha turlar",
+    "allStates": "Barcha holatlar",
+    "balanceTitle": "{year}-yil yillik ta'tili",
+    "balanceEntitlement": "Jami",
+    "balanceUsed": "Ishlatilgan",
+    "balanceRemaining": "Qoldi",
+    "balanceHint": "{year}-yil: {entitlement} kundan {used} kun ishlatilgan, {remaining} kun qoldi.",
+    "overEntitlement": "Bu yozuv bilan yillik ta'til {over} kunga oshib ketadi.",
+    "noAbsences": "Hozircha yozuv yo'q",
+    "searchEmployee": "Ism yoki tabel raqami",
+    "legend": "Belgilar: T — ta'til, X — xizmat safari, B — kasallik, S — boshqa sabab",
+    "types": {
+      "annual_leave": "Yillik mehnat ta'tili",
+      "unpaid_leave": "Haq to'lanmaydigan ta'til",
+      "study_leave": "O'quv ta'tili",
+      "maternity_leave": "Homiladorlik va tug'ish ta'tili",
+      "childcare_leave": "Bola parvarishi ta'tili",
+      "sick_leave": "Kasallik varaqasi",
+      "business_trip": "Xizmat safari",
+      "other": "Boshqa sababli yo'qlik"
+    },
+    "categories": {
+      "vacation": "Ta'tilda",
+      "business_trip": "Xizmat safarida",
+      "sick_leave": "Kasallik varaqasida",
+      "excused": "Boshqa sabab bilan"
+    },
+    "states": {
+      "upcoming": "Rejalashtirilgan",
+      "current": "Amalda",
+      "completed": "Yakunlangan",
+      "cancelled": "Bekor qilingan"
+    }
+  },
+  "taskCategories": {
+    "title": "Topshiriq kategoriyalari",
+    "name": "Nomi",
+    "color": "Rangi",
+    "sortOrder": "Tartib raqami",
+    "tasksCount": "Topshiriqlar soni",
+    "hint": "Topshiriqlar shu kategoriyalar bo'yicha guruhlanadi va filtrlanadi. Topshiriqlarda ishlatilgan kategoriyani o'chirib bo'lmaydi — uni faolsiz qiling.",
+    "deleteUsed": "Bu kategoriya topshiriqlarda ishlatilgan, o'chirib bo'lmaydi. Uni faolsiz qiling."
+  },
+  "map": {
+    "openDetails": "Batafsil",
+    "street": "Xarita",
+    "satellite": "Sun'iy yo'ldosh",
+    "fullscreen": "To'liq ekran",
+    "exitFullscreen": "To'liq ekrandan chiqish",
+    "fitAll": "Barcha nuqtalarni ko'rsatish",
+    "myLocation": "Mening joylashuvim",
+    "locationFailed": "Joylashuvni aniqlab bo'lmadi. Brauzerda joylashuvga ruxsat bering."
+  },
+  "issueReport": {
+    "title": "Muammolar xaritasi hisoboti",
+    "dateFrom": "Boshlanish sanasi",
+    "dateTo": "Tugash sanasi",
+    "presetMonth": "Bu oy",
+    "preset3Months": "3 oy",
+    "presetYear": "12 oy",
+    "presetAll": "Hammasi",
+    "allOrganizations": "Barcha tashkilotlar",
+    "total": "Jami muammolar",
+    "open": "Ochiq",
+    "resolved": "Bartaraf etilgan",
+    "stale": "{days} kundan ortiq ochiq",
+    "resolutionRate": "Bartaraf etish ulushi",
+    "avgResolution": "O'rtacha bartaraf etish vaqti",
+    "hours": "{n} soat",
+    "days": "{n} kun",
+    "mapPoints": "Nuqtalar",
+    "mapBubbles": "Tashkilotlar bo'yicha",
+    "openOnly": "Faqat ochiqlar",
+    "byOrganization": "Tashkilotlar kesimida",
+    "byCategory": "Kategoriyalar kesimida",
+    "monthlyTrend": "Oylik dinamika",
+    "created": "Qayd etilgan",
+    "organization": "Tashkilot",
+    "category": "Kategoriya",
+    "noCategory": "Kategoriyasiz",
+    "pointsTruncated": "Xaritada eng so'nggi {n} ta muammo ko'rsatilmoqda.",
+    "empty": "Tanlangan davrda muammolar yo'q",
+    "showTable": "Jadval",
+    "showChart": "Grafik",
+    "month": "Oy",
+    "bubbleLegend": "Doira hajmi muammolar soniga mos"
   }
 }

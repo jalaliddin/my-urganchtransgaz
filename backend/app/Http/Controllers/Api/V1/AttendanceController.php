@@ -337,6 +337,7 @@ class AttendanceController extends Controller
             ->selectRaw("SUM(CASE WHEN attendance_records.status = 'business_trip' THEN 1 ELSE 0 END) as business_trip_count")
             ->selectRaw("SUM(CASE WHEN attendance_records.status = 'vacation' THEN 1 ELSE 0 END) as vacation_count")
             ->selectRaw("SUM(CASE WHEN attendance_records.status = 'sick_leave' THEN 1 ELSE 0 END) as sick_leave_count")
+            ->selectRaw("SUM(CASE WHEN attendance_records.status = 'excused' THEN 1 ELSE 0 END) as excused_count")
             ->groupBy('group_id', 'label')
             ->orderBy('label');
 
@@ -352,6 +353,7 @@ class AttendanceController extends Controller
                 'business_trip_count' => 'Xizmat safarida',
                 'vacation_count' => 'Ta\'tilda',
                 'sick_leave_count' => 'Bemor varaqasida',
+                'excused_count' => 'Sababli',
             ], $format, 'attendance-report');
         }
 
@@ -367,6 +369,7 @@ class AttendanceController extends Controller
             'business_trip_count' => (int) $row->business_trip_count,
             'vacation_count' => (int) $row->vacation_count,
             'sick_leave_count' => (int) $row->sick_leave_count,
+            'excused_count' => (int) $row->excused_count,
         ]);
 
         return $this->success($rows, meta: [

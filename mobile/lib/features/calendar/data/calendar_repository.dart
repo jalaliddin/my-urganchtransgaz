@@ -1,4 +1,5 @@
 import '../../../core/network/paginated.dart';
+import '../../absences/domain/employee_absence.dart';
 import '../../announcements/domain/announcement.dart';
 import '../../exams/domain/exam.dart';
 import '../../tasks/domain/task.dart';
@@ -11,11 +12,8 @@ import '../domain/calendar_event.dart';
 /// with no separate authorization logic to keep in sync. Mirrors the web
 /// app's own Reports/Calendar page, which takes the same approach.
 ///
-/// There is no date-ranged vacation/business-trip record to place on a
-/// calendar (Employee.status is a point-in-time state, not a date range —
-/// the app's old Leave Requests/Business Trips module, which did track
-/// date ranges, was deliberately removed), so those are intentionally
-/// not included here.
+/// The employee's own HR-recorded absences (leave, sick leave, business
+/// trips) are included too, one event per day they cover.
 ///
 /// Takes plain fetch functions rather than the repositories themselves —
 /// same shape as `NotificationSync`'s `fetchUnread`/`present` — so the
@@ -23,16 +21,16 @@ import '../domain/calendar_event.dart';
 /// without mocking Dio for three different endpoints.
 class CalendarRepository {
   CalendarRepository({
-    required Future<List<Task>> Function() fetchTasks,
-    required Future<List<Exam>> Function() fetchExams,
-    required Future<Paginated<Announcement>> Function() fetchAnnouncements,
-  })  : _fetchTasks = fetchTasks,
-        _fetchExams = fetchExams,
-        _fetchAnnouncements = fetchAnnouncements;
+    required this._fetchTasks,
+    required this._fetchExams,
+    required this._fetchAnnouncements,
+    required this._fetchAbsences,
+  });
 
   final Future<List<Task>> Function() _fetchTasks;
   final Future<List<Exam>> Function() _fetchExams;
   final Future<Paginated<Announcement>> Function() _fetchAnnouncements;
+  final Future<List<EmployeeAbsence>> Function() _fetchAbsences;
 
   Future<List<CalendarEvent>> events() async {
     // Each call starts its request immediately (async methods run
@@ -42,10 +40,12 @@ class CalendarRepository {
     final tasksFuture = _fetchTasks();
     final examsFuture = _fetchExams();
     final announcementsFuture = _fetchAnnouncements();
+    final absencesFuture = _fetchAbsences();
 
     final tasks = await tasksFuture;
     final exams = await examsFuture;
     final announcementsPage = await announcementsFuture;
+    final absences = await absencesFuture;
 
     final events = <CalendarEvent>[];
 
@@ -75,6 +75,21 @@ class CalendarRepository {
           title: announcement.title,
           type: CalendarEventType.announcement,
           route: '/announcements/${announcement.id}',
+        ));
+      }
+    }
+
+    for (final absence in absences) {
+      final end = DateTime(absence.endDate.year, absence.endDate.month, absence.endDate.day);
+      for (var day = DateTime(absence.startDate.year, absence.startDate.month, absence.startDate.day);
+          !day.isAfter(end);
+          day = DateTime(day.year, day.month, day.day + 1)) {
+        events.add(CalendarEvent(
+          date: day,
+          title: absence.destination ?? '',
+          type: CalendarEventType.absence,
+          route: '/absences',
+          absenceType: absence.type,
         ));
       }
     }

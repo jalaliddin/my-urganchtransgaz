@@ -15,7 +15,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
 #[Signature('attendance:mark-absentees')]
-#[Description('For every currently-employed staff member with no attendance record for yesterday, create one — absent, or matching their vacation/business-trip/sick-leave status.')]
+#[Description('For every currently-employed staff member with no attendance record for yesterday, create one — absent, or excused by a recorded absence or their vacation/business-trip/sick-leave status.')]
 class MarkAbsentAttendance extends Command
 {
     /**
@@ -48,18 +48,32 @@ class MarkAbsentAttendance extends Command
                 EmployeeStatus::SickLeave,
             ])
             ->whereDoesntHave('attendanceRecords', fn ($query) => $query->where('date', $date))
-            ->with('department.manager.user')
+            ->with([
+                'department.manager.user',
+                'absences' => fn ($query) => $query->notCancelled()->covering($yesterday),
+            ])
+            ->withExists('absences as has_absence_records')
             ->chunkById(200, function ($employees) use ($date) {
                 foreach ($employees as $employee) {
-                    $isUnexcused = $employee->status === EmployeeStatus::Active;
+                    // A recorded absence decides the day. The employee's
+                    // status only stands in for people whose leave was set
+                    // by hand with no record behind it — for anyone else
+                    // it describes today, not yesterday (an absence that
+                    // starts today has already switched it).
+                    $absence = $employee->absences->first();
+                    $isUnexcused = ! $absence
+                        && ($employee->status === EmployeeStatus::Active || $employee->has_absence_records);
 
                     AttendanceRecord::create([
                         'employee_id' => $employee->id,
                         'date' => $date,
-                        'status' => $isUnexcused
-                            ? AttendanceStatus::Absent
-                            : AttendanceStatus::from($employee->status->value),
+                        'status' => match (true) {
+                            $absence !== null => $absence->type->attendanceStatus(),
+                            $isUnexcused => AttendanceStatus::Absent,
+                            default => AttendanceStatus::from($employee->status->value),
+                        },
                         'source' => AttendanceSource::System,
+                        'employee_absence_id' => $absence?->id,
                     ]);
 
                     // Only an unexcused absence is an "issue" worth a

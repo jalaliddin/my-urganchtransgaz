@@ -703,4 +703,73 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get notificationsChannelDescription =>
       'Topshiriqlar, muammolar va e\'lonlar haqida xabarlar';
+
+  @override
+  String get absencesTitle => 'Ta\'til va safarlar';
+
+  @override
+  String absencesBalanceTitle(int year) {
+    return '$year-yil yillik ta\'tili';
+  }
+
+  @override
+  String get absencesRemaining => 'Qoldi';
+
+  @override
+  String get absencesUsed => 'Ishlatilgan';
+
+  @override
+  String get absencesEntitlement => 'Jami';
+
+  @override
+  String get absencesNone => 'Hozircha yozuv yo\'q';
+
+  @override
+  String absencesDays(int count) {
+    return '$count kun';
+  }
+
+  @override
+  String absencesCancelledReason(String reason) {
+    return 'Bekor qilindi: $reason';
+  }
+
+  @override
+  String get absenceTypeAnnualLeave => 'Yillik mehnat ta\'tili';
+
+  @override
+  String get absenceTypeUnpaidLeave => 'Haq to\'lanmaydigan ta\'til';
+
+  @override
+  String get absenceTypeStudyLeave => 'O\'quv ta\'tili';
+
+  @override
+  String get absenceTypeMaternityLeave => 'Homiladorlik va tug\'ish ta\'tili';
+
+  @override
+  String get absenceTypeChildcareLeave => 'Bola parvarishi ta\'tili';
+
+  @override
+  String get absenceTypeSickLeave => 'Kasallik varaqasi';
+
+  @override
+  String get absenceTypeBusinessTrip => 'Xizmat safari';
+
+  @override
+  String get absenceTypeOther => 'Boshqa sababli yo\'qlik';
+
+  @override
+  String get absenceStateUpcoming => 'Rejalashtirilgan';
+
+  @override
+  String get absenceStateCurrent => 'Amalda';
+
+  @override
+  String get absenceStateCompleted => 'Yakunlangan';
+
+  @override
+  String get absenceStateCancelled => 'Bekor qilingan';
+
+  @override
+  String get calendarAbsence => 'Ta\'til / safar';
 }

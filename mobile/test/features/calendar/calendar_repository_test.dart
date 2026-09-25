@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:urtg_mobile/core/network/paginated.dart';
+import 'package:urtg_mobile/features/absences/domain/employee_absence.dart';
 import 'package:urtg_mobile/features/announcements/domain/announcement.dart';
 import 'package:urtg_mobile/features/calendar/data/calendar_repository.dart';
 import 'package:urtg_mobile/features/calendar/domain/calendar_event.dart';
@@ -34,11 +35,13 @@ CalendarRepository _repository({
   List<Task> tasks = const [],
   List<Exam> exams = const [],
   List<Announcement> announcements = const [],
+  List<EmployeeAbsence> absences = const [],
 }) {
   return CalendarRepository(
     fetchTasks: () async => tasks,
     fetchExams: () async => exams,
     fetchAnnouncements: () async => Paginated(items: announcements, currentPage: 1, lastPage: 1, total: announcements.length),
+    fetchAbsences: () async => absences,
   );
 }
 
@@ -99,5 +102,31 @@ void main() {
     final events = await repository.events();
 
     expect(events, hasLength(3));
+  });
+
+  test('an absence becomes one event per day it covers, across a month boundary', () async {
+    final repository = _repository(absences: [
+      EmployeeAbsence.fromJson({
+        'id': 9,
+        'type': 'business_trip',
+        'start_date': '2026-09-29',
+        'end_date': '2026-10-02',
+        'days': 4,
+        'state': 'upcoming',
+        'destination': 'Toshkent',
+      }),
+    ]);
+
+    final events = await repository.events();
+
+    expect(events.map((e) => e.date), [
+      DateTime(2026, 9, 29),
+      DateTime(2026, 9, 30),
+      DateTime(2026, 10, 1),
+      DateTime(2026, 10, 2),
+    ]);
+    expect(events.every((e) => e.type == CalendarEventType.absence && e.absenceType == 'business_trip'), isTrue);
+    expect(events.first.route, '/absences');
+    expect(events.first.title, 'Toshkent');
   });
 }

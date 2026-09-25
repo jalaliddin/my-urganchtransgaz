@@ -1453,6 +1453,132 @@ abstract class AppLocalizations {
   /// In uz, this message translates to:
   /// **'Topshiriqlar, muammolar va e\'lonlar haqida xabarlar'**
   String get notificationsChannelDescription;
+
+  /// No description provided for @absencesTitle.
+  ///
+  /// In uz, this message translates to:
+  /// **'Ta\'til va safarlar'**
+  String get absencesTitle;
+
+  /// No description provided for @absencesBalanceTitle.
+  ///
+  /// In uz, this message translates to:
+  /// **'{year}-yil yillik ta\'tili'**
+  String absencesBalanceTitle(int year);
+
+  /// No description provided for @absencesRemaining.
+  ///
+  /// In uz, this message translates to:
+  /// **'Qoldi'**
+  String get absencesRemaining;
+
+  /// No description provided for @absencesUsed.
+  ///
+  /// In uz, this message translates to:
+  /// **'Ishlatilgan'**
+  String get absencesUsed;
+
+  /// No description provided for @absencesEntitlement.
+  ///
+  /// In uz, this message translates to:
+  /// **'Jami'**
+  String get absencesEntitlement;
+
+  /// No description provided for @absencesNone.
+  ///
+  /// In uz, this message translates to:
+  /// **'Hozircha yozuv yo\'q'**
+  String get absencesNone;
+
+  /// No description provided for @absencesDays.
+  ///
+  /// In uz, this message translates to:
+  /// **'{count} kun'**
+  String absencesDays(int count);
+
+  /// No description provided for @absencesCancelledReason.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bekor qilindi: {reason}'**
+  String absencesCancelledReason(String reason);
+
+  /// No description provided for @absenceTypeAnnualLeave.
+  ///
+  /// In uz, this message translates to:
+  /// **'Yillik mehnat ta\'tili'**
+  String get absenceTypeAnnualLeave;
+
+  /// No description provided for @absenceTypeUnpaidLeave.
+  ///
+  /// In uz, this message translates to:
+  /// **'Haq to\'lanmaydigan ta\'til'**
+  String get absenceTypeUnpaidLeave;
+
+  /// No description provided for @absenceTypeStudyLeave.
+  ///
+  /// In uz, this message translates to:
+  /// **'O\'quv ta\'tili'**
+  String get absenceTypeStudyLeave;
+
+  /// No description provided for @absenceTypeMaternityLeave.
+  ///
+  /// In uz, this message translates to:
+  /// **'Homiladorlik va tug\'ish ta\'tili'**
+  String get absenceTypeMaternityLeave;
+
+  /// No description provided for @absenceTypeChildcareLeave.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bola parvarishi ta\'tili'**
+  String get absenceTypeChildcareLeave;
+
+  /// No description provided for @absenceTypeSickLeave.
+  ///
+  /// In uz, this message translates to:
+  /// **'Kasallik varaqasi'**
+  String get absenceTypeSickLeave;
+
+  /// No description provided for @absenceTypeBusinessTrip.
+  ///
+  /// In uz, this message translates to:
+  /// **'Xizmat safari'**
+  String get absenceTypeBusinessTrip;
+
+  /// No description provided for @absenceTypeOther.
+  ///
+  /// In uz, this message translates to:
+  /// **'Boshqa sababli yo\'qlik'**
+  String get absenceTypeOther;
+
+  /// No description provided for @absenceStateUpcoming.
+  ///
+  /// In uz, this message translates to:
+  /// **'Rejalashtirilgan'**
+  String get absenceStateUpcoming;
+
+  /// No description provided for @absenceStateCurrent.
+  ///
+  /// In uz, this message translates to:
+  /// **'Amalda'**
+  String get absenceStateCurrent;
+
+  /// No description provided for @absenceStateCompleted.
+  ///
+  /// In uz, this message translates to:
+  /// **'Yakunlangan'**
+  String get absenceStateCompleted;
+
+  /// No description provided for @absenceStateCancelled.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bekor qilingan'**
+  String get absenceStateCancelled;
+
+  /// No description provided for @calendarAbsence.
+  ///
+  /// In uz, this message translates to:
+  /// **'Ta\'til / safar'**
+  String get calendarAbsence;
 }
 
 class _AppLocalizationsDelegate

@@ -2,11 +2,16 @@
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import AbsenceFormDialog from '@/components/absences/AbsenceFormDialog.vue'
+import { absenceService } from '@/services/absenceService'
 import { attendanceService } from '@/services/attendanceService'
 import { documentService } from '@/services/documentService'
 import { employeeService } from '@/services/employeeService'
 import { taskService } from '@/services/taskService'
-import type { AttendanceRecord, Employee, EmployeeDocument, Task } from '@/types/models'
+import { useAuthStore } from '@/stores/auth'
+import type { AttendanceRecord, Employee, EmployeeAbsence, EmployeeDocument, LeaveBalance, Task } from '@/types/models'
+import { absenceCategory, CATEGORY_COLOR, STATE_COLOR } from '@/utils/absences'
+import { formatDate } from '@/utils/date'
 
 const route = useRoute()
 const router = useRouter()
@@ -17,6 +22,21 @@ const attendance = ref<AttendanceRecord[]>([])
 const documents = ref<EmployeeDocument[]>([])
 const tasks = ref<Task[]>([])
 const loading = ref(true)
+
+const auth = useAuthStore()
+const absences = ref<EmployeeAbsence[]>([])
+const leaveBalance = ref<LeaveBalance | null>(null)
+const absenceFormOpen = ref(false)
+
+async function loadAbsences() {
+  if (!auth.can('absences.view')) return
+  const [absencesResult, balanceResult] = await Promise.all([
+    absenceService.list({ 'filter[employee_id]': employeeId, per_page: 20 }),
+    absenceService.balance(employeeId),
+  ])
+  absences.value = absencesResult.data
+  leaveBalance.value = balanceResult
+}
 
 async function load() {
   loading.value = true
@@ -36,7 +56,14 @@ async function load() {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  loadAbsences()
+})
+
+async function onAbsenceSaved() {
+  await Promise.all([loadAbsences(), load()])
+}
 
 function goBack() {
   router.push({ name: 'employees' })
@@ -113,6 +140,51 @@ async function downloadDocument(document: EmployeeDocument) {
           </v-card-text>
         </v-card>
 
+        <v-card v-if="auth.can('absences.view')" class="mb-4">
+          <div class="d-flex align-center pr-4">
+            <v-card-title class="text-subtitle-1">{{ $t('nav.absences') }}</v-card-title>
+            <v-spacer />
+            <v-btn
+              v-if="auth.can('absences.manage')"
+              size="small"
+              variant="tonal"
+              color="primary"
+              prepend-icon="mdi-plus"
+              @click="absenceFormOpen = true"
+            >
+              {{ $t('absences.create') }}
+            </v-btn>
+          </div>
+          <v-card-text v-if="leaveBalance" class="pb-0 text-body-medium">
+            {{
+              $t('absences.balanceHint', {
+                year: leaveBalance.year,
+                entitlement: leaveBalance.entitlement_days,
+                used: leaveBalance.used_days,
+                remaining: leaveBalance.remaining_days,
+              })
+            }}
+          </v-card-text>
+          <v-list density="compact">
+            <v-list-item
+              v-for="absence in absences"
+              :key="absence.id"
+              :title="$t(`absences.types.${absence.type}`)"
+              :subtitle="`${formatDate(absence.start_date)} — ${formatDate(absence.end_date)}, ${$t('absences.days', { count: absence.days })}`"
+            >
+              <template #prepend>
+                <v-icon icon="mdi-circle" size="10" :color="CATEGORY_COLOR[absenceCategory(absence.type)]" class="mr-3" />
+              </template>
+              <template #append>
+                <v-chip :color="STATE_COLOR[absence.state]" size="small" variant="tonal" label>
+                  {{ $t(`absences.states.${absence.state}`) }}
+                </v-chip>
+              </template>
+            </v-list-item>
+          </v-list>
+          <AppEmptyState v-if="!absences.length" icon="mdi-calendar-remove-outline" :message="$t('absences.noAbsences')" />
+        </v-card>
+
         <v-card class="mb-4">
           <v-card-title class="text-subtitle-1">{{ $t('nav.documents') }}</v-card-title>
           <v-list density="compact">
@@ -145,5 +217,7 @@ async function downloadDocument(document: EmployeeDocument) {
         </v-card>
       </v-col>
     </v-row>
+
+    <AbsenceFormDialog v-model="absenceFormOpen" :employee="employee" @saved="onAbsenceSaved" />
   </template>
 </template>

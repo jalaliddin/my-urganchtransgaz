@@ -63,6 +63,13 @@ const groups = computed<ReportGroup[]>(() =>
           to: '/kpi/report',
           permission: 'kpi.view',
         },
+        {
+          title: t('reports.hub.issuesReport'),
+          text: t('reports.hub.issuesReportText'),
+          icon: 'mdi-map-search-outline',
+          to: '/issues/report',
+          permission: 'issues.report',
+        },
       ],
     },
     {

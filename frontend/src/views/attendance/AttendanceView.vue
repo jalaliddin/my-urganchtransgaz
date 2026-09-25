@@ -82,7 +82,7 @@ async function checkOut() {
 
 // --- Manual correction (HR/admin), scoped to today's record ---
 const statusOptions = computed(() =>
-  (['present', 'late', 'early_leave', 'absent', 'business_trip', 'vacation', 'sick_leave'] as AttendanceStatus[]).map(
+  (['present', 'late', 'early_leave', 'absent', 'business_trip', 'vacation', 'sick_leave', 'excused'] as AttendanceStatus[]).map(
     (value) => ({ title: t(`status.${value}`), value }),
   ),
 )
@@ -425,6 +425,7 @@ watch(tab, (value) => {
               <th>{{ $t('status.business_trip') }}</th>
               <th>{{ $t('status.vacation') }}</th>
               <th>{{ $t('status.sick_leave') }}</th>
+              <th>{{ $t('status.excused') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -444,6 +445,7 @@ watch(tab, (value) => {
               <td>{{ row.business_trip_count }}</td>
               <td>{{ row.vacation_count }}</td>
               <td>{{ row.sick_leave_count }}</td>
+              <td>{{ row.excused_count }}</td>
             </tr>
           </tbody>
         </v-table>

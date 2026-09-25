@@ -89,6 +89,11 @@ class Employee extends Model
         return $this->hasMany(AttendanceRecord::class);
     }
 
+    public function absences(): HasMany
+    {
+        return $this->hasMany(EmployeeAbsence::class);
+    }
+
     public function todayAttendance(): HasOne
     {
         return $this->hasOne(AttendanceRecord::class)->whereDate('date', now()->toDateString());

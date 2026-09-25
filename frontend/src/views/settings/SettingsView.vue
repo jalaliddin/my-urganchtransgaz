@@ -22,6 +22,7 @@ const form = reactive<SettingsValues>({
   'attendance.working_days': [],
   'documents.max_upload_kb': 10240,
   'exams.reminder_thresholds': [],
+  'absences.annual_leave_days': 21,
 })
 
 async function load() {
@@ -168,6 +169,20 @@ function syncThresholdsFromText() {
           </v-chip-group>
 
           <v-text-field :model-value="timezone" :label="$t('settings.timezone')" readonly hint="APP_TIMEZONE" persistent-hint class="mt-2" />
+        </v-card-text>
+      </v-card>
+
+      <v-card class="mt-4">
+        <v-card-title>{{ $t('settings.absences') }}</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model.number="form['absences.annual_leave_days']"
+            type="number"
+            min="21"
+            :label="$t('settings.annualLeaveDays')"
+            :hint="$t('settings.annualLeaveDaysHint')"
+            persistent-hint
+          />
         </v-card-text>
       </v-card>
     </v-col>

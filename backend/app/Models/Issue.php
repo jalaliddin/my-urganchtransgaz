@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\IssueStatus;
 use Database\Factories\IssueFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,6 +22,45 @@ class Issue extends Model
 {
     /** @use HasFactory<IssueFactory> */
     use HasFactory;
+
+    /**
+     * Central leadership sees every issue — deliberately not the broader
+     * `hasCentralAccess()` set (which also includes hr and safety-manager).
+     */
+    public static function seesAllIssues(User $user): bool
+    {
+        return $user->hasAnyRole(['technical-policy', 'central-admin', 'super-admin']);
+    }
+
+    /**
+     * Issues this user may see in the list, on the map and in the report:
+     * what they reported or are executing, plus their whole organization for
+     * an organization-admin and what their department raised or is executing
+     * for a department-manager. `IssuePolicy::view()` mirrors this rule.
+     */
+    public function scopeVisibleTo(Builder $query, User $user): void
+    {
+        if (self::seesAllIssues($user)) {
+            return;
+        }
+
+        $employee = $user->employee;
+
+        // Qualified column names: the report joins organizations/categories.
+        $query->where(function ($scope) use ($user, $employee) {
+            $scope->where('issues.reporter_employee_id', $employee?->id ?? 0)
+                ->orWhereHas('executors', fn ($executors) => $executors->whereKey($employee?->id ?? 0));
+
+            if ($user->hasRole('organization-admin') && $employee) {
+                $scope->orWhere('issues.organization_id', $employee->organization_id);
+            }
+
+            if ($user->hasRole('department-manager') && $employee?->department_id) {
+                $scope->orWhere('issues.department_id', $employee->department_id)
+                    ->orWhereHas('executors', fn ($executors) => $executors->where('employees.department_id', $employee->department_id));
+            }
+        });
+    }
 
     public function reporter(): BelongsTo
     {

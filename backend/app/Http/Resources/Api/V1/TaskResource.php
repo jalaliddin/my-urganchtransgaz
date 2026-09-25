@@ -28,6 +28,8 @@ class TaskResource extends JsonResource
             'organization' => new OrganizationResource($this->whenLoaded('organization')),
             'department_id' => $this->department_id,
             'department' => new DepartmentResource($this->whenLoaded('department')),
+            'task_category_id' => $this->task_category_id,
+            'category' => new TaskCategoryResource($this->whenLoaded('category')),
 
             'assignees' => EmployeeResource::collection($this->whenLoaded('assignees')),
 

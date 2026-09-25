@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\ActiveStatus;
 use App\Enums\TaskPriority;
 use App\Models\Employee;
 use App\Policies\Concerns\ChecksOrganizationScope;
@@ -42,17 +43,27 @@ class UpdateTaskRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * A task may keep the category it already has even after that category
+     * was deactivated; switching to a different one requires an active one.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
+        $currentCategoryId = $this->route('task')->task_category_id;
+
         return [
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'organization_id' => ['nullable', 'integer', Rule::exists('organizations', 'id')],
             'department_id' => ['nullable', 'integer', Rule::exists('departments', 'id')],
+            'task_category_id' => [
+                'nullable', 'integer',
+                Rule::exists('task_categories', 'id')->where(fn ($query) => $query->where(
+                    fn ($activeOrCurrent) => $activeOrCurrent->where('status', ActiveStatus::Active->value)
+                        ->orWhere('id', $currentCategoryId)
+                )),
+            ],
             'priority' => ['sometimes', Rule::enum(TaskPriority::class)],
             'start_date' => ['nullable', 'date'],
             'due_date' => ['nullable', 'date', 'after_or_equal:start_date'],

@@ -14,6 +14,7 @@ use App\Http\Requests\UpdateUserRoleRequest;
 use App\Http\Resources\Api\V1\EmployeeResource;
 use App\Models\Employee;
 use App\Services\AuditLogService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
@@ -45,7 +46,12 @@ class EmployeeController extends Controller
                 'status', 'employment_type',
                 AllowedFilter::exact('organization_id'),
                 AllowedFilter::exact('department_id'),
-                AllowedFilter::partial('search', 'first_name'),
+                AllowedFilter::callback('search', fn (Builder $query, string $term) => $query->where(function (Builder $query) use ($term) {
+                    $query->where('last_name', 'like', "%{$term}%")
+                        ->orWhere('first_name', 'like', "%{$term}%")
+                        ->orWhere('middle_name', 'like', "%{$term}%")
+                        ->orWhere('employee_number', 'like', "%{$term}%");
+                })),
             )
             ->allowedSorts('last_name', 'employee_number', 'hire_date', 'created_at')
             ->defaultSort('last_name');
