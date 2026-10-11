@@ -67,6 +67,24 @@ it('notifies the employee and their department manager when an absence is record
     Notification::assertSentTo([$employeeUser, $manager], AbsenceRecorded::class);
 });
 
+it('flags the manager\'s copy of an absence notification, so a client links only the employee to their own absences', function () {
+    $organization = Organization::factory()->create();
+    $manager = userWithRole('department-manager', $organization);
+    $department = Department::factory()->create(['organization_id' => $organization->id, 'manager_id' => $manager->employee->id]);
+    $employeeUser = userWithRole('employee', $organization, $department);
+    Notification::fake();
+
+    $this->actingAs(userWithRole('hr', $organization), 'sanctum')->postJson('/api/v1/absences', [
+        'employee_id' => $employeeUser->employee->id,
+        'type' => AbsenceType::SickLeave->value,
+        'start_date' => '2026-10-05',
+        'end_date' => '2026-10-07',
+    ])->assertCreated();
+
+    Notification::assertSentTo($employeeUser, AbsenceRecorded::class, fn (AbsenceRecorded $notification, array $channels, $notifiable) => $notification->toArray($notifiable)['for_manager'] === false);
+    Notification::assertSentTo($manager, AbsenceRecorded::class, fn (AbsenceRecorded $notification, array $channels, $notifiable) => $notification->toArray($notifiable)['for_manager'] === true);
+});
+
 it('forbids a plain employee from recording an absence with 403', function () {
     $user = userWithRole('employee', Organization::factory()->create());
 

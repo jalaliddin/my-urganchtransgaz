@@ -44,6 +44,9 @@ class AbsenceRecorded extends Notification
                 : "Sizga {$type} rasmiylashtirildi: {$period}.",
             'absence_id' => $this->absence->id,
             'employee_id' => $this->absence->employee_id,
+            // Lets a client open the right screen: the employee's own
+            // absences for them, nothing personal for their manager.
+            'for_manager' => $this->forManager,
         ];
     }
 }
