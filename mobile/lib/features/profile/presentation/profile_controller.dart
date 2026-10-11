@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/models/employee.dart';
+import '../../../core/models/employee_contact.dart';
 import '../../../core/network/api_providers.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/profile_repository.dart';
 import '../domain/change_request.dart';
+import '../domain/profile_completion.dart';
 
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
   return ProfileRepository(ref.watch(apiClientProvider));
@@ -28,8 +30,21 @@ class ProfileController extends AsyncNotifier<Employee> {
     final createdChangeRequest = await ref.read(profileRepositoryProvider).update(fields);
     await refresh();
     ref.invalidate(myChangeRequestsProvider);
+    ref.invalidate(profileCompletionProvider);
 
     return createdChangeRequest;
+  }
+
+  /// The server replaces the whole contact list, so every kept contact goes
+  /// back with its id alongside the new one.
+  Future<void> addContact(EmployeeContact contact) async {
+    final current = state.value?.contacts ?? const <EmployeeContact>[];
+    await submitChanges({'contacts': [...current, contact].map((c) => c.toJson()).toList()});
+  }
+
+  Future<void> removeContact(int contactId) async {
+    final current = state.value?.contacts ?? const <EmployeeContact>[];
+    await submitChanges({'contacts': current.where((c) => c.id != contactId).map((c) => c.toJson()).toList()});
   }
 
   Future<void> uploadPhoto(String filePath, String fileName) async {
@@ -43,4 +58,9 @@ final profileControllerProvider = AsyncNotifierProvider<ProfileController, Emplo
 
 final myChangeRequestsProvider = FutureProvider<List<EmployeeChangeRequest>>((ref) {
   return ref.watch(profileRepositoryProvider).myChangeRequests();
+});
+
+/// Shown on the dashboard; refreshed whenever the profile is saved.
+final profileCompletionProvider = FutureProvider.autoDispose<ProfileCompletion>((ref) {
+  return ref.watch(profileRepositoryProvider).completion();
 });

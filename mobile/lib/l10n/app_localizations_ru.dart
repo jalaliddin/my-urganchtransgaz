@@ -40,6 +40,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get commonFileOpenError => 'Не удалось открыть файл.';
 
   @override
+  String get commonDelete => 'Удалить';
+
+  @override
   String get commonLogout => 'Выйти';
 
   @override
@@ -287,6 +290,43 @@ class AppLocalizationsRu extends AppLocalizations {
       'Профиль обновлён. Некоторые изменения ожидают утверждения.';
 
   @override
+  String get profileTabContacts => 'Контакты';
+
+  @override
+  String get profileAddContact => 'Добавить контакт';
+
+  @override
+  String get profileEmergencyContact => 'Экстренный контакт';
+
+  @override
+  String get profileBankInfo => 'Банковские данные';
+
+  @override
+  String get profileContactType => 'Тип';
+
+  @override
+  String get profileContactName => 'Ф.И.О.';
+
+  @override
+  String get profileAccountHolder => 'Владелец счёта';
+
+  @override
+  String get profileRelationship => 'Родство';
+
+  @override
+  String get profileBankName => 'Название банка';
+
+  @override
+  String get profileBankAccount => 'Номер счёта';
+
+  @override
+  String get profileNoContacts =>
+      'Экстренный контакт и банковские данные ещё не добавлены.';
+
+  @override
+  String get profileDeleteContactConfirm => 'Удалить этот контакт?';
+
+  @override
   String get documentsTitle => 'Документы';
 
   @override
@@ -377,6 +417,33 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get tasksNone => 'Нет активных задач';
+
+  @override
+  String get tasksSearch => 'Поиск задач';
+
+  @override
+  String get tasksAll => 'Все';
+
+  @override
+  String get tasksCategory => 'Категория';
+
+  @override
+  String get tasksAllCategories => 'Все категории';
+
+  @override
+  String get tasksMineAll => 'Все задачи';
+
+  @override
+  String get tasksMineAssigned => 'Назначенные мне';
+
+  @override
+  String get tasksMineCreated => 'Созданные мной';
+
+  @override
+  String get tasksNoMatch => 'По этим фильтрам задач не найдено';
+
+  @override
+  String get tasksLoadMoreFailed => 'Не удалось загрузить остальное';
 
   @override
   String get kpiTitle => 'KPI';
@@ -549,6 +616,77 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get issuesNoCandidates =>
       'В этой организации нет сотрудников, которых можно назначить исполнителями';
+
+  @override
+  String get issueReportTitle => 'Отчёт по проблемам';
+
+  @override
+  String get issueReportPeriodMonth => 'Этот месяц';
+
+  @override
+  String get issueReportPeriod3Months => '3 месяца';
+
+  @override
+  String get issueReportPeriod12Months => '12 месяцев';
+
+  @override
+  String get issueReportPeriodAll => 'Всё время';
+
+  @override
+  String get issueReportTotal => 'Всего проблем';
+
+  @override
+  String get issueReportOpen => 'Открытые';
+
+  @override
+  String get issueReportResolved => 'Устранённые';
+
+  @override
+  String issueReportStale(int days) {
+    return 'Открыты более $days дн.';
+  }
+
+  @override
+  String get issueReportResolutionRate => 'Доля устранённых';
+
+  @override
+  String get issueReportAvgResolution => 'Среднее время устранения';
+
+  @override
+  String issueReportHours(String n) {
+    return '$n ч';
+  }
+
+  @override
+  String issueReportDays(String n) {
+    return '$n дн.';
+  }
+
+  @override
+  String get issueReportByOrganization => 'По организациям';
+
+  @override
+  String get issueReportByCategory => 'По категориям';
+
+  @override
+  String get issueReportMonthly => 'Динамика по месяцам';
+
+  @override
+  String get issueReportMonth => 'Месяц';
+
+  @override
+  String get issueReportCreated => 'Зарегистрировано';
+
+  @override
+  String get issueReportNoCategory => 'Без категории';
+
+  @override
+  String issueReportPointsTruncated(int n) {
+    return 'На карте показаны последние $n проблем.';
+  }
+
+  @override
+  String get issueReportEmpty => 'За выбранный период проблем нет';
 
   @override
   String get announcementsTitle => 'Объявления';

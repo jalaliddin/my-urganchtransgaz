@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../announcements/presentation/announcements_controller.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../profile/presentation/profile_controller.dart';
 import '../../tasks/domain/task.dart';
 import '../../tasks/presentation/tasks_controller.dart';
 import 'dashboard_providers.dart';

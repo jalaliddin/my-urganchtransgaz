@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
+import '../domain/notification_route.dart';
 import 'notifications_controller.dart';
 
 class NotificationsScreen extends ConsumerWidget {
@@ -60,6 +62,10 @@ class NotificationsScreen extends ConsumerWidget {
                     if (!item.isRead) {
                       ref.read(notificationsControllerProvider.notifier).markRead(item.id);
                     }
+
+                    // Same destination a tap on the system notification opens.
+                    final route = notificationRoute(item.data);
+                    if (route != '/notifications') context.push(route);
                   },
                 );
               },

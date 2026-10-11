@@ -3,11 +3,27 @@ import 'package:dio/dio.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../domain/issue.dart';
+import '../domain/issue_report.dart';
 
 class IssuesRepository {
   IssuesRepository(this._client);
 
   final ApiClient _client;
+
+  /// Leaders' report (`issues.report` permission). [dateFrom] is `yyyy-MM-dd`;
+  /// null means since the beginning.
+  Future<IssueReport> report({String? dateFrom}) async {
+    try {
+      final response = await _client.dio.get<Map<String, dynamic>>(
+        '/issues/report',
+        queryParameters: {'date_from': ?dateFrom},
+      );
+
+      return IssueReport.fromJson(response.data!['data'] as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
 
   Future<List<Issue>> list({bool openOnly = true}) async {
     try {

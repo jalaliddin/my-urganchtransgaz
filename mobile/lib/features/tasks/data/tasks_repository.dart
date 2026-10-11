@@ -2,7 +2,9 @@ import 'package:dio/dio.dart';
 
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/network/paginated.dart';
 import '../domain/task.dart';
+import '../domain/task_filters.dart';
 
 class TasksRepository {
   TasksRepository(this._client);
@@ -18,6 +20,48 @@ class TasksRepository {
       final data = response.data!['data'] as List<dynamic>;
 
       return data.map((e) => Task.fromJson(e as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  /// One page of the Tasks screen's list, newest first (the web list's
+  /// default order).
+  Future<Paginated<Task>> page(TaskFilters filters, {int page = 1}) async {
+    try {
+      final response = await _client.dio.get<Map<String, dynamic>>(
+        '/tasks',
+        queryParameters: {...filters.toQuery(includeStatus: true), 'page': page, 'sort': '-created_at'},
+      );
+
+      return Paginated.fromJson(response.data!, Task.fromJson);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<TaskSummary> summary(TaskFilters filters) async {
+    try {
+      final response = await _client.dio.get<Map<String, dynamic>>(
+        '/tasks/summary',
+        queryParameters: filters.toQuery(includeStatus: false),
+      );
+
+      return TaskSummary.fromJson(response.data!['data'] as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  /// Active categories only — what the filter offers.
+  Future<List<TaskCategory>> categories() async {
+    try {
+      final response = await _client.dio.get<Map<String, dynamic>>('/tasks/options');
+      final data = response.data!['data'] as Map<String, dynamic>;
+
+      return (data['categories'] as List<dynamic>? ?? [])
+          .map((e) => TaskCategory.fromJson(e as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }

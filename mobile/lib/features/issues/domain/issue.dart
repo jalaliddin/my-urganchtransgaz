@@ -147,6 +147,17 @@ class Issue {
 
   bool get isOpen => status == 'open';
 
+  /// Matches `BuildIssueReport::STALE_AFTER_DAYS` on the server.
+  static const staleAfterDays = 7;
+
+  /// Open and created more than [staleAfterDays] ago — the same rule the
+  /// report's "stale" count uses.
+  bool get isStale {
+    final created = DateTime.tryParse(createdAt);
+
+    return isOpen && created != null && created.isBefore(DateTime.now().subtract(const Duration(days: staleAfterDays)));
+  }
+
   factory Issue.fromJson(Map<String, dynamic> json) => Issue(
         id: json['id'] as int,
         reporter: json['reporter'] is Map<String, dynamic>

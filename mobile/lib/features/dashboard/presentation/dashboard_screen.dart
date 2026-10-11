@@ -11,6 +11,7 @@ import '../../auth/presentation/auth_controller.dart';
 import '../../exams/presentation/exams_controller.dart';
 import '../../kpi/presentation/kpi_controller.dart';
 import '../../notifications/presentation/notifications_controller.dart';
+import '../../profile/presentation/profile_controller.dart';
 import '../../tasks/presentation/tasks_controller.dart';
 import 'dashboard_providers.dart';
 import 'dashboard_sections.dart';
@@ -24,6 +25,7 @@ class DashboardScreen extends ConsumerWidget {
   Future<void> _refresh(WidgetRef ref) async {
     ref.invalidate(announcementsControllerProvider);
     ref.invalidate(tasksControllerProvider);
+    ref.invalidate(allTasksSummaryProvider);
     ref.invalidate(examsControllerProvider);
     ref.invalidate(openIssuesCountProvider);
     ref.invalidate(unreadNotificationsCountProvider);

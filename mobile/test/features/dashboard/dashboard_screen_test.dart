@@ -98,6 +98,16 @@ List<Task> _tasks() => [
       }),
     ];
 
+/// What `/tasks/summary` would return for exactly these tasks.
+TaskSummary _summaryOf(List<Task> tasks) {
+  final byStatus = <String, int>{};
+  for (final task in tasks) {
+    byStatus[task.status] = (byStatus[task.status] ?? 0) + 1;
+  }
+
+  return TaskSummary(total: tasks.length, byStatus: byStatus);
+}
+
 Future<void> _pump(
   WidgetTester tester, {
   required Size size,
@@ -123,6 +133,7 @@ Future<void> _pump(
       overrides: [
         authControllerProvider.overrideWith(() => _FakeAuth(user ?? _user())),
         tasksControllerProvider.overrideWith(() => _FakeTasks(tasks ?? _tasks())),
+        allTasksSummaryProvider.overrideWith((ref) async => _summaryOf(tasks ?? _tasks())),
         examsControllerProvider.overrideWith(_FakeExams.new),
         announcementsControllerProvider.overrideWith(_FakeAnnouncements.new),
         unreadNotificationsCountProvider.overrideWith((ref) async => 4),

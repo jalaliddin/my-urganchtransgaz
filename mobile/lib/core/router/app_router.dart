@@ -15,6 +15,7 @@ import '../../features/exams/presentation/exam_attempt_screen.dart';
 import '../../features/exams/presentation/exams_screen.dart';
 import '../../features/issues/presentation/create_issue_screen.dart';
 import '../../features/issues/presentation/issue_detail_screen.dart';
+import '../../features/issues/presentation/issue_report_screen.dart';
 import '../../features/issues/presentation/issues_screen.dart';
 import '../../features/kpi/presentation/kpi_screen.dart';
 import '../../features/more/presentation/more_screen.dart';
@@ -82,6 +83,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ExamAttemptScreen(examId: int.parse(state.pathParameters['id']!)),
       ),
       GoRoute(path: '/issues/new', builder: (context, state) => const CreateIssueScreen()),
+      GoRoute(path: '/issues/report', builder: (context, state) => const IssueReportScreen()),
       GoRoute(
         path: '/issues/:id',
         builder: (context, state) => IssueDetailScreen(id: int.parse(state.pathParameters['id']!)),

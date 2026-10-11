@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/responsive_body.dart';
+import '../../../features/auth/presentation/auth_controller.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/issue.dart';
 import 'issue_map.dart';
@@ -23,10 +24,19 @@ class IssuesScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final issues = ref.watch(issuesControllerProvider);
     final controller = ref.read(issuesControllerProvider.notifier);
+    final canSeeReport = ref.watch(authControllerProvider.select((user) => user.value?.can('issues.report') ?? false));
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.issuesTitle),
+        actions: [
+          if (canSeeReport)
+            IconButton(
+              icon: const Icon(Icons.insights_outlined),
+              tooltip: l10n.issueReportTitle,
+              onPressed: () => context.push('/issues/report'),
+            ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Padding(
@@ -76,6 +86,7 @@ class IssuesScreen extends ConsumerWidget {
                         point: LatLng(issue.latitude, issue.longitude),
                         title: issue.title,
                         isResolved: !issue.isOpen,
+                        isStale: issue.isStale,
                       ),
                   ];
 

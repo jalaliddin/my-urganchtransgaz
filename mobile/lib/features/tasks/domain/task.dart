@@ -37,6 +37,38 @@ class TaskAttachment {
       );
 }
 
+class TaskCategory {
+  TaskCategory({required this.id, required this.name, this.color});
+
+  final int id;
+  final String name;
+
+  /// `#RRGGBB` as set by an admin; null when the category has no color.
+  final String? color;
+
+  factory TaskCategory.fromJson(Map<String, dynamic> json) => TaskCategory(
+        id: json['id'] as int,
+        name: json['name'] as String? ?? '',
+        color: json['color'] as String?,
+      );
+}
+
+/// How many visible tasks fall in each status, under the same filters as
+/// the list (but never narrowed to one status, so every tab gets a count).
+class TaskSummary {
+  TaskSummary({required this.total, required this.byStatus});
+
+  final int total;
+  final Map<String, int> byStatus;
+
+  int countFor(String? status) => status == null ? total : byStatus[status] ?? 0;
+
+  factory TaskSummary.fromJson(Map<String, dynamic> json) => TaskSummary(
+        total: json['total'] as int? ?? 0,
+        byStatus: (json['by_status'] as Map<String, dynamic>? ?? {}).map((key, value) => MapEntry(key, value as int? ?? 0)),
+      );
+}
+
 class TaskActivity {
   TaskActivity({required this.id, required this.action, this.description, this.causerName, required this.createdAt});
 
@@ -62,6 +94,7 @@ class Task {
     this.description,
     this.creatorName,
     required this.assignees,
+    this.category,
     required this.priority,
     required this.status,
     this.startDate,
@@ -80,6 +113,9 @@ class Task {
   final String? description;
   final String? creatorName;
   final List<Employee> assignees;
+
+  /// Null for tasks created before categories existed.
+  final TaskCategory? category;
   final String priority;
   final String status;
   final String? startDate;
@@ -102,6 +138,7 @@ class Task {
         assignees: (json['assignees'] as List<dynamic>? ?? [])
             .map((e) => Employee.fromJson(e as Map<String, dynamic>))
             .toList(),
+        category: json['category'] is Map<String, dynamic> ? TaskCategory.fromJson(json['category'] as Map<String, dynamic>) : null,
         priority: json['priority'] as String? ?? 'normal',
         status: json['status'] as String? ?? 'new',
         startDate: json['start_date'] as String?,

@@ -40,6 +40,9 @@ class AppLocalizationsUz extends AppLocalizations {
   String get commonFileOpenError => 'Faylni ochib bo\'lmadi.';
 
   @override
+  String get commonDelete => 'O\'chirish';
+
+  @override
   String get commonLogout => 'Tizimdan chiqish';
 
   @override
@@ -287,6 +290,43 @@ class AppLocalizationsUz extends AppLocalizations {
       'Profil yangilandi. Ba\'zi o\'zgarishlar tasdiqlashni kutmoqda.';
 
   @override
+  String get profileTabContacts => 'Aloqalar';
+
+  @override
+  String get profileAddContact => 'Aloqa qo\'shish';
+
+  @override
+  String get profileEmergencyContact => 'Favqulodda aloqa';
+
+  @override
+  String get profileBankInfo => 'Bank ma\'lumotlari';
+
+  @override
+  String get profileContactType => 'Turi';
+
+  @override
+  String get profileContactName => 'F.I.Sh.';
+
+  @override
+  String get profileAccountHolder => 'Hisob egasi';
+
+  @override
+  String get profileRelationship => 'Qarindoshlik';
+
+  @override
+  String get profileBankName => 'Bank nomi';
+
+  @override
+  String get profileBankAccount => 'Hisob raqami';
+
+  @override
+  String get profileNoContacts =>
+      'Favqulodda aloqa va bank ma\'lumotlari hali qo\'shilmagan.';
+
+  @override
+  String get profileDeleteContactConfirm => 'Bu aloqani o\'chirasizmi?';
+
+  @override
   String get documentsTitle => 'Hujjatlar';
 
   @override
@@ -377,6 +417,33 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get tasksNone => 'Faol topshiriqlar yo\'q';
+
+  @override
+  String get tasksSearch => 'Topshiriq qidirish';
+
+  @override
+  String get tasksAll => 'Barchasi';
+
+  @override
+  String get tasksCategory => 'Kategoriya';
+
+  @override
+  String get tasksAllCategories => 'Barcha kategoriyalar';
+
+  @override
+  String get tasksMineAll => 'Barcha topshiriqlar';
+
+  @override
+  String get tasksMineAssigned => 'Menga berilgan';
+
+  @override
+  String get tasksMineCreated => 'Men bergan';
+
+  @override
+  String get tasksNoMatch => 'Bu filtrlar bo\'yicha topshiriq topilmadi';
+
+  @override
+  String get tasksLoadMoreFailed => 'Qolganini yuklab bo\'lmadi';
 
   @override
   String get kpiTitle => 'KPI';
@@ -549,6 +616,77 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get issuesNoCandidates =>
       'Bu tashkilotda ijrochi bo\'la oladigan xodim topilmadi';
+
+  @override
+  String get issueReportTitle => 'Muammolar hisoboti';
+
+  @override
+  String get issueReportPeriodMonth => 'Bu oy';
+
+  @override
+  String get issueReportPeriod3Months => '3 oy';
+
+  @override
+  String get issueReportPeriod12Months => '12 oy';
+
+  @override
+  String get issueReportPeriodAll => 'Hammasi';
+
+  @override
+  String get issueReportTotal => 'Jami muammolar';
+
+  @override
+  String get issueReportOpen => 'Ochiq';
+
+  @override
+  String get issueReportResolved => 'Bartaraf etilgan';
+
+  @override
+  String issueReportStale(int days) {
+    return '$days kundan ortiq ochiq';
+  }
+
+  @override
+  String get issueReportResolutionRate => 'Bartaraf etish ulushi';
+
+  @override
+  String get issueReportAvgResolution => 'O\'rtacha bartaraf etish vaqti';
+
+  @override
+  String issueReportHours(String n) {
+    return '$n soat';
+  }
+
+  @override
+  String issueReportDays(String n) {
+    return '$n kun';
+  }
+
+  @override
+  String get issueReportByOrganization => 'Tashkilotlar kesimida';
+
+  @override
+  String get issueReportByCategory => 'Kategoriyalar kesimida';
+
+  @override
+  String get issueReportMonthly => 'Oylik dinamika';
+
+  @override
+  String get issueReportMonth => 'Oy';
+
+  @override
+  String get issueReportCreated => 'Qayd etilgan';
+
+  @override
+  String get issueReportNoCategory => 'Kategoriyasiz';
+
+  @override
+  String issueReportPointsTruncated(int n) {
+    return 'Xaritada eng so\'nggi $n ta muammo ko\'rsatilmoqda.';
+  }
+
+  @override
+  String get issueReportEmpty => 'Tanlangan davrda muammolar yo\'q';
 
   @override
   String get announcementsTitle => 'E\'lonlar';

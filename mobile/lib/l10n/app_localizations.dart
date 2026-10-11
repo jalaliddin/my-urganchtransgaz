@@ -158,6 +158,12 @@ abstract class AppLocalizations {
   /// **'Faylni ochib bo\'lmadi.'**
   String get commonFileOpenError;
 
+  /// No description provided for @commonDelete.
+  ///
+  /// In uz, this message translates to:
+  /// **'O\'chirish'**
+  String get commonDelete;
+
   /// No description provided for @commonLogout.
   ///
   /// In uz, this message translates to:
@@ -638,6 +644,78 @@ abstract class AppLocalizations {
   /// **'Profil yangilandi. Ba\'zi o\'zgarishlar tasdiqlashni kutmoqda.'**
   String get profileSavePending;
 
+  /// No description provided for @profileTabContacts.
+  ///
+  /// In uz, this message translates to:
+  /// **'Aloqalar'**
+  String get profileTabContacts;
+
+  /// No description provided for @profileAddContact.
+  ///
+  /// In uz, this message translates to:
+  /// **'Aloqa qo\'shish'**
+  String get profileAddContact;
+
+  /// No description provided for @profileEmergencyContact.
+  ///
+  /// In uz, this message translates to:
+  /// **'Favqulodda aloqa'**
+  String get profileEmergencyContact;
+
+  /// No description provided for @profileBankInfo.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bank ma\'lumotlari'**
+  String get profileBankInfo;
+
+  /// No description provided for @profileContactType.
+  ///
+  /// In uz, this message translates to:
+  /// **'Turi'**
+  String get profileContactType;
+
+  /// No description provided for @profileContactName.
+  ///
+  /// In uz, this message translates to:
+  /// **'F.I.Sh.'**
+  String get profileContactName;
+
+  /// No description provided for @profileAccountHolder.
+  ///
+  /// In uz, this message translates to:
+  /// **'Hisob egasi'**
+  String get profileAccountHolder;
+
+  /// No description provided for @profileRelationship.
+  ///
+  /// In uz, this message translates to:
+  /// **'Qarindoshlik'**
+  String get profileRelationship;
+
+  /// No description provided for @profileBankName.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bank nomi'**
+  String get profileBankName;
+
+  /// No description provided for @profileBankAccount.
+  ///
+  /// In uz, this message translates to:
+  /// **'Hisob raqami'**
+  String get profileBankAccount;
+
+  /// No description provided for @profileNoContacts.
+  ///
+  /// In uz, this message translates to:
+  /// **'Favqulodda aloqa va bank ma\'lumotlari hali qo\'shilmagan.'**
+  String get profileNoContacts;
+
+  /// No description provided for @profileDeleteContactConfirm.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bu aloqani o\'chirasizmi?'**
+  String get profileDeleteContactConfirm;
+
   /// No description provided for @documentsTitle.
   ///
   /// In uz, this message translates to:
@@ -817,6 +895,60 @@ abstract class AppLocalizations {
   /// In uz, this message translates to:
   /// **'Faol topshiriqlar yo\'q'**
   String get tasksNone;
+
+  /// No description provided for @tasksSearch.
+  ///
+  /// In uz, this message translates to:
+  /// **'Topshiriq qidirish'**
+  String get tasksSearch;
+
+  /// No description provided for @tasksAll.
+  ///
+  /// In uz, this message translates to:
+  /// **'Barchasi'**
+  String get tasksAll;
+
+  /// No description provided for @tasksCategory.
+  ///
+  /// In uz, this message translates to:
+  /// **'Kategoriya'**
+  String get tasksCategory;
+
+  /// No description provided for @tasksAllCategories.
+  ///
+  /// In uz, this message translates to:
+  /// **'Barcha kategoriyalar'**
+  String get tasksAllCategories;
+
+  /// No description provided for @tasksMineAll.
+  ///
+  /// In uz, this message translates to:
+  /// **'Barcha topshiriqlar'**
+  String get tasksMineAll;
+
+  /// No description provided for @tasksMineAssigned.
+  ///
+  /// In uz, this message translates to:
+  /// **'Menga berilgan'**
+  String get tasksMineAssigned;
+
+  /// No description provided for @tasksMineCreated.
+  ///
+  /// In uz, this message translates to:
+  /// **'Men bergan'**
+  String get tasksMineCreated;
+
+  /// No description provided for @tasksNoMatch.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bu filtrlar bo\'yicha topshiriq topilmadi'**
+  String get tasksNoMatch;
+
+  /// No description provided for @tasksLoadMoreFailed.
+  ///
+  /// In uz, this message translates to:
+  /// **'Qolganini yuklab bo\'lmadi'**
+  String get tasksLoadMoreFailed;
 
   /// No description provided for @kpiTitle.
   ///
@@ -1153,6 +1285,132 @@ abstract class AppLocalizations {
   /// In uz, this message translates to:
   /// **'Bu tashkilotda ijrochi bo\'la oladigan xodim topilmadi'**
   String get issuesNoCandidates;
+
+  /// No description provided for @issueReportTitle.
+  ///
+  /// In uz, this message translates to:
+  /// **'Muammolar hisoboti'**
+  String get issueReportTitle;
+
+  /// No description provided for @issueReportPeriodMonth.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bu oy'**
+  String get issueReportPeriodMonth;
+
+  /// No description provided for @issueReportPeriod3Months.
+  ///
+  /// In uz, this message translates to:
+  /// **'3 oy'**
+  String get issueReportPeriod3Months;
+
+  /// No description provided for @issueReportPeriod12Months.
+  ///
+  /// In uz, this message translates to:
+  /// **'12 oy'**
+  String get issueReportPeriod12Months;
+
+  /// No description provided for @issueReportPeriodAll.
+  ///
+  /// In uz, this message translates to:
+  /// **'Hammasi'**
+  String get issueReportPeriodAll;
+
+  /// No description provided for @issueReportTotal.
+  ///
+  /// In uz, this message translates to:
+  /// **'Jami muammolar'**
+  String get issueReportTotal;
+
+  /// No description provided for @issueReportOpen.
+  ///
+  /// In uz, this message translates to:
+  /// **'Ochiq'**
+  String get issueReportOpen;
+
+  /// No description provided for @issueReportResolved.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bartaraf etilgan'**
+  String get issueReportResolved;
+
+  /// No description provided for @issueReportStale.
+  ///
+  /// In uz, this message translates to:
+  /// **'{days} kundan ortiq ochiq'**
+  String issueReportStale(int days);
+
+  /// No description provided for @issueReportResolutionRate.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bartaraf etish ulushi'**
+  String get issueReportResolutionRate;
+
+  /// No description provided for @issueReportAvgResolution.
+  ///
+  /// In uz, this message translates to:
+  /// **'O\'rtacha bartaraf etish vaqti'**
+  String get issueReportAvgResolution;
+
+  /// No description provided for @issueReportHours.
+  ///
+  /// In uz, this message translates to:
+  /// **'{n} soat'**
+  String issueReportHours(String n);
+
+  /// No description provided for @issueReportDays.
+  ///
+  /// In uz, this message translates to:
+  /// **'{n} kun'**
+  String issueReportDays(String n);
+
+  /// No description provided for @issueReportByOrganization.
+  ///
+  /// In uz, this message translates to:
+  /// **'Tashkilotlar kesimida'**
+  String get issueReportByOrganization;
+
+  /// No description provided for @issueReportByCategory.
+  ///
+  /// In uz, this message translates to:
+  /// **'Kategoriyalar kesimida'**
+  String get issueReportByCategory;
+
+  /// No description provided for @issueReportMonthly.
+  ///
+  /// In uz, this message translates to:
+  /// **'Oylik dinamika'**
+  String get issueReportMonthly;
+
+  /// No description provided for @issueReportMonth.
+  ///
+  /// In uz, this message translates to:
+  /// **'Oy'**
+  String get issueReportMonth;
+
+  /// No description provided for @issueReportCreated.
+  ///
+  /// In uz, this message translates to:
+  /// **'Qayd etilgan'**
+  String get issueReportCreated;
+
+  /// No description provided for @issueReportNoCategory.
+  ///
+  /// In uz, this message translates to:
+  /// **'Kategoriyasiz'**
+  String get issueReportNoCategory;
+
+  /// No description provided for @issueReportPointsTruncated.
+  ///
+  /// In uz, this message translates to:
+  /// **'Xaritada eng so\'nggi {n} ta muammo ko\'rsatilmoqda.'**
+  String issueReportPointsTruncated(int n);
+
+  /// No description provided for @issueReportEmpty.
+  ///
+  /// In uz, this message translates to:
+  /// **'Tanlangan davrda muammolar yo\'q'**
+  String get issueReportEmpty;
 
   /// No description provided for @announcementsTitle.
   ///

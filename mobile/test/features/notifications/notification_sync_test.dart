@@ -99,6 +99,18 @@ void main() {
       expect(notificationRoute({'announcement_id': 12}), '/announcements/12');
       expect(notificationRoute({'exam_id': 4}), '/exams');
       expect(notificationRoute({'document_id': 9}), '/documents');
+      expect(notificationRoute({'employee_kpi_id': 2}), '/kpi');
+      expect(notificationRoute({'change_request_id': 6}), '/profile');
+    });
+
+    test('opens the absences screen only for the employee the absence is about', () {
+      expect(notificationRoute({'absence_id': 8, 'employee_id': 1, 'for_manager': false}), '/absences');
+      expect(notificationRoute({'absence_id': 8, 'employee_id': 1}), '/absences', reason: 'a cancellation goes only to the employee');
+      expect(notificationRoute({'absence_id': 8, 'employee_id': 1, 'for_manager': true}), '/notifications');
+    });
+
+    test('keeps an attendance issue (no attendance screen on mobile) on the list', () {
+      expect(notificationRoute({'employee_id': 4, 'date': '2026-10-05'}), '/notifications');
     });
 
     test('accepts ids the server sent as strings', () {

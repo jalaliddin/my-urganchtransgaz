@@ -10,6 +10,7 @@ import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/task.dart';
+import 'task_category_chip.dart';
 import 'tasks_controller.dart';
 
 class TaskDetailScreen extends ConsumerStatefulWidget {
@@ -61,10 +62,13 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
           const SizedBox(height: 4),
           Wrap(
             spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Chip(label: Text(_statusLabel(l10n, task.status))),
               Chip(label: Text(_priorityLabel(l10n, task.priority))),
               if (task.dueDate != null) Chip(avatar: const Icon(Icons.event, size: 16), label: Text(task.dueDate!)),
+              if (task.category != null) TaskCategoryChip(category: task.category!),
             ],
           ),
           if (task.description != null) ...[

@@ -8,6 +8,7 @@ import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/change_request.dart';
+import 'profile_contacts_tab.dart';
 import 'profile_controller.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -23,7 +24,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -41,13 +42,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
         title: Text(l10n.profileTitle),
         bottom: TabBar(
           controller: _tabController,
-          tabs: [Tab(text: l10n.profileTabInfo), Tab(text: l10n.profileTabRequests)],
+          tabs: [Tab(text: l10n.profileTabInfo), Tab(text: l10n.profileTabContacts), Tab(text: l10n.profileTabRequests)],
         ),
       ),
       body: ResponsiveBody(
         child: TabBarView(
           controller: _tabController,
-          children: const [_ProfileInfoTab(), _ProfileRequestsTab()],
+          children: const [_ProfileInfoTab(), ProfileContactsTab(), _ProfileRequestsTab()],
         ),
       ),
     );

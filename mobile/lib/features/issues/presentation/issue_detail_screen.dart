@@ -116,7 +116,15 @@ class _IssueDetailScreenState extends ConsumerState<IssueDetailScreen> {
           ],
           const SizedBox(height: 16),
           IssueMap(
-            markers: [IssueMapMarker(id: issue.id, point: LatLng(issue.latitude, issue.longitude), title: issue.title, isResolved: !issue.isOpen)],
+            markers: [
+              IssueMapMarker(
+                id: issue.id,
+                point: LatLng(issue.latitude, issue.longitude),
+                title: issue.title,
+                isResolved: !issue.isOpen,
+                isStale: issue.isStale,
+              ),
+            ],
             center: LatLng(issue.latitude, issue.longitude),
             zoom: 15,
             height: 240,

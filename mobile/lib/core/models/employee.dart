@@ -1,4 +1,5 @@
 import 'department.dart';
+import 'employee_contact.dart';
 import 'organization.dart';
 import 'position.dart';
 
@@ -26,6 +27,7 @@ class Employee {
     this.terminationDate,
     this.photoUrl,
     required this.status,
+    this.contacts = const [],
   });
 
   final int id;
@@ -50,6 +52,9 @@ class Employee {
   final String? terminationDate;
   final String? photoUrl;
   final String status;
+
+  /// Present only where the server loaded them (the own-profile endpoint).
+  final List<EmployeeContact> contacts;
 
   factory Employee.fromJson(Map<String, dynamic> json) => Employee(
         id: json['id'] as int,
@@ -80,5 +85,8 @@ class Employee {
         terminationDate: json['termination_date'] as String?,
         photoUrl: json['photo_url'] as String?,
         status: json['status'] as String? ?? 'active',
+        contacts: (json['contacts'] as List<dynamic>? ?? [])
+            .map((e) => EmployeeContact.fromJson(e as Map<String, dynamic>))
+            .toList(),
       );
 }

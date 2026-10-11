@@ -15,6 +15,12 @@ String notificationRoute(Map<String, dynamic> data) {
 
   if (id('exam_id') != null) return '/exams';
   if (id('document_id') != null) return '/documents';
+  if (id('employee_kpi_id') != null) return '/kpi';
+  if (id('change_request_id') != null) return '/profile';
+
+  // The absences screen shows only the user's own. A manager's copy is
+  // about someone else, so it stays on the list instead.
+  if (id('absence_id') != null) return data['for_manager'] == true ? '/notifications' : '/absences';
 
   return '/notifications';
 }
