@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- Flutter only adds this to the debug/profile manifests; without it a
          release build (Play Store) cannot reach the API at all. -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -8,6 +9,16 @@
     <!-- Notifications about tasks, issues and announcements. Android 13+
          asks the user at runtime; older versions grant it implicitly. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- open_filex declares broad media/storage access, which Play only
+         allows when the system pickers can't do the job. This app never
+         needs it: attachments are downloaded into its own cache directory
+         and opened from there (open_filex asks for these only for files
+         outside the app's storage), and picking photos/files goes through
+         image_picker/file_picker, which use the system pickers. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
     <application
         android:label="My Urganchtransgaz"
         android:name="${applicationName}"
