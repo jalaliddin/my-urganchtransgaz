@@ -55,6 +55,8 @@ class ApiClient {
   }
 
   Future<void> restoreBaseUrl() async {
+    if (!ApiConfig.allowServerOverride) return;
+
     final stored = await SecureStorage.readServerUrl();
 
     if (stored != null && stored.isNotEmpty) {

@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/locale/language_switcher.dart';
+import '../../../core/network/api_config.dart';
 import '../../../core/network/api_providers.dart';
 import '../../../l10n/app_localizations.dart';
 import 'auth_controller.dart';
@@ -44,7 +45,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final serverUrl = _serverController.text.trim();
 
-    if (serverUrl.isNotEmpty) {
+    if (ApiConfig.allowServerOverride && serverUrl.isNotEmpty) {
       await ref.read(apiClientProvider).setBaseUrl(serverUrl);
     }
 
@@ -144,13 +145,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             )
                           : Text(l10n.authLoginButton),
                     ),
-                    const SizedBox(height: 8),
-                    TextButton.icon(
-                      onPressed: () => setState(() => _showServerField = !_showServerField),
-                      icon: const Icon(Icons.dns_outlined, size: 18),
-                      label: Text(l10n.authServerAddress),
-                    ),
-                    if (_showServerField)
+                    // Development builds only — see ApiConfig.allowServerOverride.
+                    if (ApiConfig.allowServerOverride) ...[
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: () => setState(() => _showServerField = !_showServerField),
+                        icon: const Icon(Icons.dns_outlined, size: 18),
+                        label: Text(l10n.authServerAddress),
+                      ),
+                    ],
+                    if (ApiConfig.allowServerOverride && _showServerField)
                       Padding(
                         padding: const EdgeInsets.only(top: 8),
                         child: TextFormField(

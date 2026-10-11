@@ -192,9 +192,11 @@ connections):
 flutter run --dart-define=API_BASE_URL=http://192.168.1.10:8000/api/v1
 ```
 
-The login screen also has a collapsible **Server address** field
-(persisted on-device) — useful for pointing one build at a different
-backend without rebuilding, e.g. when testing against a staging server.
+A debug/profile build's login screen also has a collapsible **Server
+address** field (persisted on-device) — useful for pointing one build at a
+different backend without rebuilding, e.g. when testing against a staging
+server. Release builds have no such field and ignore any address saved by
+an earlier build, so a Play Store install always talks to production.
 
 ### Android emulator
 
