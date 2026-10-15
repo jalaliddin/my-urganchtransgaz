@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\Issues\RecordIssueActivity;
+use App\Actions\Issues\StoreIssuePhotos;
 use App\Enums\ActiveStatus;
 use App\Enums\IssueStatus;
 use App\Enums\OrganizationType;
@@ -24,6 +25,7 @@ use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -34,6 +36,7 @@ class IssueController extends Controller
     public function __construct(
         private AuditLogService $auditLog,
         private RecordIssueActivity $recordActivity,
+        private StoreIssuePhotos $storePhotos,
     ) {
         //
     }
@@ -145,23 +148,30 @@ class IssueController extends Controller
         $user = $request->user();
         $data = $request->validated();
 
-        $issue = Issue::create([
-            'reporter_employee_id' => $user->employee->id,
-            'organization_id' => $request->targetOrganizationId(),
-            // The department that raised it (the reporter's own) — what a
-            // department-manager's list is scoped by. The executors may
-            // belong to other departments of the organization.
-            'department_id' => $user->employee->department_id,
-            'issue_category_id' => $data['issue_category_id'],
-            'title' => $data['title'],
-            'description' => $data['description'] ?? null,
-            'object_name' => $data['object_name'] ?? null,
-            'latitude' => $data['latitude'],
-            'longitude' => $data['longitude'],
-            'status' => IssueStatus::Open,
-        ]);
+        // One unit: a photo that can't be processed must not leave behind
+        // an issue the reporter can't see succeeded, and would file again.
+        $issue = DB::transaction(function () use ($request, $user, $data) {
+            $issue = Issue::create([
+                'reporter_employee_id' => $user->employee->id,
+                'organization_id' => $request->targetOrganizationId(),
+                // The department that raised it (the reporter's own) — what a
+                // department-manager's list is scoped by. The executors may
+                // belong to other departments of the organization.
+                'department_id' => $user->employee->department_id,
+                'issue_category_id' => $data['issue_category_id'],
+                'title' => $data['title'],
+                'description' => $data['description'] ?? null,
+                'object_name' => $data['object_name'] ?? null,
+                'latitude' => $data['latitude'],
+                'longitude' => $data['longitude'],
+                'status' => IssueStatus::Open,
+            ]);
 
-        $issue->executors()->attach(array_unique($data['executor_ids'] ?? []));
+            $issue->executors()->attach(array_unique($data['executor_ids'] ?? []));
+            $this->storePhotos->handle($issue, $user, $request->file('photos', []));
+
+            return $issue;
+        });
         $issue->load('executors.user');
 
         $this->recordActivity->handle($issue, $user, 'created', "{$user->name} muammoni qayd etdi.");
@@ -188,7 +198,7 @@ class IssueController extends Controller
         ]);
 
         return $this->success(
-            new IssueResource($issue->load(['reporter', 'organization', 'department', 'category', 'executors'])),
+            new IssueResource($issue->load(['reporter', 'organization', 'department', 'category', 'executors', 'photos'])),
             'Muammo qayd etildi.',
             201
         );
@@ -202,7 +212,7 @@ class IssueController extends Controller
         Gate::authorize('view', $issue);
 
         $issue->load([
-            'reporter', 'organization', 'department', 'category', 'executors', 'resolvedBy',
+            'reporter', 'organization', 'department', 'category', 'executors', 'resolvedBy', 'photos',
             'comments.user', 'activities.causer',
         ]);
 

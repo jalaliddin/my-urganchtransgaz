@@ -100,6 +100,11 @@ class Issue extends Model
         return $this->hasMany(IssueComment::class);
     }
 
+    public function photos(): HasMany
+    {
+        return $this->hasMany(IssuePhoto::class);
+    }
+
     public function activities(): HasMany
     {
         return $this->hasMany(IssueActivity::class)->latest();

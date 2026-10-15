@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\IssueCommentController;
 use App\Http\Controllers\Api\V1\IssueController;
+use App\Http\Controllers\Api\V1\IssuePhotoController;
 use App\Http\Controllers\Api\V1\IssueReportController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +15,7 @@ Route::prefix('issues')->name('issues.')->group(function () {
     Route::get('{issue}', [IssueController::class, 'show'])->name('show');
     Route::post('{issue}/resolve', [IssueController::class, 'resolve'])->name('resolve');
     Route::put('{issue}/executors', [IssueController::class, 'assignExecutors'])->name('executors.update');
+    Route::get('{issue}/photos/{photo}', [IssuePhotoController::class, 'show'])->scopeBindings()->name('photos.show');
 
     Route::post('{issue}/comments', [IssueCommentController::class, 'store'])->name('comments.store');
 });

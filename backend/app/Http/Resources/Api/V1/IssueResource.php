@@ -42,6 +42,10 @@ class IssueResource extends JsonResource
             'resolved_by_name' => $this->whenLoaded('resolvedBy', fn () => $this->resolvedBy?->name),
             'resolved_at' => $this->resolved_at,
 
+            'photos' => $this->whenLoaded('photos', fn () => $this->photos->map(fn ($photo) => [
+                'id' => $photo->id,
+                'url' => route('issues.photos.show', [$this->id, $photo->id]),
+            ])->all()),
             'comments' => IssueCommentResource::collection($this->whenLoaded('comments')),
             'activities' => IssueActivityResource::collection($this->whenLoaded('activities')),
 

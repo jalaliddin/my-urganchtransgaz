@@ -15,6 +15,8 @@ class StoreIssueRequest extends FormRequest
 {
     use ChecksOrganizationScope;
 
+    public const MAX_PHOTOS = 5;
+
     /**
      * Anyone with `issues.create` (every role) can report an issue. Roles
      * with company-wide reach may file it against any organization —
@@ -60,6 +62,14 @@ class StoreIssueRequest extends FormRequest
             ],
             'executor_ids' => [$excludeExecutors, 'nullable', 'array', 'max:30'],
             'executor_ids.*' => [$excludeExecutors, 'integer', 'distinct'],
+            // Optional. The mobile app only offers the camera, so a photo there
+            // was taken on the spot; the web takes a file.
+            'photos' => ['nullable', 'array', 'max:'.self::MAX_PHOTOS],
+            // 6000 px keeps decoding (StoreIssuePhotos) well inside PHP's memory limit.
+            'photos.*' => [
+                'image', 'mimes:jpg,jpeg,png', 'extensions:jpg,jpeg,png', 'max:10240',
+                'dimensions:max_width=6000,max_height=6000',
+            ],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
         ];

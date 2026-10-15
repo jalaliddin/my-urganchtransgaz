@@ -11,7 +11,9 @@ use App\Notifications\IssueAssigned;
 use App\Notifications\IssueReported;
 use App\Notifications\IssueResolved;
 use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
@@ -71,6 +73,36 @@ it('lets a plain employee report an issue but ignores the executors they send, a
     $this->assertDatabaseCount('issue_executors', 0);
     Notification::assertNotSentTo($colleague, IssueAssigned::class);
 });
+
+it('stores the photos sent with a new issue as JPEGs no larger than 1600 px', function () {
+    Storage::fake('local');
+    $user = userWithRole('employee', Organization::factory()->create());
+
+    $response = $this->actingAs($user, 'sanctum')->postJson('/api/v1/issues', issuePayload([
+        'photos' => [
+            UploadedFile::fake()->image('kamera.jpg', 4000, 3000)->size(5000),
+            UploadedFile::fake()->image('yaqin.png', 800, 600),
+        ],
+    ]))->assertCreated()->assertJsonCount(2, 'data.photos');
+
+    $issue = Issue::findOrFail($response->json('data.id'));
+    $sizes = $issue->photos->map(fn ($photo) => array_slice(getimagesizefromstring(Storage::disk('local')->get($photo->path)), 0, 3));
+    expect($sizes->all())->toEqual([[1600, 1200, IMAGETYPE_JPEG], [800, 600, IMAGETYPE_JPEG]]);
+    expect($response->json('data.photos.0.url'))->toEndWith("/api/v1/issues/{$issue->id}/photos/{$issue->photos[0]->id}");
+});
+
+it('refuses more than five photos, or a file that is not a photo', function (array $photos) {
+    Storage::fake('local');
+    $user = userWithRole('employee', Organization::factory()->create());
+
+    $this->actingAs($user, 'sanctum')->postJson('/api/v1/issues', issuePayload(['photos' => $photos]))
+        ->assertStatus(422);
+
+    $this->assertDatabaseCount('issues', 0);
+})->with([
+    'six photos' => fn () => array_map(fn ($i) => UploadedFile::fake()->image("p{$i}.jpg"), range(1, 6)),
+    'a PDF' => fn () => [UploadedFile::fake()->create('scan.pdf', 50, 'application/pdf')],
+]);
 
 it('lets every role that has an employee record report an issue', function () {
     $organization = Organization::factory()->create();
