@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Integrations\AttendanceDeviceUserController;
 use App\Http\Controllers\Api\V1\Integrations\AttendanceEventController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,5 +37,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware('attendance.device')->group(function () {
         Route::post('integrations/attendance/events', [AttendanceEventController::class, 'store'])
             ->name('integrations.attendance.events');
+        Route::put('integrations/attendance/device-users', [AttendanceDeviceUserController::class, 'sync'])
+            ->name('integrations.attendance.device-users');
     });
 });
