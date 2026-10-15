@@ -80,7 +80,6 @@ const allNavGroups: NavGroup[] = [
         title: 'nav.attendance',
         icon: 'mdi-calendar-check-outline',
         to: '/attendance',
-        permission: 'attendance.view',
       },
       {
         title: 'nav.absences',

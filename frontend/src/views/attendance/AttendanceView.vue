@@ -22,6 +22,9 @@ const { t } = useI18n()
 const route = useRoute()
 const auth = useAuthStore()
 const canManage = computed(() => auth.can('attendance.manage'))
+// Without attendance.view the backend returns only the user's own records,
+// so colleague tables and organization/department filters have nothing to show.
+const seesOthers = computed(() => auth.can('attendance.view'))
 
 // Lets the Reports hub deep-link straight into a tab, e.g. /attendance?tab=report.
 const validTabs = ['today', 'report', 'timesheet']
@@ -274,7 +277,9 @@ onMounted(() => {
   loadToday()
   loadReport()
   if (tab.value === 'timesheet') loadTimesheet()
-  organizationService.list({ per_page: 100 }).then((result) => (organizations.value = result.data))
+  if (seesOthers.value) {
+    organizationService.list({ per_page: 100 }).then((result) => (organizations.value = result.data))
+  }
 })
 
 watch(tab, (value) => {
@@ -330,7 +335,7 @@ watch(tab, (value) => {
         </v-card-text>
       </v-card>
 
-      <v-card>
+      <v-card v-if="seesOthers">
         <v-table>
           <thead>
             <tr>
@@ -366,6 +371,7 @@ watch(tab, (value) => {
       <v-card class="mb-4">
         <v-card-text class="d-flex flex-wrap ga-4">
           <v-select
+            v-if="seesOthers"
             v-model="reportFilters.group_by"
             :items="groupByOptions"
             :label="$t('attendance.groupBy')"
@@ -464,6 +470,7 @@ watch(tab, (value) => {
             hide-details
           />
           <v-select
+            v-if="seesOthers"
             v-model="timesheetFilters.organization_id"
             :items="organizations.map((o) => ({ title: o.name, value: o.id }))"
             :label="$t('employees.organization')"
@@ -472,6 +479,7 @@ watch(tab, (value) => {
             hide-details
           />
           <v-select
+            v-if="seesOthers"
             v-model="timesheetFilters.department_id"
             :items="departments.map((d) => ({ title: d.name, value: d.id }))"
             :label="$t('employees.department')"

@@ -108,7 +108,6 @@ class RolePermissionSeeder extends Seeder
         ],
         'employee' => [
             'documents.view', 'documents.upload',
-            'attendance.view',
             'tasks.view', 'tasks.update', 'tasks.complete',
             'exams.view',
             'kpi.view',

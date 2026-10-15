@@ -19,8 +19,10 @@ use App\Models\AttendanceEvent;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
 use App\Models\Setting;
+use App\Models\User;
 use App\Services\AuditLogService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -54,20 +56,7 @@ class AttendanceController extends Controller
             ->when(request()->filled('from'), fn ($query) => $query->whereDate('date', '>=', request()->date('from')))
             ->when(request()->filled('to'), fn ($query) => $query->whereDate('date', '<=', request()->date('to')))
             ->defaultSort('-date')
-            ->when(
-                ! $user->can('attendance.view'),
-                fn ($query) => $query->where('employee_id', $user->employee?->id)
-            )
-            ->when(
-                $user->can('attendance.view') && ! $user->hasCentralAccess(),
-                fn ($query) => $query->whereHas('employee', function ($employeeQuery) use ($user) {
-                    $employeeQuery->where('organization_id', $user->employee?->organization_id);
-
-                    if ($user->hasRole('department-manager')) {
-                        $employeeQuery->where('department_id', $user->employee?->department_id);
-                    }
-                })
-            )
+            ->whereIn('attendance_records.employee_id', $this->visibleEmployeeIds($user))
             ->paginate(request()->integer('per_page', 15));
 
         $this->attachVisitsCounts($records);
@@ -76,6 +65,18 @@ class AttendanceController extends Controller
             AttendanceRecordResource::collection($records),
             meta: $this->paginationMeta($records)
         );
+    }
+
+    /**
+     * Subquery of the employee ids whose attendance $user may see.
+     * Includes deleted employees, so their past days stay in the history
+     * and reports of whoever could see them.
+     *
+     * @return Builder<Employee>
+     */
+    private function visibleEmployeeIds(User $user): Builder
+    {
+        return Employee::withTrashed()->select('employees.id')->attendanceVisibleTo($user);
     }
 
     /**
@@ -136,18 +137,7 @@ class AttendanceController extends Controller
 
         $employees = Employee::query()
             ->with(['department', 'todayAttendance'])
-            ->when(
-                ! $user->can('attendance.view'),
-                fn ($query) => $query->where('id', $user->employee?->id)
-            )
-            ->when(
-                $user->can('attendance.view') && ! $user->hasCentralAccess(),
-                fn ($query) => $query->where('organization_id', $user->employee?->organization_id)
-                    ->when(
-                        $user->hasRole('department-manager'),
-                        fn ($departmentQuery) => $departmentQuery->where('department_id', $user->employee?->department_id)
-                    )
-            )
+            ->attendanceVisibleTo($user)
             ->orderBy('last_name')
             ->get();
 
@@ -313,16 +303,7 @@ class AttendanceController extends Controller
             ->when(request()->filled('employee_id'), fn ($query) => $query->where('employees.id', request()->integer('employee_id')))
             ->when(request()->filled('department_id'), fn ($query) => $query->where('employees.department_id', request()->integer('department_id')))
             ->when(request()->filled('organization_id'), fn ($query) => $query->where('employees.organization_id', request()->integer('organization_id')))
-            ->when(
-                ! $user->hasCentralAccess(),
-                function ($query) use ($user) {
-                    $query->where('employees.organization_id', $user->employee?->organization_id);
-
-                    if ($user->hasRole('department-manager')) {
-                        $query->where('employees.department_id', $user->employee?->department_id);
-                    }
-                }
-            )
+            ->whereIn('attendance_records.employee_id', $this->visibleEmployeeIds($user))
             ->selectRaw("{$groupColumn} as group_id")
             ->selectRaw("{$labelColumn} as label")
             ->selectRaw('COUNT(DISTINCT attendance_records.date) as total_days')
@@ -385,10 +366,9 @@ class AttendanceController extends Controller
      * and worked minutes — the batafsil (detailed), day-by-day view a
      * summary report can't show, and the printable timesheet form this
      * company's HR process expects on top of the aggregate report above.
-     * Same visibility rules as `today()`: central-access roles see every
-     * employee (optionally narrowed by organization/department/employee),
-     * a department-manager sees their own department, everyone else sees
-     * only themselves.
+     * Same visibility as every other attendance view
+     * (Employee::scopeAttendanceVisibleTo); the organization/department/
+     * employee filters can only narrow it further.
      */
     public function timesheet(BuildTimesheet $buildTimesheet, ExportTimesheet $export): JsonResponse|Response
     {
@@ -401,18 +381,7 @@ class AttendanceController extends Controller
 
         $employees = Employee::query()
             ->with('department')
-            ->when(
-                ! $user->can('attendance.view'),
-                fn ($query) => $query->where('id', $user->employee?->id)
-            )
-            ->when(
-                $user->can('attendance.view') && ! $user->hasCentralAccess(),
-                fn ($query) => $query->where('organization_id', $user->employee?->organization_id)
-                    ->when(
-                        $user->hasRole('department-manager'),
-                        fn ($departmentQuery) => $departmentQuery->where('department_id', $user->employee?->department_id)
-                    )
-            )
+            ->attendanceVisibleTo($user)
             ->when(request()->filled('organization_id'), fn ($query) => $query->where('organization_id', request()->integer('organization_id')))
             ->when(request()->filled('department_id'), fn ($query) => $query->where('department_id', request()->integer('department_id')))
             ->when(request()->filled('employee_id'), fn ($query) => $query->where('id', request()->integer('employee_id')))

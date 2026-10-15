@@ -49,6 +49,34 @@ class Employee extends Model
         $query->whereNotIn('status', [EmployeeStatus::Inactive->value, EmployeeStatus::Terminated->value]);
     }
 
+    /**
+     * Whose attendance a user may see. Without `attendance.view`, only
+     * their own. With it: HR and the central admins everyone, a department
+     * manager their own department, and any other holder their own
+     * organization. AttendanceRecordPolicy::view() applies the same rule
+     * to a single record.
+     *
+     * @param  Builder<Employee>  $query
+     */
+    public function scopeAttendanceVisibleTo(Builder $query, User $user): void
+    {
+        if (! $user->can('attendance.view')) {
+            $query->whereKey($user->employee?->id);
+
+            return;
+        }
+
+        if ($user->hasCentralAccess()) {
+            return;
+        }
+
+        $query->where('organization_id', $user->employee?->organization_id);
+
+        if ($user->hasRole('department-manager')) {
+            $query->where('department_id', $user->employee?->department_id);
+        }
+    }
+
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);

@@ -335,21 +335,83 @@ it('scopes the timesheet to a department-manager\'s own department', function ()
         ->not->toContain($outsideDepartment->id);
 });
 
-it('shows a plain employee the whole organization\'s timesheet, same breadth as the today board', function () {
-    // attendance.view is granted broadly, including the base employee
-    // role (see backend/README.md's Phase 3 notes) — "self vs. everyone"
-    // is not the distinction; org/department breadth is. This mirrors
-    // today()'s own scoping exactly.
+it('shows a role without attendance.view only their own row in the timesheet', function (string $role) {
     $organization = Organization::factory()->create();
-    $employee = userWithRole('employee', $organization);
+    $user = userWithRole($role, $organization);
+    Employee::factory()->create(['organization_id' => $organization->id]);
+    Employee::factory()->create(['organization_id' => Organization::factory()->create()->id]);
+
+    $response = $this->actingAs($user, 'sanctum')->getJson('/api/v1/attendance/timesheet');
+
+    $response->assertOk();
+    expect(collect($response->json('data.employees'))->pluck('employee_id')->all())->toBe([$user->employee->id]);
+})->with([
+    'plain employee' => 'employee',
+    'safety manager' => 'safety-manager',
+    // Company-wide for issues, but not HR: no one else's attendance.
+    'technical policy' => 'technical-policy',
+]);
+
+it('lists only a plain employee\'s own attendance records', function () {
+    $organization = Organization::factory()->create();
+    $user = userWithRole('employee', $organization);
+    $own = AttendanceRecord::factory()->create(['employee_id' => $user->employee->id]);
+    AttendanceRecord::factory()->create(['employee_id' => Employee::factory()->create(['organization_id' => $organization->id])->id]);
+
+    $response = $this->actingAs($user, 'sanctum')->getJson('/api/v1/attendance');
+
+    $response->assertOk()->assertJsonPath('meta.total', 1)->assertJsonPath('data.0.id', $own->id);
+});
+
+it('shows a plain employee only themselves on the today board', function () {
+    $organization = Organization::factory()->create();
+    $user = userWithRole('employee', $organization);
+    Employee::factory()->create(['organization_id' => $organization->id]);
+
+    $response = $this->actingAs($user, 'sanctum')->getJson('/api/v1/attendance/today');
+
+    $response->assertOk();
+    expect(collect($response->json('data'))->pluck('employee_id')->all())->toBe([$user->employee->id]);
+});
+
+it('reports only a plain employee\'s own attendance', function () {
+    $organization = Organization::factory()->create();
+    $user = userWithRole('employee', $organization);
     $colleague = Employee::factory()->create(['organization_id' => $organization->id]);
-    $otherOrgEmployee = Employee::factory()->create(['organization_id' => Organization::factory()->create()->id]);
+    AttendanceRecord::factory()->create(['employee_id' => $user->employee->id, 'date' => Carbon::today()->toDateString()]);
+    AttendanceRecord::factory()->create(['employee_id' => $colleague->id, 'date' => Carbon::today()->toDateString()]);
 
-    $response = $this->actingAs($employee, 'sanctum')->getJson('/api/v1/attendance/timesheet');
+    $response = $this->actingAs($user, 'sanctum')->getJson('/api/v1/attendance/report?group_by=employee');
 
-    $ids = collect($response->json('data.employees'))->pluck('employee_id');
-    expect($ids)->toContain($employee->employee->id, $colleague->id)
-        ->not->toContain($otherOrgEmployee->id);
+    $response->assertOk();
+    expect(collect($response->json('data'))->pluck('group_id')->all())->toBe([$user->employee->id]);
+});
+
+it('scopes the report to a department-manager\'s own department', function () {
+    $organization = Organization::factory()->create();
+    $department = Department::factory()->create(['organization_id' => $organization->id]);
+    $manager = userWithRole('department-manager', $organization, $department);
+    $inDepartment = Employee::factory()->create(['organization_id' => $organization->id, 'department_id' => $department->id]);
+    $outsideDepartment = Employee::factory()->create(['organization_id' => $organization->id]);
+    AttendanceRecord::factory()->create(['employee_id' => $inDepartment->id, 'date' => Carbon::today()->toDateString()]);
+    AttendanceRecord::factory()->create(['employee_id' => $outsideDepartment->id, 'date' => Carbon::today()->toDateString()]);
+
+    $response = $this->actingAs($manager, 'sanctum')->getJson('/api/v1/attendance/report?group_by=employee');
+
+    $response->assertOk();
+    expect(collect($response->json('data'))->pluck('group_id')->all())->toBe([$inDepartment->id]);
+});
+
+it('forbids a plain employee from viewing a colleague\'s attendance record with 403', function () {
+    $organization = Organization::factory()->create();
+    $user = userWithRole('employee', $organization);
+    $record = AttendanceRecord::factory()->create([
+        'employee_id' => Employee::factory()->create(['organization_id' => $organization->id])->id,
+    ]);
+
+    $this->actingAs($user, 'sanctum')
+        ->getJson("/api/v1/attendance/{$record->id}")
+        ->assertForbidden();
 });
 
 it('exports the timesheet as a downloadable csv with day and total columns', function () {

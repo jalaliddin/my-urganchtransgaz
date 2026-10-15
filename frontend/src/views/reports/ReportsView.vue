@@ -21,70 +21,70 @@ const { t } = useI18n()
 const auth = useAuthStore()
 
 const groups = computed<ReportGroup[]>(() =>
-  [
-    {
-      header: t('reports.hub.attendanceGroup'),
-      cards: [
-        {
-          title: t('reports.hub.attendanceReport'),
-          text: t('reports.hub.attendanceReportText'),
-          icon: 'mdi-calendar-check-outline',
-          to: '/attendance?tab=report',
-          permission: 'attendance.view',
-        },
-        {
-          title: t('reports.hub.timesheet'),
-          text: t('reports.hub.timesheetText'),
-          icon: 'mdi-table-large',
-          to: '/attendance?tab=timesheet',
-          permission: 'attendance.view',
-        },
-      ],
-    },
-    {
-      header: t('reports.hub.hrGroup'),
-      cards: [
-        {
-          title: t('reports.hub.employeesList'),
-          text: t('reports.hub.employeesListText'),
-          icon: 'mdi-account-group-outline',
-          to: '/employees',
-          permission: 'employees.view',
-        },
-      ],
-    },
-    {
-      header: t('reports.hub.operationsGroup'),
-      cards: [
-        {
-          title: t('reports.hub.kpiReport'),
-          text: t('reports.hub.kpiReportText'),
-          icon: 'mdi-chart-line',
-          to: '/kpi/report',
-          permission: 'kpi.view',
-        },
-        {
-          title: t('reports.hub.issuesReport'),
-          text: t('reports.hub.issuesReportText'),
-          icon: 'mdi-map-search-outline',
-          to: '/issues/report',
-          permission: 'issues.report',
-        },
-      ],
-    },
-    {
-      header: t('reports.hub.systemGroup'),
-      cards: [
-        {
-          title: t('reports.hub.auditLog'),
-          text: t('reports.hub.auditLogText'),
-          icon: 'mdi-history',
-          to: '/audit-logs',
-          permission: 'audit_logs.view',
-        },
-      ],
-    },
-  ]
+  (
+    [
+      {
+        header: t('reports.hub.attendanceGroup'),
+        cards: [
+          {
+            title: t('reports.hub.attendanceReport'),
+            text: t('reports.hub.attendanceReportText'),
+            icon: 'mdi-calendar-check-outline',
+            to: '/attendance?tab=report',
+          },
+          {
+            title: t('reports.hub.timesheet'),
+            text: t('reports.hub.timesheetText'),
+            icon: 'mdi-table-large',
+            to: '/attendance?tab=timesheet',
+          },
+        ],
+      },
+      {
+        header: t('reports.hub.hrGroup'),
+        cards: [
+          {
+            title: t('reports.hub.employeesList'),
+            text: t('reports.hub.employeesListText'),
+            icon: 'mdi-account-group-outline',
+            to: '/employees',
+            permission: 'employees.view',
+          },
+        ],
+      },
+      {
+        header: t('reports.hub.operationsGroup'),
+        cards: [
+          {
+            title: t('reports.hub.kpiReport'),
+            text: t('reports.hub.kpiReportText'),
+            icon: 'mdi-chart-line',
+            to: '/kpi/report',
+            permission: 'kpi.view',
+          },
+          {
+            title: t('reports.hub.issuesReport'),
+            text: t('reports.hub.issuesReportText'),
+            icon: 'mdi-map-search-outline',
+            to: '/issues/report',
+            permission: 'issues.report',
+          },
+        ],
+      },
+      {
+        header: t('reports.hub.systemGroup'),
+        cards: [
+          {
+            title: t('reports.hub.auditLog'),
+            text: t('reports.hub.auditLogText'),
+            icon: 'mdi-history',
+            to: '/audit-logs',
+            permission: 'audit_logs.view',
+          },
+        ],
+      },
+    ] as ReportGroup[]
+  )
     .map((group) => ({ ...group, cards: group.cards.filter((card) => !card.permission || auth.can(card.permission)) }))
     .filter((group) => group.cards.length > 0),
 )
