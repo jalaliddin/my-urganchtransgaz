@@ -6,6 +6,6 @@
   "private": true,
   "scripts": {
     "test": "node --test \"test/*.test.js\"",
-    "zip": "rm -f dahua-davomat.zip && zip -r dahua-davomat.zip manifest.json src icons"
+    "pack": "node scripts/pack.mjs"
   }
 }

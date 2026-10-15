@@ -42,25 +42,37 @@ unreachable and go out when it's back.
 
 ## Install (one PC at the gate, or any PC on 10.100.90.x)
 
-1. Copy this `dahua-chrome-extension/` folder to the PC.
-2. In Chrome open `chrome://extensions`, turn on **Developer mode**, click
-   **Load unpacked** and pick the folder.
-3. Open the extension's **Sozlamalar** (Settings) and add each terminal:
+Everything is in the web app: **Xodimlar → Dahua terminallari**
+(`/attendance/devices`, for users with `attendance_devices.manage` —
+hr, central-admin, super-admin). That page:
 
-   | Field | This site |
-   |---|---|
-   | IP manzil / Port | `10.100.90.51` (entry), `10.100.90.52` (exit) / `80` |
-   | Terminal logini / paroli | the terminal's admin login |
-   | Device ID / Qurilma tokeni | `TURNSTILE-1` / `TURNSTILE-2` and the token printed by `php artisan attendance:create-device` (the same ones in `dahua-bridge/.env.turnstile-*`) |
-   | Yo'nalish | Kirish for `.51`, Chiqish for `.52` |
-   | Qaysi sanadan | the first day to load. Earlier days can be pulled later with "Shu sanadan qayta yuklash" (scans already recorded aren't duplicated). |
+- offers the extension as `dahua-davomat.zip` (served from
+  `frontend/public/downloads/`, built by `npm run pack`) with the
+  install steps: extract, `chrome://extensions` → Developer mode →
+  **Load unpacked** → the `dahua-davomat` folder;
+- lists the terminals (device records), adds new ones and issues a
+  device token, shown once with copy buttons together with the Device ID
+  and the server address. **Yangi token** replaces a lost or leaked one
+  (the old one stops working at once); a terminal can be switched off.
 
-   **Saqlash** asks Chrome for permission to reach that IP. Accept it.
-   **Ulanishni tekshirish** checks the terminal login and the device token
-   without recording anything.
-4. Keep Chrome running on that PC (minimized is fine). The extension works
-   while Chrome is open. When Chrome starts again it catches up from the
-   terminals' memory.
+Then, in the extension's **Sozlamalar**, add each terminal:
+
+| Field | This site |
+|---|---|
+| IP manzil / Port | `10.100.90.51` (entry), `10.100.90.52` (exit) / `80` |
+| Terminal logini / paroli | the terminal's admin login |
+| Device ID / Qurilma tokeni | from the web page above (`TURNSTILE-1`, `TURNSTILE-2`) |
+| Yo'nalish | Kirish for `.51`, Chiqish for `.52` |
+| Qaysi sanadan | the first day to load. Earlier days can be pulled later with "Shu sanadan qayta yuklash" (scans already recorded aren't duplicated). |
+
+**Saqlash** asks Chrome for permission to reach that IP; accept it.
+**Ulanishni tekshirish** checks the terminal login and the device token
+without recording anything. Keep Chrome running on that PC (minimized is
+fine); when it starts again it catches up from the terminals' memory.
+
+After changing anything under `src/`, `icons/` or `manifest.json`, run
+`npm run pack` so the web app serves the new version — `npm test` fails
+until the published zip matches the source.
 
 The terminal password and device tokens are stored in this Chrome
 profile's local extension storage (`chrome.storage.local`, never synced to
@@ -78,7 +90,7 @@ responsible for the gate use.
 - **Real terminal behavior it relies on**: records come back oldest first
   with increasing `RecNo`, and two days on the entry gate already exceed
   one 1,024-record page. That's why it pages.
-- **`npm test`** (19 tests, `node --test`, no dependencies): MD5 against
+- **`npm test`** (21 tests, `node --test`, no dependencies): MD5 against
   RFC vectors and `node:crypto`; a real Digest login against a local fake
   terminal (right and wrong password, terminal unreachable); parsing a
   real captured response; scan → event rules; and the sync engine end to
@@ -100,7 +112,7 @@ src/lib/webhook.js     POST to my.urtg.uz, outcome per answer; token check
 src/lib/sync.js        pull → queue → deliver, cursor per terminal
 src/popup.*            status: per terminal, unknown IDs, recent activity
 src/options.*          settings: server, interval, terminals, test, re-sync
+scripts/pack.mjs       builds the zip the web app serves (reproducible)
 test/                  node --test
 ```
 
-Package for copying: `npm run zip` → `dahua-davomat.zip` (git-ignored).
