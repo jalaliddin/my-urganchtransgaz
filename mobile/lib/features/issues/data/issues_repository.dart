@@ -85,18 +85,33 @@ class IssuesRepository {
     List<int> executorIds = const [],
     required double latitude,
     required double longitude,
+    List<String> photoPaths = const [],
   }) async {
+    final fields = {
+      'title': title,
+      'description': ?description,
+      'object_name': ?objectName,
+      'organization_id': organizationId,
+      'issue_category_id': categoryId,
+      if (executorIds.isNotEmpty) 'executor_ids': executorIds,
+      'latitude': latitude,
+      'longitude': longitude,
+    };
+
     try {
-      final response = await _client.dio.post<Map<String, dynamic>>('/issues', data: {
-        'title': title,
-        'description': ?description,
-        'object_name': ?objectName,
-        'organization_id': organizationId,
-        'issue_category_id': categoryId,
-        if (executorIds.isNotEmpty) 'executor_ids': executorIds,
-        'latitude': latitude,
-        'longitude': longitude,
-      });
+      final response = await _client.dio.post<Map<String, dynamic>>(
+        '/issues',
+        // Photos need multipart; without any, the same JSON body as before.
+        data: photoPaths.isEmpty
+            ? fields
+            : FormData.fromMap({
+                ...fields,
+                'photos': [
+                  for (final (index, path) in photoPaths.indexed)
+                    await MultipartFile.fromFile(path, filename: 'photo_${index + 1}.jpg'),
+                ],
+              }, ListFormat.multiCompatible),
+      );
 
       return Issue.fromJson(response.data!['data'] as Map<String, dynamic>);
     } on DioException catch (e) {

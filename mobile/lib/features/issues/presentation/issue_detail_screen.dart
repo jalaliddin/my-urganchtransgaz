@@ -10,6 +10,7 @@ import '../../../l10n/app_localizations.dart';
 import '../domain/issue.dart';
 import 'executor_picker.dart';
 import 'issue_map.dart';
+import 'issue_photos.dart';
 import 'issues_controller.dart';
 
 class IssueDetailScreen extends ConsumerStatefulWidget {
@@ -149,6 +150,10 @@ class _IssueDetailScreenState extends ConsumerState<IssueDetailScreen> {
           if (issue.description != null) ...[
             const SizedBox(height: 12),
             Text(issue.description!),
+          ],
+          if (issue.photos.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            IssuePhotos(photos: issue.photos),
           ],
           const SizedBox(height: 16),
           IssueMap(

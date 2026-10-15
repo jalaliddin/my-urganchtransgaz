@@ -33,6 +33,22 @@ class ApiException implements Exception {
     return ApiException('Xatolik yuz berdi. Qayta urinib ko\'ring.', statusCode: response?.statusCode);
   }
 
+  /// What to tell the user: the first validation message when there is
+  /// one (it names the actual problem — wrong type, too large), otherwise
+  /// [message].
+  String get userMessage {
+    for (final value in fieldErrors?.values ?? const []) {
+      if (value is List && value.isNotEmpty) return value.first.toString();
+    }
+
+    return message;
+  }
+
+  /// Screens that show `error.toString()` get the readable message, not
+  /// "Instance of 'ApiException'".
+  @override
+  String toString() => userMessage;
+
   /// The first validation message for [field], if the backend returned one.
   String? fieldError(String field) {
     final value = fieldErrors?[field];

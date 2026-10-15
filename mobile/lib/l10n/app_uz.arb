@@ -334,5 +334,16 @@
   "absenceStateCurrent": "Amalda",
   "absenceStateCompleted": "Yakunlangan",
   "absenceStateCancelled": "Bekor qilingan",
-  "calendarAbsence": "Ta'til / safar"
+  "calendarAbsence": "Ta'til / safar",
+  "commonUploadFailed": "Fayl yuklanmadi. Internetni tekshirib, qayta urinib ko'ring.",
+  "commonFileUploaded": "Fayl yuklandi",
+  "issuesPhotos": "Rasmlar",
+  "issuesPhotosHint": "Ixtiyoriy · {max} tagacha, faqat kamera orqali",
+  "@issuesPhotosHint": {
+    "placeholders": {"max": {"type": "int"}}
+  },
+  "issuesTakePhoto": "Rasm olish",
+  "issuesRemovePhoto": "Rasmni olib tashlash",
+  "issuesOpenPhoto": "Rasmni kattalashtirish",
+  "issuesCameraError": "Kamerani ochib bo'lmadi"
 }

@@ -1861,6 +1861,54 @@ abstract class AppLocalizations {
   /// In uz, this message translates to:
   /// **'Ta\'til / safar'**
   String get calendarAbsence;
+
+  /// No description provided for @commonUploadFailed.
+  ///
+  /// In uz, this message translates to:
+  /// **'Fayl yuklanmadi. Internetni tekshirib, qayta urinib ko\'ring.'**
+  String get commonUploadFailed;
+
+  /// No description provided for @commonFileUploaded.
+  ///
+  /// In uz, this message translates to:
+  /// **'Fayl yuklandi'**
+  String get commonFileUploaded;
+
+  /// No description provided for @issuesPhotos.
+  ///
+  /// In uz, this message translates to:
+  /// **'Rasmlar'**
+  String get issuesPhotos;
+
+  /// No description provided for @issuesPhotosHint.
+  ///
+  /// In uz, this message translates to:
+  /// **'Ixtiyoriy · {max} tagacha, faqat kamera orqali'**
+  String issuesPhotosHint(int max);
+
+  /// No description provided for @issuesTakePhoto.
+  ///
+  /// In uz, this message translates to:
+  /// **'Rasm olish'**
+  String get issuesTakePhoto;
+
+  /// No description provided for @issuesRemovePhoto.
+  ///
+  /// In uz, this message translates to:
+  /// **'Rasmni olib tashlash'**
+  String get issuesRemovePhoto;
+
+  /// No description provided for @issuesOpenPhoto.
+  ///
+  /// In uz, this message translates to:
+  /// **'Rasmni kattalashtirish'**
+  String get issuesOpenPhoto;
+
+  /// No description provided for @issuesCameraError.
+  ///
+  /// In uz, this message translates to:
+  /// **'Kamerani ochib bo\'lmadi'**
+  String get issuesCameraError;
 }
 
 class _AppLocalizationsDelegate

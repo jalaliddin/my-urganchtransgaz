@@ -122,6 +122,7 @@ class Issue {
     this.resolutionNote,
     this.resolvedByName,
     this.resolvedAt,
+    this.photos = const [],
     required this.comments,
     required this.activities,
     required this.createdAt,
@@ -142,6 +143,7 @@ class Issue {
   final String? resolutionNote;
   final String? resolvedByName;
   final String? resolvedAt;
+  final List<IssuePhoto> photos;
   final List<IssueComment> comments;
   final List<IssueActivity> activities;
   final String createdAt;
@@ -185,6 +187,9 @@ class Issue {
         resolutionNote: json['resolution_note'] as String?,
         resolvedByName: json['resolved_by_name'] as String?,
         resolvedAt: json['resolved_at'] as String?,
+        photos: (json['photos'] as List<dynamic>? ?? [])
+            .map((e) => IssuePhoto.fromJson(e as Map<String, dynamic>))
+            .toList(),
         comments: (json['comments'] as List<dynamic>? ?? [])
             .map((e) => IssueComment.fromJson(e as Map<String, dynamic>))
             .toList(),
@@ -192,5 +197,18 @@ class Issue {
             .map((e) => IssueActivity.fromJson(e as Map<String, dynamic>))
             .toList(),
         createdAt: json['created_at'] as String? ?? '',
+      );
+}
+
+/// A photo taken at the issue's site; [url] needs the auth headers.
+class IssuePhoto {
+  IssuePhoto({required this.id, required this.url});
+
+  final int id;
+  final String url;
+
+  factory IssuePhoto.fromJson(Map<String, dynamic> json) => IssuePhoto(
+        id: json['id'] as int,
+        url: json['url'] as String,
       );
 }

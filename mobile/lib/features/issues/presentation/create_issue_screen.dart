@@ -1,14 +1,38 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../core/network/api_exception.dart';
 import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/issue.dart';
 import 'executor_picker.dart';
 import 'issue_map.dart';
 import 'issues_controller.dart';
+
+/// Matches `StoreIssueRequest::MAX_PHOTOS`.
+const maxIssuePhotos = 5;
+
+/// Takes one photo with the camera and returns its file path, or null if
+/// the user backed out. Camera only, never the gallery: a photo on an
+/// issue should be taken on the spot. Scaled down on the phone so the
+/// upload stays small over a field connection.
+final issuePhotoCaptureProvider = Provider<Future<String?> Function()>((ref) {
+  return () async {
+    final photo = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 85,
+    );
+
+    return photo?.path;
+  };
+});
 
 class CreateIssueScreen extends ConsumerStatefulWidget {
   const CreateIssueScreen({super.key});
@@ -25,6 +49,7 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
   int? _organizationId;
   int? _categoryId;
   final Set<int> _executorIds = {};
+  final List<String> _photoPaths = [];
   bool _submitted = false;
   bool _saving = false;
   bool _locating = false;
@@ -66,6 +91,74 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
     }
   }
 
+  Future<void> _takePhoto() async {
+    try {
+      final path = await ref.read(issuePhotoCaptureProvider)();
+      if (path != null && mounted) setState(() => _photoPaths.add(path));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).issuesCameraError)));
+      }
+    }
+  }
+
+  Widget _buildPhotos(AppLocalizations l10n) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.issuesPhotos, style: theme.textTheme.titleSmall),
+        const SizedBox(height: 4),
+        Text(l10n.issuesPhotosHint(maxIssuePhotos), style: theme.textTheme.bodySmall),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final (index, path) in _photoPaths.indexed)
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(File(path), width: 88, height: 88, fit: BoxFit.cover, cacheWidth: 264),
+                  ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: IconButton.filledTonal(
+                      visualDensity: VisualDensity.compact,
+                      iconSize: 16,
+                      tooltip: l10n.issuesRemovePhoto,
+                      icon: const Icon(Icons.close),
+                      onPressed: () => setState(() => _photoPaths.removeAt(index)),
+                    ),
+                  ),
+                ],
+              ),
+            if (_photoPaths.length < maxIssuePhotos)
+              SizedBox(
+                width: 88,
+                height: 88,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
+                  onPressed: _saving ? null : _takePhoto,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.photo_camera_outlined),
+                      const SizedBox(height: 4),
+                      Text(l10n.issuesTakePhoto, textAlign: TextAlign.center, style: theme.textTheme.labelSmall),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
   /// A department-manager has exactly one organization to file against, so
   /// it's used without making them pick it.
   int? _effectiveOrganizationId(IssueOptions options) =>
@@ -99,6 +192,7 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
             executorIds: options.canAssignExecutors ? _executorIds.toList() : const [],
             latitude: _pickedLocation!.latitude,
             longitude: _pickedLocation!.longitude,
+            photoPaths: _photoPaths,
           );
       ref.invalidate(issuesControllerProvider);
 
@@ -107,7 +201,8 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+        final message = e is ApiException ? e.userMessage : l10n.commonErrorGeneric;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
       }
     } finally {
       if (mounted) {
@@ -253,6 +348,8 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
           ),
           const SizedBox(height: 12),
           TextField(controller: _objectNameController, decoration: InputDecoration(labelText: l10n.issuesObjectName)),
+          const SizedBox(height: 16),
+          _buildPhotos(l10n),
           const SizedBox(height: 16),
           Text(l10n.issuesMapPickHint, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 8),

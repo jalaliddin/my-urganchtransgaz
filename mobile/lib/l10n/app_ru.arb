@@ -334,5 +334,16 @@
   "absenceStateCurrent": "Действует",
   "absenceStateCompleted": "Завершено",
   "absenceStateCancelled": "Отменено",
-  "calendarAbsence": "Отпуск / командировка"
+  "calendarAbsence": "Отпуск / командировка",
+  "commonUploadFailed": "Файл не загрузился. Проверьте интернет и попробуйте снова.",
+  "commonFileUploaded": "Файл загружен",
+  "issuesPhotos": "Фотографии",
+  "issuesPhotosHint": "Необязательно · до {max}, только с камеры",
+  "@issuesPhotosHint": {
+    "placeholders": {"max": {"type": "int"}}
+  },
+  "issuesTakePhoto": "Сделать фото",
+  "issuesRemovePhoto": "Убрать фото",
+  "issuesOpenPhoto": "Открыть фото",
+  "issuesCameraError": "Не удалось открыть камеру"
 }

@@ -8,6 +8,8 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/responsive_body.dart';
+import '../../../core/network/api_exception.dart';
+import '../../../core/utils/uploads.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/task.dart';
 import 'task_category_chip.dart';
@@ -205,22 +207,23 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
   }
 
   Future<void> _uploadAttachment(BuildContext context, int taskId) async {
-    final files = await FilePicker.pickFiles();
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    // Only what the server accepts, so a picked file is never refused later.
+    final file = await FilePicker.pickFile(type: FileType.custom, allowedExtensions: documentExtensions);
+    final path = file?.path;
 
-    if (files.isEmpty) {
+    if (file == null || path == null) {
       return;
     }
 
-    final path = files.first.path;
-    final name = files.first.name;
-
-    if (path == null) {
-      return;
+    try {
+      await ref.read(tasksRepositoryProvider).uploadAttachment(taskId, path, file.name);
+      await ref.read(taskDetailProvider(taskId).notifier).refresh();
+      messenger.showSnackBar(SnackBar(content: Text(l10n.commonFileUploaded)));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e is ApiException ? e.userMessage : l10n.commonUploadFailed)));
     }
-
-    final repository = ref.read(tasksRepositoryProvider);
-    await repository.uploadAttachment(taskId, path, name);
-    await ref.read(taskDetailProvider(taskId).notifier).refresh();
   }
 
   Future<void> _openAttachment(String downloadUrl, String fileName) async {

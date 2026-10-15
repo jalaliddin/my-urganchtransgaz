@@ -8,6 +8,8 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/responsive_body.dart';
+import '../../../core/network/api_exception.dart';
+import '../../../core/utils/uploads.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/employee_document.dart';
 import 'documents_controller.dart';
@@ -180,7 +182,7 @@ class _UploadDocumentSheetState extends ConsumerState<_UploadDocumentSheet> {
   }
 
   Future<void> _pickFile() async {
-    final files = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png']);
+    final files = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: documentExtensions);
 
     if (files.isEmpty) {
       return;
@@ -213,7 +215,8 @@ class _UploadDocumentSheetState extends ConsumerState<_UploadDocumentSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+        final message = e is ApiException ? e.userMessage : AppLocalizations.of(context).commonUploadFailed;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
       }
     } finally {
       if (mounted) {

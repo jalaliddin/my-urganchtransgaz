@@ -922,4 +922,31 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get calendarAbsence => 'Отпуск / командировка';
+
+  @override
+  String get commonUploadFailed =>
+      'Файл не загрузился. Проверьте интернет и попробуйте снова.';
+
+  @override
+  String get commonFileUploaded => 'Файл загружен';
+
+  @override
+  String get issuesPhotos => 'Фотографии';
+
+  @override
+  String issuesPhotosHint(int max) {
+    return 'Необязательно · до $max, только с камеры';
+  }
+
+  @override
+  String get issuesTakePhoto => 'Сделать фото';
+
+  @override
+  String get issuesRemovePhoto => 'Убрать фото';
+
+  @override
+  String get issuesOpenPhoto => 'Открыть фото';
+
+  @override
+  String get issuesCameraError => 'Не удалось открыть камеру';
 }

@@ -6,6 +6,7 @@ import '../../../core/models/employee.dart';
 import '../../../core/network/api_providers.dart';
 import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/responsive_body.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/change_request.dart';
 import 'profile_contacts_tab.dart';
@@ -87,12 +88,25 @@ class _ProfileInfoTabState extends ConsumerState<_ProfileInfoTab> {
   }
 
   Future<void> _pickPhoto() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    // A camera original is 3–8 MB; the server keeps only a 512 px square,
+    // so a much smaller copy uploads faster and always fits its limit.
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 85,
+    );
 
     if (picked == null) return;
 
-    await ref.read(profileControllerProvider.notifier).uploadPhoto(picked.path, picked.name);
+    try {
+      await ref.read(profileControllerProvider.notifier).uploadPhoto(picked.path, picked.name);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.commonFileUploaded)));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e is ApiException ? e.userMessage : l10n.commonUploadFailed)));
+    }
   }
 
   Future<void> _submit() async {

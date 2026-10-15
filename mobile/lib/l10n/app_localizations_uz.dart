@@ -923,4 +923,31 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get calendarAbsence => 'Ta\'til / safar';
+
+  @override
+  String get commonUploadFailed =>
+      'Fayl yuklanmadi. Internetni tekshirib, qayta urinib ko\'ring.';
+
+  @override
+  String get commonFileUploaded => 'Fayl yuklandi';
+
+  @override
+  String get issuesPhotos => 'Rasmlar';
+
+  @override
+  String issuesPhotosHint(int max) {
+    return 'Ixtiyoriy · $max tagacha, faqat kamera orqali';
+  }
+
+  @override
+  String get issuesTakePhoto => 'Rasm olish';
+
+  @override
+  String get issuesRemovePhoto => 'Rasmni olib tashlash';
+
+  @override
+  String get issuesOpenPhoto => 'Rasmni kattalashtirish';
+
+  @override
+  String get issuesCameraError => 'Kamerani ochib bo\'lmadi';
 }
