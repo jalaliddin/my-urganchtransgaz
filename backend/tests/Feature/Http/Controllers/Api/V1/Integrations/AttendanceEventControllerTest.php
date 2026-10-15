@@ -222,3 +222,35 @@ it('does not count a session left open with no matching check-out yet', function
     // morning session still counts, the still-open one does not.
     $scan('check_in', '14:00:00')->assertCreated()->assertJsonPath('data.worked_minutes', 240);
 });
+
+it('records a scan delivered twice only once', function (string $eventType) {
+    AttendanceDevice::factory()->withToken('a-token')->create(['device_id' => 'DEV-1']);
+    $employee = Employee::factory()->create(['dahua_person_id' => '1001']);
+    $scan = [
+        'device_id' => 'DEV-1',
+        'dahua_person_id' => '1001',
+        'event_type' => $eventType,
+        'event_time' => Carbon::today()->setTime(9, 0)->toDateTimeString(),
+    ];
+
+    $this->withToken('a-token')->postJson('/api/v1/integrations/attendance/events', $scan)->assertCreated();
+    $this->withToken('a-token')->postJson('/api/v1/integrations/attendance/events', $scan)->assertCreated();
+
+    expect(AttendanceEvent::where('employee_id', $employee->id)->count())->toBe(1);
+})->with(['check_in', 'check_out']);
+
+it('still records two scans of the same person a second apart', function () {
+    AttendanceDevice::factory()->withToken('a-token')->create(['device_id' => 'DEV-1']);
+    $employee = Employee::factory()->create(['dahua_person_id' => '1001']);
+
+    foreach (['09:00:00', '09:00:01'] as $time) {
+        $this->withToken('a-token')->postJson('/api/v1/integrations/attendance/events', [
+            'device_id' => 'DEV-1',
+            'dahua_person_id' => '1001',
+            'event_type' => 'check_in',
+            'event_time' => Carbon::today()->toDateString().' '.$time,
+        ])->assertCreated();
+    }
+
+    expect(AttendanceEvent::where('employee_id', $employee->id)->count())->toBe(2);
+});

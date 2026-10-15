@@ -39,12 +39,14 @@ class RecordCheckInAction
      */
     public function handle(Employee $employee, Carbon $at, AttendanceSource $source): AttendanceRecord
     {
-        AttendanceEvent::create([
+        // The same scan delivered twice (a device client resending after a
+        // lost response, or two clients reading the same terminal) is one
+        // event, not two — nobody scans the same way twice in one second.
+        AttendanceEvent::firstOrCreate([
             'employee_id' => $employee->id,
             'type' => AttendanceEventType::CheckIn,
             'occurred_at' => $at,
-            'source' => $source,
-        ]);
+        ], ['source' => $source]);
 
         $record = AttendanceRecord::firstOrNew([
             'employee_id' => $employee->id,
