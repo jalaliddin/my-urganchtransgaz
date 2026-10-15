@@ -636,7 +636,7 @@ export interface IssueCategory {
 export interface IssueOptions {
   organizations: Pick<Organization, 'id' | 'name' | 'code' | 'type'>[]
   categories: IssueCategory[]
-  default_executor_id: number | null
+  can_assign_executors: boolean
 }
 
 export interface IssueExecutorCandidate {

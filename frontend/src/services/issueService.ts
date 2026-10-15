@@ -9,7 +9,7 @@ export interface IssuePayload {
   object_name?: string | null
   organization_id?: number | null
   issue_category_id: number
-  executor_ids: number[]
+  executor_ids?: number[]
   latitude: number
   longitude: number
 }
@@ -28,6 +28,11 @@ export const issueService = {
     const { data } = await http.get<ApiSuccessResponse<IssueExecutorCandidate[]>>('/issues/executor-candidates', {
       params: { organization_id: organizationId },
     })
+    return data.data
+  },
+
+  async assignExecutors(id: number, executorIds: number[]): Promise<Issue> {
+    const { data } = await http.put<ApiSuccessResponse<Issue>>(`/issues/${id}/executors`, { executor_ids: executorIds })
     return data.data
   },
 

@@ -17,9 +17,10 @@ controllers, not just assumed from the web app's behavior).
 change-request status), documents (list/upload/download), tasks
 (list/detail/progress/complete/comments/attachments), KPI (my results),
 safety exams (available/take/results), location-based issue reporting
-("Muammolar" — any employee can report, choosing the organization,
-a category and one or more executors; list/detail/comment, and resolve
-for technical-policy), announcements (feed/detail), notifications
+("Muammolar" — any employee can report, choosing the organization and
+a category; only technical-policy names executors, while reporting or
+later from the issue screen; list/detail/comment, and resolve for
+technical-policy), announcements (feed/detail), notifications
 (list/mark read, plus system notifications while the app is closed —
 see "Notifications in the background"), and an in-app language setting
 (Uzbek or Russian).

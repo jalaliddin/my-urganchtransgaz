@@ -159,7 +159,11 @@ class _IssueTile extends StatelessWidget {
       child: ListTile(
         leading: Icon(Icons.location_on, color: issue.isOpen ? Colors.red.shade700 : Colors.green.shade700),
         title: Text(issue.title),
-        subtitle: Text([issue.category?.name, issue.organization?.name].whereType<String>().join(' · ')),
+        subtitle: Text([
+          issue.category?.name,
+          issue.organization?.name,
+          if (issue.isOpen && issue.executors.isEmpty) l10n.issuesNoExecutors,
+        ].whereType<String>().join(' · ')),
         trailing: Chip(
           label: Text(issue.isOpen ? l10n.statusOpen : l10n.statusResolved),
           backgroundColor: issue.isOpen ? Colors.red.shade50 : Colors.green.shade50,

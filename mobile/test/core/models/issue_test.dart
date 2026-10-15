@@ -70,7 +70,7 @@ void main() {
   });
 
   group('Issue create-form models', () {
-    test('IssueOptions parses organizations, categories and the choose-responsible flag', () {
+    test('IssueOptions parses organizations, categories and whether this user may name executors', () {
       final options = IssueOptions.fromJson({
         'organizations': [
           {'id': 3, 'name': 'Urganch shahar gaz ta\'minoti boshqarmasi', 'code': 'UTG-001', 'type': 'subordinate'},
@@ -78,12 +78,18 @@ void main() {
         'categories': [
           {'id': 1, 'name': 'Gaz sizib chiqishi', 'code': 'gas_leak'},
         ],
-        'default_executor_id': 7,
+        'can_assign_executors': true,
       });
 
       expect(options.organizations.single.id, 3);
       expect(options.categories.single.code, 'gas_leak');
-      expect(options.defaultExecutorId, 7);
+      expect(options.canAssignExecutors, isTrue);
+    });
+
+    test('IssueOptions treats a missing executor flag as not allowed', () {
+      final options = IssueOptions.fromJson({'organizations': [], 'categories': []});
+
+      expect(options.canAssignExecutors, isFalse);
     });
 
     test('IssueExecutorCandidate joins position and department into a subtitle', () {

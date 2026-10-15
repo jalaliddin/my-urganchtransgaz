@@ -512,7 +512,10 @@
     "showingLimited": "На карте показаны последние {shown} проблем (всего {total}).",
     "openDays": "Открыта {n} дн.",
     "reportedAt": "Зарегистрирована",
-    "showOnMap": "Показать на карте"
+    "showOnMap": "Показать на карте",
+    "assignExecutors": "Назначить исполнителей",
+    "unassignedOnly": "Только без исполнителей",
+    "executorsAssignedLater": "Исполнителей назначает Служба технической политики."
   },
   "search": {
     "placeholder": "Поиск...",

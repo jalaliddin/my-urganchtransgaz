@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\ActiveStatus;
 use App\Models\Employee;
+use App\Models\Issue;
 use App\Policies\Concerns\ChecksOrganizationScope;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -32,12 +33,18 @@ class StoreIssueRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Executors are optional and only Technical Policy Service may name them
+     * (`IssuePolicy::assignExecutors()`). From anyone else they're dropped
+     * rather than rejected: mobile builds released before this rule still
+     * require picking an executor, and rejecting it would stop those users
+     * from reporting issues at all.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
+        $excludeExecutors = Rule::excludeIf(! $this->canAssignExecutors());
+
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
@@ -51,8 +58,8 @@ class StoreIssueRequest extends FormRequest
                 'required', 'integer',
                 Rule::exists('issue_categories', 'id')->where('status', ActiveStatus::Active->value),
             ],
-            'executor_ids' => ['required', 'array', 'min:1', 'max:30'],
-            'executor_ids.*' => ['integer', 'distinct'],
+            'executor_ids' => [$excludeExecutors, 'nullable', 'array', 'max:30'],
+            'executor_ids.*' => [$excludeExecutors, 'integer', 'distinct'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
         ];
@@ -69,7 +76,7 @@ class StoreIssueRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
-                if ($validator->errors()->isNotEmpty()) {
+                if ($validator->errors()->isNotEmpty() || ! $this->canAssignExecutors() || ! $this->filled('executor_ids')) {
                     return;
                 }
 
@@ -90,5 +97,10 @@ class StoreIssueRequest extends FormRequest
     public function targetOrganizationId(): int
     {
         return $this->integer('organization_id') ?: (int) $this->user()->employee?->organization_id;
+    }
+
+    private function canAssignExecutors(): bool
+    {
+        return $this->user()->can('assignExecutors', Issue::class);
     }
 }

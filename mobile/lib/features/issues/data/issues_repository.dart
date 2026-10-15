@@ -82,7 +82,7 @@ class IssuesRepository {
     String? objectName,
     required int organizationId,
     required int categoryId,
-    required List<int> executorIds,
+    List<int> executorIds = const [],
     required double latitude,
     required double longitude,
   }) async {
@@ -93,7 +93,7 @@ class IssuesRepository {
         'object_name': ?objectName,
         'organization_id': organizationId,
         'issue_category_id': categoryId,
-        'executor_ids': executorIds,
+        if (executorIds.isNotEmpty) 'executor_ids': executorIds,
         'latitude': latitude,
         'longitude': longitude,
       });
@@ -107,6 +107,19 @@ class IssuesRepository {
   Future<void> addComment(int issueId, String body) async {
     try {
       await _client.dio.post<void>('/issues/$issueId/comments', data: {'body': body});
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  /// Replaces the issue's executors (`issues.assign` — Technical Policy).
+  Future<Issue> assignExecutors(int id, List<int> executorIds) async {
+    try {
+      final response = await _client.dio.put<Map<String, dynamic>>('/issues/$id/executors', data: {
+        'executor_ids': executorIds,
+      });
+
+      return Issue.fromJson(response.data!['data'] as Map<String, dynamic>);
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }

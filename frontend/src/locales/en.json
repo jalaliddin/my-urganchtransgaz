@@ -512,7 +512,10 @@
     "showingLimited": "The map shows the latest {shown} issues ({total} in total).",
     "openDays": "Open for {n} days",
     "reportedAt": "Reported",
-    "showOnMap": "Show on map"
+    "showOnMap": "Show on map",
+    "assignExecutors": "Assign executors",
+    "unassignedOnly": "Only without executors",
+    "executorsAssignedLater": "Technical Policy Service assigns the executors."
   },
   "search": {
     "placeholder": "Search...",

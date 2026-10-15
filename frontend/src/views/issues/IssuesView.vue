@@ -3,10 +3,11 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
+import IssueExecutorPicker from '@/components/issues/IssueExecutorPicker.vue'
 import LeafletMap, { type MapMarker } from '@/components/issues/LeafletMap.vue'
 import { issueService } from '@/services/issueService'
 import { useAuthStore } from '@/stores/auth'
-import type { Issue, IssueCategory, IssueExecutorCandidate, IssueOptions } from '@/types/models'
+import type { Issue, IssueCategory, IssueOptions } from '@/types/models'
 import { formatDate } from '@/utils/date'
 import { issueLegend, issuePinStyle, openDays } from '@/utils/issueMap'
 
@@ -14,6 +15,8 @@ const { t } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
 const canCreate = computed(() => auth.can('issues.create'))
+// Only Technical Policy Service names executors; everyone else just reports.
+const canAssign = computed(() => auth.can('issues.assign'))
 
 // The map needs every issue at once, not a page of them — capped so a huge
 // history can't flood the browser; the notice below says when it's cut.
@@ -27,6 +30,7 @@ const loading = ref(false)
 const statusFilter = ref<'open' | 'all'>('open')
 const categoryFilter = ref<number | null>(null)
 const searchFilter = ref('')
+const unassignedOnly = ref(false)
 const categories = ref<IssueCategory[]>([])
 const mapRef = ref<InstanceType<typeof LeafletMap>>()
 
@@ -38,6 +42,7 @@ async function load() {
       ...(statusFilter.value === 'open' ? { 'filter[status]': 'open' } : {}),
       ...(categoryFilter.value ? { 'filter[issue_category_id]': categoryFilter.value } : {}),
       ...(searchFilter.value ? { 'filter[search]': searchFilter.value } : {}),
+      ...(unassignedOnly.value ? { 'filter[unassigned]': 1 } : {}),
     })
     issues.value = result.data
     totalIssues.value = result.meta.total
@@ -81,6 +86,7 @@ const markers = computed<MapMarker[]>(() =>
         issue.category?.name,
         issue.organization?.name,
         issue.object_name,
+        issue.executors?.length ? null : t('issues.noExecutors'),
         `${t('issues.reportedAt')}: ${formatDate(issue.created_at)}`,
         daysOpen !== null ? t('issues.openDays', { n: daysOpen }) : `${t('status.resolved')}: ${formatDate(issue.resolved_at)}`,
       ].filter((line): line is string => !!line),
@@ -115,8 +121,6 @@ const form = ref({
   executor_ids: [] as number[],
 })
 const options = ref<IssueOptions | null>(null)
-const candidates = ref<IssueExecutorCandidate[]>([])
-const loadingCandidates = ref(false)
 const pickedLocation = ref<{ lat: number; lng: number } | null>(null)
 const formErrors = ref<Record<string, string[]>>({})
 const saving = ref(false)
@@ -131,7 +135,6 @@ async function openCreate() {
     executor_ids: [],
   }
   pickedLocation.value = null
-  candidates.value = []
   formErrors.value = {}
   dialogOpen.value = true
 
@@ -143,29 +146,6 @@ async function openCreate() {
   // list of one.
   if (options.value.organizations.length === 1) {
     form.value.organization_id = options.value.organizations[0].id
-    await loadCandidates()
-  }
-}
-
-// Executors must belong to the chosen organization, so the candidate list
-// follows the organization select and the old selection is dropped whenever
-// it changes. A department-manager is offered themselves as the starting
-// executor (they're normally the one handling what they report).
-async function loadCandidates() {
-  form.value.executor_ids = []
-  candidates.value = []
-
-  if (!form.value.organization_id) return
-
-  loadingCandidates.value = true
-  try {
-    candidates.value = await issueService.executorCandidates(form.value.organization_id)
-    const suggested = options.value?.default_executor_id
-    if (suggested && candidates.value.some((candidate) => candidate.id === suggested)) {
-      form.value.executor_ids = [suggested]
-    }
-  } finally {
-    loadingCandidates.value = false
   }
 }
 
@@ -184,7 +164,7 @@ async function save() {
       object_name: form.value.object_name || null,
       organization_id: form.value.organization_id,
       issue_category_id: form.value.issue_category_id as number,
-      executor_ids: form.value.executor_ids,
+      ...(options.value?.can_assign_executors && form.value.executor_ids.length ? { executor_ids: form.value.executor_ids } : {}),
       latitude: pickedLocation.value.lat,
       longitude: pickedLocation.value.lng,
     })
@@ -249,6 +229,17 @@ async function save() {
         style="max-width: 360px"
         @update:model-value="onSearch"
       />
+      <v-switch
+        v-if="canAssign"
+        v-model="unassignedOnly"
+        :label="$t('issues.unassignedOnly')"
+        color="primary"
+        density="compact"
+        hide-details
+        inset
+        class="mt-2"
+        @update:model-value="load"
+      />
     </v-card-text>
     <v-data-table :headers="headers" :items="issues" :loading="loading" item-value="id">
       <template #item.title="{ item }">
@@ -257,7 +248,7 @@ async function save() {
       <template #item.category="{ item }">{{ item.category?.name ?? '—' }}</template>
       <template #item.organization="{ item }">{{ item.organization?.name ?? '—' }}</template>
       <template #item.executors="{ item }">
-        <span v-if="!item.executors?.length">—</span>
+        <v-chip v-if="!item.executors?.length" size="small" color="warning" variant="tonal" label>{{ $t('issues.noExecutors') }}</v-chip>
         <template v-else>
           {{ item.executors[0].full_name }}
           <v-chip v-if="item.executors.length > 1" size="x-small" class="ml-1" variant="tonal">+{{ item.executors.length - 1 }}</v-chip>
@@ -296,7 +287,6 @@ async function save() {
           item-value="id"
           :label="$t('issues.organization')"
           :error-messages="formErrors.organization_id"
-          @update:model-value="loadCandidates"
         />
         <v-select
           v-model="form.issue_category_id"
@@ -306,25 +296,16 @@ async function save() {
           :label="$t('issues.category')"
           :error-messages="formErrors.issue_category_id"
         />
-        <v-autocomplete
+        <IssueExecutorPicker
+          v-if="options?.can_assign_executors"
           v-model="form.executor_ids"
-          :items="candidates"
-          item-title="full_name"
-          item-value="id"
-          :label="$t('issues.executors')"
-          multiple
-          chips
-          closable-chips
-          :loading="loadingCandidates"
-          :disabled="!form.organization_id"
-          :hint="!form.organization_id ? $t('issues.pickOrganizationFirst') : candidates.length || loadingCandidates ? $t('issues.selectExecutors') : $t('issues.noCandidates')"
-          persistent-hint
+          :organization-id="form.organization_id"
           :error-messages="formErrors.executor_ids"
-        >
-          <template #item="{ props, item }">
-            <v-list-item v-bind="props" :title="item.full_name" :subtitle="[item.position, item.department].filter(Boolean).join(' · ')" />
-          </template>
-        </v-autocomplete>
+          class="mb-2"
+        />
+        <v-alert v-else-if="options" type="info" variant="tonal" density="compact" class="mb-4">
+          {{ $t('issues.executorsAssignedLater') }}
+        </v-alert>
         <v-text-field v-model="form.title" :label="$t('issues.issueTitle')" :error-messages="formErrors.title" />
         <v-textarea v-model="form.description" :label="$t('issues.description')" rows="2" :error-messages="formErrors.description" />
         <v-text-field v-model="form.object_name" :label="$t('issues.objectName')" :error-messages="formErrors.object_name" />

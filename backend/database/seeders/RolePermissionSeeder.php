@@ -32,7 +32,7 @@ class RolePermissionSeeder extends Seeder
         'exams' => ['view', 'create', 'manage', 'evaluate'],
         'kpi' => ['view', 'manage'],
         'announcements' => ['view', 'create', 'publish'],
-        'issues' => ['create', 'view', 'resolve', 'report'],
+        'issues' => ['create', 'view', 'resolve', 'report', 'assign'],
         'issue_categories' => ['manage'],
         'audit_logs' => ['view'],
         'settings' => ['manage'],
@@ -94,7 +94,7 @@ class RolePermissionSeeder extends Seeder
             'tasks.view', 'tasks.create', 'tasks.update', 'tasks.assign',
             'task_categories.manage',
             'announcements.view',
-            'issues.create', 'issues.view', 'issues.resolve', 'issues.report',
+            'issues.create', 'issues.view', 'issues.resolve', 'issues.report', 'issues.assign',
             'issue_categories.manage',
         ],
         'manager' => [

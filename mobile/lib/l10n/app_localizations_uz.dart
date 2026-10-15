@@ -618,6 +618,19 @@ class AppLocalizationsUz extends AppLocalizations {
       'Bu tashkilotda ijrochi bo\'la oladigan xodim topilmadi';
 
   @override
+  String get issuesAssignExecutors => 'Ijrochilarni tayinlash';
+
+  @override
+  String get issuesNoExecutors => 'Ijrochi tayinlanmagan';
+
+  @override
+  String get issuesExecutorsAssignedLater =>
+      'Ijrochilarni Texnik siyosat xizmati tayinlaydi.';
+
+  @override
+  String get issuesExecutorsAssigned => 'Ijrochilar tayinlandi';
+
+  @override
   String get issueReportTitle => 'Muammolar hisoboti';
 
   @override

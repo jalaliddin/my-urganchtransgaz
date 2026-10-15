@@ -512,7 +512,10 @@
     "showingLimited": "Xaritada oxirgi {shown} ta muammo ko'rsatilmoqda (jami {total}).",
     "openDays": "{n} kundan beri ochiq",
     "reportedAt": "Qayd etilgan",
-    "showOnMap": "Xaritada ko'rsatish"
+    "showOnMap": "Xaritada ko'rsatish",
+    "assignExecutors": "Ijrochilarni tayinlash",
+    "unassignedOnly": "Faqat ijrochi tayinlanmaganlar",
+    "executorsAssignedLater": "Ijrochilarni Texnik siyosat xizmati tayinlaydi."
   },
   "search": {
     "placeholder": "Qidirish...",

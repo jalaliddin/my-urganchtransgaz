@@ -618,6 +618,19 @@ class AppLocalizationsRu extends AppLocalizations {
       'В этой организации нет сотрудников, которых можно назначить исполнителями';
 
   @override
+  String get issuesAssignExecutors => 'Назначить исполнителей';
+
+  @override
+  String get issuesNoExecutors => 'Исполнитель не назначен';
+
+  @override
+  String get issuesExecutorsAssignedLater =>
+      'Исполнителей назначает Служба технической политики.';
+
+  @override
+  String get issuesExecutorsAssigned => 'Исполнители назначены';
+
+  @override
   String get issueReportTitle => 'Отчёт по проблемам';
 
   @override

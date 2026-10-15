@@ -67,13 +67,14 @@ class IssueOrganizationOption {
 /// What the report form offers this user — decided by the server so the
 /// app never re-derives role rules: the organizations they may file
 /// against (every one for company-wide roles, only their own otherwise),
-/// the active categories, and who to suggest as the first executor.
+/// the active categories, and whether they may name executors at all (only
+/// Technical Policy Service may; everyone else just reports).
 class IssueOptions {
-  IssueOptions({required this.organizations, required this.categories, this.defaultExecutorId});
+  IssueOptions({required this.organizations, required this.categories, this.canAssignExecutors = false});
 
   final List<IssueOrganizationOption> organizations;
   final List<IssueCategory> categories;
-  final int? defaultExecutorId;
+  final bool canAssignExecutors;
 
   factory IssueOptions.fromJson(Map<String, dynamic> json) => IssueOptions(
         organizations: (json['organizations'] as List<dynamic>? ?? [])
@@ -82,7 +83,7 @@ class IssueOptions {
         categories: (json['categories'] as List<dynamic>? ?? [])
             .map((e) => IssueCategory.fromJson(e as Map<String, dynamic>))
             .toList(),
-        defaultExecutorId: json['default_executor_id'] as int?,
+        canAssignExecutors: json['can_assign_executors'] as bool? ?? false,
       );
 }
 

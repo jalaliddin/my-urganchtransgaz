@@ -85,6 +85,18 @@ class IssuePolicy
     }
 
     /**
+     * Naming who works on an issue, when reporting it or later, is Technical
+     * Policy Service's call; everyone else only reports. Checked through the
+     * `issues.assign` permission rather than the role name, like `resolve()`,
+     * so central-admin's '*' grant and super-admin's bypass behave the same
+     * on the server as in the UI.
+     */
+    public function assignExecutors(User $user, ?Issue $issue = null): bool
+    {
+        return $user->can('issues.assign');
+    }
+
+    /**
      * Central leadership sees every issue on the map/list regardless of
      * department — deliberately not the broader `hasCentralAccess()` set
      * (which also includes hr and safety-manager): the user asked

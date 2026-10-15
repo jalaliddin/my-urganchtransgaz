@@ -33,7 +33,7 @@ it('returns 401 when listing issues without authentication', function () {
     $this->getJson('/api/v1/issues')->assertStatus(401);
 });
 
-it('lets a department-manager report an issue for their own organization and notifies technical-policy', function () {
+it('lets a department-manager report an issue for their own organization, without executors, and notifies technical-policy', function () {
     $organization = Organization::factory()->create();
     $department = Department::factory()->create(['organization_id' => $organization->id]);
     $manager = userWithRole('department-manager', $organization, $department);
@@ -42,29 +42,34 @@ it('lets a department-manager report an issue for their own organization and not
 
     $this->actingAs($manager, 'sanctum')->postJson('/api/v1/issues', issuePayload([
         'issue_category_id' => $category->id,
-        'executor_ids' => [$manager->employee->id],
     ]))->assertCreated()
         ->assertJsonPath('data.status', 'open')
         ->assertJsonPath('data.organization_id', $organization->id)
         ->assertJsonPath('data.department_id', $department->id)
         ->assertJsonPath('data.issue_category_id', $category->id)
-        ->assertJsonCount(1, 'data.executors');
+        ->assertJsonCount(0, 'data.executors');
 
     $this->assertDatabaseHas('issue_activities', ['action' => 'created']);
+    $this->assertDatabaseMissing('issue_activities', ['action' => 'assigned']);
     $this->assertDatabaseHas('notifications', [
         'notifiable_id' => $technicalPolicyUser->id,
         'type' => IssueReported::class,
     ]);
 });
 
-it('lets a plain employee report an issue for their own organization', function () {
+it('lets a plain employee report an issue but ignores the executors they send, as older mobile builds do', function () {
+    Notification::fake();
+
     $organization = Organization::factory()->create();
     $employeeUser = userWithRole('employee', $organization);
     $colleague = userWithRole('employee', $organization);
 
     $this->actingAs($employeeUser, 'sanctum')->postJson('/api/v1/issues', issuePayload([
         'executor_ids' => [$colleague->employee->id],
-    ]))->assertCreated()->assertJsonPath('data.executors.0.id', $colleague->employee->id);
+    ]))->assertCreated()->assertJsonCount(0, 'data.executors');
+
+    $this->assertDatabaseCount('issue_executors', 0);
+    Notification::assertNotSentTo($colleague, IssueAssigned::class);
 });
 
 it('lets every role that has an employee record report an issue', function () {
@@ -75,20 +80,20 @@ it('lets every role that has an employee record report an issue', function () {
 
         $this->actingAs($user, 'sanctum')->postJson('/api/v1/issues', issuePayload([
             'organization_id' => $organization->id,
-            'executor_ids' => [$user->employee->id],
         ]))->assertCreated();
     }
 });
 
-it('lets several executors be assigned, notifies each of them but not the reporter', function () {
+it('lets technical-policy name several executors when reporting, notifying each of them but not the reporter', function () {
     Notification::fake();
 
     $organization = Organization::factory()->create();
-    $reporter = userWithRole('employee', $organization);
+    $reporter = userWithRole('technical-policy', $organization);
     $first = userWithRole('employee', $organization);
     $second = userWithRole('department-manager', $organization);
 
     $response = $this->actingAs($reporter, 'sanctum')->postJson('/api/v1/issues', issuePayload([
+        'organization_id' => $organization->id,
         'executor_ids' => [$first->employee->id, $second->employee->id, $reporter->employee->id],
     ]))->assertCreated()->assertJsonCount(3, 'data.executors');
 
@@ -101,15 +106,16 @@ it('lets several executors be assigned, notifies each of them but not the report
 
 it('accepts an executor who has no login account', function () {
     $organization = Organization::factory()->create();
-    $reporter = userWithRole('employee', $organization);
+    $reporter = userWithRole('technical-policy', $organization);
     $fieldWorker = Employee::factory()->create(['organization_id' => $organization->id, 'user_id' => null]);
 
     $this->actingAs($reporter, 'sanctum')->postJson('/api/v1/issues', issuePayload([
+        'organization_id' => $organization->id,
         'executor_ids' => [$fieldWorker->id],
     ]))->assertCreated()->assertJsonPath('data.executors.0.id', $fieldWorker->id);
 });
 
-it('requires at least one executor and a category', function () {
+it('requires a category but no executors', function () {
     $organization = Organization::factory()->create();
     $employeeUser = userWithRole('employee', $organization);
 
@@ -117,7 +123,18 @@ it('requires at least one executor and a category', function () {
         'title' => 'Nothing else',
         'latitude' => 41.55,
         'longitude' => 60.63,
-    ])->assertStatus(422)->assertJsonValidationErrors(['executor_ids', 'issue_category_id']);
+    ])->assertStatus(422)
+        ->assertJsonValidationErrors('issue_category_id')
+        ->assertJsonMissingValidationErrors('executor_ids');
+});
+
+it('lets technical-policy report an issue and leave its executors for later', function () {
+    $organization = Organization::factory()->create();
+    $technicalPolicyUser = userWithRole('technical-policy', $organization);
+
+    $this->actingAs($technicalPolicyUser, 'sanctum')->postJson('/api/v1/issues', issuePayload([
+        'organization_id' => $organization->id,
+    ]))->assertCreated()->assertJsonCount(0, 'data.executors');
 });
 
 it('rejects an inactive category', function () {
@@ -126,18 +143,18 @@ it('rejects an inactive category', function () {
 
     $this->actingAs($employeeUser, 'sanctum')->postJson('/api/v1/issues', issuePayload([
         'issue_category_id' => IssueCategory::factory()->create(['status' => 'inactive'])->id,
-        'executor_ids' => [$employeeUser->employee->id],
     ]))->assertStatus(422)->assertJsonValidationErrors('issue_category_id');
 });
 
 it('rejects executors from another organization, or who are no longer employed', function () {
     $organization = Organization::factory()->create();
-    $reporter = userWithRole('employee', $organization);
+    $reporter = userWithRole('technical-policy', $organization);
     $outsider = userWithRole('employee', Organization::factory()->create());
     $terminated = Employee::factory()->create(['organization_id' => $organization->id, 'status' => 'terminated']);
 
     foreach ([[$outsider->employee->id], [$terminated->id], [$reporter->employee->id, $outsider->employee->id]] as $executors) {
         $this->actingAs($reporter, 'sanctum')->postJson('/api/v1/issues', issuePayload([
+            'organization_id' => $organization->id,
             'executor_ids' => $executors,
         ]))->assertStatus(422)->assertJsonValidationErrors('executor_ids');
     }
@@ -151,7 +168,6 @@ it('forbids a non-central user from reporting an issue for another organization'
 
     $this->actingAs($employeeUser, 'sanctum')->postJson('/api/v1/issues', issuePayload([
         'organization_id' => $otherOrganization->id,
-        'executor_ids' => [$other->employee->id],
     ]))->assertStatus(403);
 });
 
@@ -171,9 +187,8 @@ it('lets technical-policy report an issue for the head office or any subordinate
 it('requires a central-access user to choose the organization', function () {
     $technicalPolicyUser = userWithRole('technical-policy', Organization::factory()->create());
 
-    $this->actingAs($technicalPolicyUser, 'sanctum')->postJson('/api/v1/issues', issuePayload([
-        'executor_ids' => [$technicalPolicyUser->employee->id],
-    ]))->assertStatus(422)->assertJsonValidationErrors('organization_id');
+    $this->actingAs($technicalPolicyUser, 'sanctum')->postJson('/api/v1/issues', issuePayload())
+        ->assertStatus(422)->assertJsonValidationErrors('organization_id');
 });
 
 it('offers technical-policy every active organization (head office first) and the active categories', function () {
@@ -189,13 +204,13 @@ it('offers technical-policy every active organization (head office first) and th
     $response->assertOk()
         ->assertJsonCount(1, 'data.categories')
         ->assertJsonPath('data.categories.0.id', $active->id)
-        ->assertJsonPath('data.default_executor_id', null)
+        ->assertJsonPath('data.can_assign_executors', true)
         ->assertJsonPath('data.organizations.0.id', $central->id);
 
     expect(collect($response->json('data.organizations'))->pluck('id'))->toContain($subordinate->id);
 });
 
-it('offers a plain employee only their own organization, and a department-manager themselves as the suggested executor', function () {
+it('offers a plain employee only their own organization, and tells employees and department-managers they cannot name executors', function () {
     $organization = Organization::factory()->create();
     Organization::factory()->create();
     $department = Department::factory()->create(['organization_id' => $organization->id]);
@@ -206,11 +221,11 @@ it('offers a plain employee only their own organization, and a department-manage
         ->assertOk()
         ->assertJsonCount(1, 'data.organizations')
         ->assertJsonPath('data.organizations.0.id', $organization->id)
-        ->assertJsonPath('data.default_executor_id', null);
+        ->assertJsonPath('data.can_assign_executors', false);
 
     $this->actingAs($manager, 'sanctum')->getJson('/api/v1/issues/options')
         ->assertOk()
-        ->assertJsonPath('data.default_executor_id', $manager->employee->id);
+        ->assertJsonPath('data.can_assign_executors', false);
 });
 
 it('lists every current employee of the chosen organization as executor candidates', function () {
@@ -414,4 +429,120 @@ it('lets a department-manager comment on their own viewable issue', function () 
     ])->assertCreated();
 
     $this->assertDatabaseHas('issue_comments', ['issue_id' => $issue->id, 'body' => 'Ishlar boshlandimi?']);
+});
+
+it('returns 401 when assigning executors without authentication', function () {
+    $issue = Issue::factory()->create();
+
+    $this->putJson("/api/v1/issues/{$issue->id}/executors", ['executor_ids' => [1]])->assertUnauthorized();
+});
+
+it('lets technical-policy assign executors to an issue someone else reported, notifying them', function () {
+    Notification::fake();
+
+    $organization = Organization::factory()->create();
+    $reporter = userWithRole('employee', $organization);
+    $issue = Issue::factory()->create(['organization_id' => $organization->id, 'reporter_employee_id' => $reporter->employee->id]);
+    $technicalPolicyUser = userWithRole('technical-policy', Organization::factory()->create());
+    $executor = userWithRole('employee', $organization);
+    $fieldWorker = Employee::factory()->create(['organization_id' => $organization->id, 'user_id' => null]);
+
+    $response = $this->actingAs($technicalPolicyUser, 'sanctum')->putJson("/api/v1/issues/{$issue->id}/executors", [
+        'executor_ids' => [$executor->employee->id, $fieldWorker->id],
+    ]);
+
+    $response->assertOk()->assertJsonCount(2, 'data.executors');
+    $this->assertDatabaseHas('issue_executors', ['issue_id' => $issue->id, 'employee_id' => $executor->employee->id]);
+    $this->assertDatabaseHas('issue_executors', ['issue_id' => $issue->id, 'employee_id' => $fieldWorker->id]);
+    $this->assertDatabaseHas('issue_activities', ['issue_id' => $issue->id, 'action' => 'assigned']);
+    $this->assertDatabaseHas('audit_logs', ['module' => 'issues', 'action' => 'assigned']);
+    Notification::assertSentTo($executor, IssueAssigned::class);
+    Notification::assertNotSentTo($reporter, IssueAssigned::class);
+});
+
+it('replaces the executors and notifies only the newly added ones', function () {
+    Notification::fake();
+
+    $organization = Organization::factory()->create();
+    $issue = Issue::factory()->create(['organization_id' => $organization->id]);
+    $kept = userWithRole('employee', $organization);
+    $removed = userWithRole('employee', $organization);
+    $added = userWithRole('employee', $organization);
+    $issue->executors()->attach([$kept->employee->id, $removed->employee->id]);
+    $technicalPolicyUser = userWithRole('technical-policy', $organization);
+
+    $this->actingAs($technicalPolicyUser, 'sanctum')->putJson("/api/v1/issues/{$issue->id}/executors", [
+        'executor_ids' => [$kept->employee->id, $added->employee->id],
+    ])->assertOk();
+
+    expect($issue->executors()->pluck('employees.id')->sort()->values()->all())
+        ->toBe(collect([$kept->employee->id, $added->employee->id])->sort()->values()->all());
+    Notification::assertSentTo($added, IssueAssigned::class);
+    Notification::assertNotSentTo([$kept, $removed], IssueAssigned::class);
+});
+
+it('lets central-admin assign executors, since it holds the issues.assign permission', function () {
+    $organization = Organization::factory()->create();
+    $issue = Issue::factory()->create(['organization_id' => $organization->id]);
+    $executor = userWithRole('employee', $organization);
+    $centralAdmin = userWithRole('central-admin', Organization::factory()->create());
+
+    $this->actingAs($centralAdmin, 'sanctum')->putJson("/api/v1/issues/{$issue->id}/executors", [
+        'executor_ids' => [$executor->employee->id],
+    ])->assertOk();
+
+    $this->assertDatabaseHas('issue_executors', ['issue_id' => $issue->id, 'employee_id' => $executor->employee->id]);
+});
+
+it('forbids a department-manager from assigning executors with 403, even on an issue their department raised', function () {
+    $organization = Organization::factory()->create();
+    $department = Department::factory()->create(['organization_id' => $organization->id]);
+    $manager = userWithRole('department-manager', $organization, $department);
+    $issue = Issue::factory()->create(['organization_id' => $organization->id, 'department_id' => $department->id]);
+
+    $this->actingAs($manager, 'sanctum')->putJson("/api/v1/issues/{$issue->id}/executors", [
+        'executor_ids' => [$manager->employee->id],
+    ])->assertForbidden();
+
+    $this->assertDatabaseCount('issue_executors', 0);
+});
+
+it('refuses with 409 to assign executors to a resolved issue', function () {
+    $organization = Organization::factory()->create();
+    $issue = Issue::factory()->resolved()->create(['organization_id' => $organization->id]);
+    $executor = userWithRole('employee', $organization);
+    $technicalPolicyUser = userWithRole('technical-policy', $organization);
+
+    $this->actingAs($technicalPolicyUser, 'sanctum')->putJson("/api/v1/issues/{$issue->id}/executors", [
+        'executor_ids' => [$executor->employee->id],
+    ])->assertConflict()->assertJsonPath('message', 'Bartaraf etilgan muammoga ijrochi tayinlab bo\'lmaydi.');
+
+    $this->assertDatabaseCount('issue_executors', 0);
+});
+
+it('rejects with 422 an empty executor list or executors outside the issue\'s organization', function () {
+    $organization = Organization::factory()->create();
+    $issue = Issue::factory()->create(['organization_id' => $organization->id]);
+    $outsider = userWithRole('employee', Organization::factory()->create());
+    $technicalPolicyUser = userWithRole('technical-policy', $organization);
+
+    $this->actingAs($technicalPolicyUser, 'sanctum')->putJson("/api/v1/issues/{$issue->id}/executors", ['executor_ids' => []])
+        ->assertUnprocessable()->assertJsonValidationErrors('executor_ids');
+    $this->actingAs($technicalPolicyUser, 'sanctum')->putJson("/api/v1/issues/{$issue->id}/executors", ['executor_ids' => [$outsider->employee->id]])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['executor_ids' => 'Ijrochilar muammo tegishli tashkilotning amaldagi xodimlari bo\'lishi kerak.']);
+
+    $this->assertDatabaseCount('issue_executors', 0);
+});
+
+it('lists only issues that have no executors yet with filter[unassigned]', function () {
+    $organization = Organization::factory()->create();
+    $waiting = Issue::factory()->create(['organization_id' => $organization->id]);
+    $assigned = Issue::factory()->create(['organization_id' => $organization->id]);
+    $assigned->executors()->attach(userWithRole('employee', $organization)->employee->id);
+    $technicalPolicyUser = userWithRole('technical-policy', $organization);
+
+    $response = $this->actingAs($technicalPolicyUser, 'sanctum')->getJson('/api/v1/issues?filter[unassigned]=1');
+
+    $response->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $waiting->id);
 });

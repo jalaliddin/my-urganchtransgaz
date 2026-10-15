@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import IssueExecutorPicker from '@/components/issues/IssueExecutorPicker.vue'
 import LeafletMap, { type MapMarker } from '@/components/issues/LeafletMap.vue'
 import { issueService } from '@/services/issueService'
 import { useAuthStore } from '@/stores/auth'
@@ -25,6 +26,35 @@ async function load() {
 onMounted(load)
 
 const canResolve = computed(() => auth.can('issues.resolve') && issue.value?.status === 'open')
+const canAssign = computed(() => auth.can('issues.assign') && issue.value?.status === 'open')
+
+const assignDialogOpen = ref(false)
+const assignExecutorIds = ref<number[]>([])
+const assignErrors = ref<string[]>([])
+const assigning = ref(false)
+
+function openAssign() {
+  assignExecutorIds.value = (issue.value?.executors ?? []).map((executor) => executor.id)
+  assignErrors.value = []
+  assignDialogOpen.value = true
+}
+
+async function saveAssign() {
+  if (!issue.value) return
+  assigning.value = true
+  assignErrors.value = []
+  try {
+    await issueService.assignExecutors(issue.value.id, assignExecutorIds.value)
+    assignDialogOpen.value = false
+    await load()
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { data?: { errors?: Record<string, string[]>; message?: string } } }
+    const data = axiosError.response?.data
+    assignErrors.value = data?.errors?.executor_ids ?? (data?.message ? [data.message] : [])
+  } finally {
+    assigning.value = false
+  }
+}
 
 const marker = computed<MapMarker[]>(() =>
   issue.value ? [{ id: issue.value.id, lat: issue.value.latitude, lng: issue.value.longitude, title: issue.value.title, status: issue.value.status }] : [],
@@ -105,8 +135,11 @@ function goBack() {
               </div>
             </div>
 
-            <div v-if="canResolve" class="mt-4">
-              <v-btn color="success" variant="flat" @click="resolveDialogOpen = true">{{ $t('issues.resolve') }}</v-btn>
+            <div v-if="canResolve || canAssign" class="d-flex flex-wrap ga-2 mt-4">
+              <v-btn v-if="canAssign" color="primary" variant="tonal" prepend-icon="mdi-account-multiple-plus-outline" @click="openAssign">
+                {{ $t('issues.assignExecutors') }}
+              </v-btn>
+              <v-btn v-if="canResolve" color="success" variant="flat" @click="resolveDialogOpen = true">{{ $t('issues.resolve') }}</v-btn>
             </div>
           </v-card-text>
         </v-card>
@@ -142,6 +175,9 @@ function goBack() {
               :subtitle="$t('issues.executors')"
               prepend-icon="mdi-account-check-outline"
             />
+            <v-list-item v-if="!issue.executors?.length" :subtitle="$t('issues.executors')" prepend-icon="mdi-account-question-outline">
+              <v-chip size="small" color="warning" variant="tonal" label>{{ $t('issues.noExecutors') }}</v-chip>
+            </v-list-item>
             <v-list-item v-if="issue.organization" :title="issue.organization.name" :subtitle="$t('employees.organization')" prepend-icon="mdi-domain" />
             <v-list-item v-if="issue.department" :title="issue.department.name" :subtitle="$t('issues.department')" prepend-icon="mdi-sitemap-outline" />
             <v-list-item v-if="issue.object_name" :title="issue.object_name" :subtitle="$t('issues.objectName')" prepend-icon="mdi-map-marker-outline" />
@@ -160,6 +196,27 @@ function goBack() {
         </v-card>
       </v-col>
     </v-row>
+
+    <v-dialog v-model="assignDialogOpen" max-width="520">
+      <v-card>
+        <v-card-title>{{ $t('issues.assignExecutors') }}</v-card-title>
+        <v-card-text>
+          <IssueExecutorPicker
+            v-model="assignExecutorIds"
+            :organization-id="issue.organization_id"
+            :current="issue.executors ?? []"
+            :error-messages="assignErrors"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="assignDialogOpen = false">{{ $t('common.cancel') }}</v-btn>
+          <v-btn color="primary" variant="flat" :loading="assigning" :disabled="!assignExecutorIds.length" @click="saveAssign">
+            {{ $t('common.save') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <v-dialog v-model="resolveDialogOpen" max-width="480">
       <v-card>

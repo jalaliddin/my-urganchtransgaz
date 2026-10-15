@@ -13,6 +13,7 @@ Route::prefix('issues')->name('issues.')->group(function () {
     Route::get('executor-candidates', [IssueController::class, 'executorCandidates'])->name('executor-candidates');
     Route::get('{issue}', [IssueController::class, 'show'])->name('show');
     Route::post('{issue}/resolve', [IssueController::class, 'resolve'])->name('resolve');
+    Route::put('{issue}/executors', [IssueController::class, 'assignExecutors'])->name('executors.update');
 
     Route::post('{issue}/comments', [IssueCommentController::class, 'store'])->name('comments.store');
 });

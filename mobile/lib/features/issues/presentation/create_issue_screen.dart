@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/issue.dart';
+import 'executor_picker.dart';
 import 'issue_map.dart';
 import 'issues_controller.dart';
 
@@ -25,7 +26,6 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
   int? _categoryId;
   final Set<int> _executorIds = {};
   bool _submitted = false;
-  bool _suggestedExecutorApplied = false;
   bool _saving = false;
   bool _locating = false;
   String? _locationError;
@@ -82,7 +82,6 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
         _titleController.text.trim().isEmpty ||
         organizationId == null ||
         _categoryId == null ||
-        _executorIds.isEmpty ||
         _pickedLocation == null) {
       setState(() => _locationError = _pickedLocation == null ? l10n.issuesMapPickHint : null);
       return;
@@ -97,7 +96,7 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
             objectName: _objectNameController.text.trim().isEmpty ? null : _objectNameController.text.trim(),
             organizationId: organizationId,
             categoryId: _categoryId!,
-            executorIds: _executorIds.toList(),
+            executorIds: options.canAssignExecutors ? _executorIds.toList() : const [],
             latitude: _pickedLocation!.latitude,
             longitude: _pickedLocation!.longitude,
           );
@@ -143,7 +142,6 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
               : (value) => setState(() {
                     _organizationId = value;
                     _executorIds.clear();
-                    _suggestedExecutorApplied = false;
                   }),
         ),
         const SizedBox(height: 12),
@@ -157,13 +155,24 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
           onChanged: (value) => setState(() => _categoryId = value),
         ),
         const SizedBox(height: 12),
-        _buildExecutorSelector(options, organizationId, l10n, _executorIds.isEmpty ? requiredText : null),
+        // Only Technical Policy Service names executors; for everyone else
+        // the report goes to them, and they assign it.
+        if (options.canAssignExecutors)
+          _buildExecutorSelector(organizationId, l10n)
+        else
+          Row(
+            children: [
+              Icon(Icons.info_outline, size: 18, color: Theme.of(context).colorScheme.outline),
+              const SizedBox(width: 8),
+              Expanded(child: Text(l10n.issuesExecutorsAssignedLater, style: Theme.of(context).textTheme.bodySmall)),
+            ],
+          ),
         const SizedBox(height: 12),
       ],
     );
   }
 
-  Widget _buildExecutorSelector(IssueOptions options, int? organizationId, AppLocalizations l10n, String? errorText) {
+  Widget _buildExecutorSelector(int? organizationId, AppLocalizations l10n) {
     if (organizationId == null) {
       return InputDecorator(
         decoration: InputDecoration(labelText: l10n.issuesExecutors, helperText: l10n.issuesPickOrganizationFirst),
@@ -173,24 +182,11 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
 
     return ref.watch(executorCandidatesProvider(organizationId)).when(
           data: (candidates) {
-            // A department-manager starts with themselves selected (they
-            // normally handle what they report) — once, and only if they
-            // belong to the organization being filed against.
-            if (!_suggestedExecutorApplied && options.defaultExecutorId != null) {
-              _suggestedExecutorApplied = true;
-              if (candidates.any((candidate) => candidate.id == options.defaultExecutorId)) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) setState(() => _executorIds.add(options.defaultExecutorId!));
-                });
-              }
-            }
-
             final byId = {for (final candidate in candidates) candidate.id: candidate};
 
             return InputDecorator(
               decoration: InputDecoration(
                 labelText: l10n.issuesExecutors,
-                errorText: errorText,
                 helperText: candidates.isEmpty ? l10n.issuesNoCandidates : null,
               ),
               child: Wrap(
@@ -207,7 +203,7 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
                   ActionChip(
                     avatar: const Icon(Icons.person_add_alt_1_outlined, size: 18),
                     label: Text(l10n.issuesSelectExecutors),
-                    onPressed: candidates.isEmpty ? null : () => _pickExecutors(candidates, l10n),
+                    onPressed: candidates.isEmpty ? null : () => _pickExecutors(candidates),
                   ),
                 ],
               ),
@@ -218,68 +214,9 @@ class _CreateIssueScreenState extends ConsumerState<CreateIssueScreen> {
         );
   }
 
-  /// A searchable checklist in a bottom sheet — a plain dropdown can only
-  /// hold one value, and an organization can have hundreds of employees.
-  Future<void> _pickExecutors(List<IssueExecutorCandidate> candidates, AppLocalizations l10n) async {
-    final selected = {..._executorIds};
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        var query = '';
-
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            final visible = candidates
-                .where((candidate) => candidate.fullName.toLowerCase().contains(query.toLowerCase()))
-                .toList();
-
-            return SizedBox(
-              height: MediaQuery.sizeOf(context).height * 0.75,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: TextField(
-                      decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: l10n.issuesSearchExecutors),
-                      onChanged: (value) => setSheetState(() => query = value),
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: visible.length,
-                      itemBuilder: (context, index) {
-                        final candidate = visible[index];
-
-                        return CheckboxListTile(
-                          value: selected.contains(candidate.id),
-                          title: Text(candidate.fullName),
-                          subtitle: candidate.subtitle.isEmpty ? null : Text(candidate.subtitle),
-                          onChanged: (checked) => setSheetState(() {
-                            checked == true ? selected.add(candidate.id) : selected.remove(candidate.id);
-                          }),
-                        );
-                      },
-                    ),
-                  ),
-                  SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(onPressed: () => Navigator.pop(sheetContext), child: Text(l10n.commonConfirm)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
+  Future<void> _pickExecutors(List<IssueExecutorCandidate> candidates) async {
+    final selected = await showExecutorPicker(context, candidates: candidates, initial: _executorIds);
+    if (selected == null || !mounted) return;
 
     setState(() {
       _executorIds

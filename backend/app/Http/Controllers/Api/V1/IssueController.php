@@ -7,6 +7,7 @@ use App\Enums\ActiveStatus;
 use App\Enums\IssueStatus;
 use App\Enums\OrganizationType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AssignIssueExecutorsRequest;
 use App\Http\Requests\ResolveIssueRequest;
 use App\Http\Requests\StoreIssueRequest;
 use App\Http\Resources\Api\V1\IssueCategoryResource;
@@ -22,6 +23,7 @@ use App\Notifications\IssueResolved;
 use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -56,6 +58,8 @@ class IssueController extends Controller
                 AllowedFilter::exact('organization_id'),
                 AllowedFilter::exact('executor_id', 'executors.id'),
                 AllowedFilter::partial('search', 'title'),
+                // Issues still waiting for Technical Policy to name executors.
+                AllowedFilter::callback('unassigned', fn ($query, $value) => $value ? $query->whereDoesntHave('executors') : $query),
             )
             ->defaultSort('-created_at');
 
@@ -65,12 +69,12 @@ class IssueController extends Controller
     }
 
     /**
-     * What the "report an issue" form needs: the categories, and the
+     * What the "report an issue" form needs: the categories, the
      * organizations this user may file against — every active organization
      * (head office and subordinates) for roles with company-wide reach,
-     * only their own for everyone else. A department-manager gets
-     * themselves as the suggested executor. Computed here so every client
-     * applies the same rules instead of each re-deriving them from roles.
+     * only their own for everyone else — and whether this user may name
+     * executors at all. Computed here so every client applies the same
+     * rules instead of each re-deriving them from roles.
      */
     public function options(Request $request): JsonResponse
     {
@@ -93,7 +97,7 @@ class IssueController extends Controller
         return $this->success([
             'organizations' => $organizations,
             'categories' => IssueCategoryResource::collection($categories),
-            'default_executor_id' => $user->hasRole('department-manager') ? $user->employee?->id : null,
+            'can_assign_executors' => $user->can('assignExecutors', Issue::class),
         ]);
     }
 
@@ -102,7 +106,9 @@ class IssueController extends Controller
      * of its current employees (see `Employee::scopeIssueExecutors()`). A
      * user may only look inside their own organization unless they have
      * company-wide reach, so this can't be used to enumerate another
-     * organization's staff.
+     * organization's staff. Still open to every reporter, not just those who
+     * may assign: mobile builds released before executors became Technical
+     * Policy's call fill a required executor picker from it.
      */
     public function executorCandidates(Request $request): JsonResponse
     {
@@ -155,27 +161,25 @@ class IssueController extends Controller
             'status' => IssueStatus::Open,
         ]);
 
-        $issue->executors()->attach(array_unique($data['executor_ids']));
+        $issue->executors()->attach(array_unique($data['executor_ids'] ?? []));
         $issue->load('executors.user');
 
         $this->recordActivity->handle($issue, $user, 'created', "{$user->name} muammoni qayd etdi.");
-        $this->recordActivity->handle(
-            $issue,
-            $user,
-            'assigned',
-            'Ijrochilar: '.$issue->executors->map->fullName()->join(', ').'.'
-        );
 
+        if ($issue->executors->isNotEmpty()) {
+            $this->recordActivity->handle(
+                $issue,
+                $user,
+                'assigned',
+                'Ijrochilar: '.$issue->executors->map->fullName()->join(', ').'.'
+            );
+        }
+
+        // Technical Policy Service hears about every new issue — they're
+        // the ones who name its executors.
         Notification::send(User::role('technical-policy')->get(), new IssueReported($issue));
 
-        // Executors are told they were assigned — except the reporter, who
-        // already knows (a department-manager typically names themselves).
-        $assignees = $issue->executors
-            ->where('id', '!=', $user->employee->id)
-            ->map->user
-            ->filter();
-
-        Notification::send($assignees, new IssueAssigned($issue));
+        $this->notifyExecutors($issue->executors, $issue, $user);
 
         $this->auditLog->log('created', 'issues', $issue, newValues: [
             'title' => $issue->title,
@@ -244,5 +248,58 @@ class IssueController extends Controller
             new IssueResource($issue->load(['reporter', 'organization', 'department', 'category', 'executors', 'resolvedBy'])),
             'Muammo bartaraf etildi.'
         );
+    }
+
+    /**
+     * Technical Policy Service names (or changes) who works on an open
+     * issue. The given list replaces the current executors; only the newly
+     * added ones are notified.
+     */
+    public function assignExecutors(AssignIssueExecutorsRequest $request, Issue $issue): JsonResponse
+    {
+        if ($issue->status === IssueStatus::Resolved) {
+            return $this->error('Bartaraf etilgan muammoga ijrochi tayinlab bo\'lmaydi.', 409);
+        }
+
+        $user = $request->user();
+        $previousIds = $issue->executors()->pluck('employees.id');
+
+        $issue->executors()->sync(array_unique($request->validated('executor_ids')));
+        $issue->load('executors.user');
+
+        $this->recordActivity->handle(
+            $issue,
+            $user,
+            'assigned',
+            "{$user->name} ijrochilarni tayinladi: ".$issue->executors->map->fullName()->join(', ').'.'
+        );
+
+        $this->notifyExecutors($issue->executors->whereNotIn('id', $previousIds), $issue, $user);
+
+        $this->auditLog->log('assigned', 'issues', $issue,
+            oldValues: ['executor_ids' => $previousIds->all()],
+            newValues: ['executor_ids' => $issue->executors->pluck('id')->all()],
+        );
+
+        return $this->success(
+            new IssueResource($issue->load(['reporter', 'organization', 'department', 'category', 'executors'])),
+            'Ijrochilar tayinlandi.'
+        );
+    }
+
+    /**
+     * Tells executors they were assigned — except the person who assigned
+     * them, who already knows. Executors without a login are skipped.
+     *
+     * @param  Collection<int, Employee>  $executors
+     */
+    private function notifyExecutors(Collection $executors, Issue $issue, User $actor): void
+    {
+        $recipients = $executors
+            ->where('user_id', '!=', $actor->id)
+            ->map->user
+            ->filter();
+
+        Notification::send($recipients, new IssueAssigned($issue));
     }
 }

@@ -63,6 +63,11 @@ class IssueDetailController extends AsyncNotifier<Issue> {
     await ref.read(issuesRepositoryProvider).resolve(issueId, resolutionNote);
     await refresh();
   }
+
+  Future<void> assignExecutors(List<int> executorIds) async {
+    await ref.read(issuesRepositoryProvider).assignExecutors(issueId, executorIds);
+    await refresh();
+  }
 }
 
 final issueDetailProvider = AsyncNotifierProvider.family<IssueDetailController, Issue, int>(

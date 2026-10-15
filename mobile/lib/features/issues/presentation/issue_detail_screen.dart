@@ -8,6 +8,7 @@ import '../../../core/widgets/responsive_body.dart';
 import '../../../features/auth/presentation/auth_controller.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/issue.dart';
+import 'executor_picker.dart';
 import 'issue_map.dart';
 import 'issues_controller.dart';
 
@@ -23,6 +24,7 @@ class IssueDetailScreen extends ConsumerStatefulWidget {
 class _IssueDetailScreenState extends ConsumerState<IssueDetailScreen> {
   final _commentController = TextEditingController();
   bool _postingComment = false;
+  bool _assigning = false;
 
   @override
   void dispose() {
@@ -71,6 +73,39 @@ class _IssueDetailScreenState extends ConsumerState<IssueDetailScreen> {
     }
   }
 
+  /// Technical Policy Service picks the executors from the issue's own
+  /// organization; the chosen list replaces the current one.
+  Future<void> _assignExecutors(Issue issue, IssueDetailController controller) async {
+    final organizationId = issue.organization?.id;
+    if (organizationId == null) return;
+
+    setState(() => _assigning = true);
+    try {
+      final candidates = await ref.read(executorCandidatesProvider(organizationId).future);
+      if (!mounted) return;
+
+      final selected = await showExecutorPicker(
+        context,
+        candidates: candidates,
+        initial: issue.executors.map((executor) => executor.id).toSet(),
+      );
+      if (selected == null || selected.isEmpty || !mounted) return;
+
+      await controller.assignExecutors(selected.toList());
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).issuesExecutorsAssigned)));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _assigning = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -92,6 +127,7 @@ class _IssueDetailScreenState extends ConsumerState<IssueDetailScreen> {
 
   Widget _buildBody(BuildContext context, Issue issue, IssueDetailController controller, User? user, AppLocalizations l10n) {
     final canResolve = (user?.can('issues.resolve') ?? false) && issue.isOpen;
+    final canAssign = (user?.can('issues.assign') ?? false) && issue.isOpen;
 
     return RefreshIndicator(
       onRefresh: controller.refresh,
@@ -138,6 +174,16 @@ class _IssueDetailScreenState extends ConsumerState<IssueDetailScreen> {
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
+          if (canAssign) ...[
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              icon: _assigning
+                  ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.group_add_outlined),
+              label: Text(l10n.issuesAssignExecutors),
+              onPressed: _assigning ? null : () => _assignExecutors(issue, controller),
+            ),
+          ],
           if (canResolve) ...[
             const SizedBox(height: 16),
             FilledButton.icon(
@@ -150,6 +196,8 @@ class _IssueDetailScreenState extends ConsumerState<IssueDetailScreen> {
           _InfoRow(icon: Icons.person_outline, label: l10n.issuesReporter, value: issue.reporter?.fullName ?? '—'),
           for (final executor in issue.executors)
             _InfoRow(icon: Icons.assignment_ind_outlined, label: l10n.issuesExecutors, value: executor.fullName),
+          if (issue.executors.isEmpty)
+            _InfoRow(icon: Icons.person_search_outlined, label: l10n.issuesExecutors, value: l10n.issuesNoExecutors),
           if (issue.organization != null)
             _InfoRow(icon: Icons.apartment_outlined, label: issue.organization!.name, value: ''),
           if (issue.department != null)

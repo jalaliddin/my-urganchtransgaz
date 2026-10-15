@@ -1286,6 +1286,30 @@ abstract class AppLocalizations {
   /// **'Bu tashkilotda ijrochi bo\'la oladigan xodim topilmadi'**
   String get issuesNoCandidates;
 
+  /// No description provided for @issuesAssignExecutors.
+  ///
+  /// In uz, this message translates to:
+  /// **'Ijrochilarni tayinlash'**
+  String get issuesAssignExecutors;
+
+  /// No description provided for @issuesNoExecutors.
+  ///
+  /// In uz, this message translates to:
+  /// **'Ijrochi tayinlanmagan'**
+  String get issuesNoExecutors;
+
+  /// No description provided for @issuesExecutorsAssignedLater.
+  ///
+  /// In uz, this message translates to:
+  /// **'Ijrochilarni Texnik siyosat xizmati tayinlaydi.'**
+  String get issuesExecutorsAssignedLater;
+
+  /// No description provided for @issuesExecutorsAssigned.
+  ///
+  /// In uz, this message translates to:
+  /// **'Ijrochilar tayinlandi'**
+  String get issuesExecutorsAssigned;
+
   /// No description provided for @issueReportTitle.
   ///
   /// In uz, this message translates to:
