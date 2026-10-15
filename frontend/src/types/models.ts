@@ -786,3 +786,14 @@ export interface AuthUser {
   assignable_roles: string[]
   employee: Employee | null
 }
+
+export interface AttendanceDevice {
+  id: number
+  device_id: string
+  name: string
+  organization_id: number | null
+  organization?: Organization
+  is_active: boolean
+  last_used_at: string | null
+  created_at: string
+}

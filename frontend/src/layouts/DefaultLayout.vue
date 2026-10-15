@@ -82,6 +82,12 @@ const allNavGroups: NavGroup[] = [
         to: '/attendance',
       },
       {
+        title: 'nav.attendanceDevices',
+        icon: 'mdi-gate',
+        to: '/attendance/devices',
+        permission: 'attendance_devices.manage',
+      },
+      {
         title: 'nav.absences',
         icon: 'mdi-calendar-account-outline',
         to: '/absences',

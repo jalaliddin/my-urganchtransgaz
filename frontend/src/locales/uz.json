@@ -128,7 +128,8 @@
     "calendar": "Kalendar",
     "absences": "Ta'til va yo'qliklar",
     "taskCategories": "Topshiriq kategoriyalari",
-    "issuesReport": "Muammolar xaritasi hisoboti"
+    "issuesReport": "Muammolar xaritasi hisoboti",
+    "attendanceDevices": "Dahua terminallari"
   },
   "auth": {
     "login": "Kirish",
@@ -760,5 +761,37 @@
     "showChart": "Grafik",
     "month": "Oy",
     "bubbleLegend": "Doira hajmi muammolar soniga mos"
+  },
+  "attendanceDevices": {
+    "title": "Dahua terminallari",
+    "add": "Terminal qo'shish",
+    "extensionTitle": "Chrome kengaytmasi",
+    "extensionIntro": "Kengaytma terminallardagi kirish-chiqish yozuvlarini avtomatik ravishda davomatga o'tkazadi. Uni terminallar bilan bir tarmoqdagi (10.100.90.x) kompyuterdagi Chrome'ga o'rnating.",
+    "download": "Kengaytmani yuklab olish",
+    "step1": "Yuklab olingan arxivni oching (Extract) — «dahua-davomat» papkasi chiqadi.",
+    "step2": "Chrome manzil qatoriga quyidagini yozib oching va o'ng yuqoridagi «Developer mode» (Dasturchi rejimi)ni yoqing:",
+    "step3": "«Load unpacked» (Ochilmagan kengaytmani yuklash) tugmasini bosib, «dahua-davomat» papkasini tanlang.",
+    "step4": "Pastdagi ro'yxatdan terminal tanlab «Yangi token» bosing — Device ID va token chiqadi.",
+    "step5": "Kengaytma ikonkasi → «Sozlamalar»: terminal IP manzili, login-paroli, Device ID va tokenni kiriting. Server manzili:",
+    "keepOpen": "Chrome o'sha kompyuterda ochiq turishi kerak (yig'ib qo'yish mumkin). Kompyuter o'chiq bo'lgan vaqtdagi yozuvlar keyin terminal xotirasidan yuklab olinadi.",
+    "terminals": "Terminallar",
+    "deviceId": "Device ID",
+    "deviceIdHint": "Lotin harflari, raqamlar va - _ . belgilari, masalan TURNSTILE-3",
+    "name": "Nomi",
+    "organization": "Tashkilot",
+    "lastUsed": "Oxirgi ma'lumot",
+    "neverUsed": "Hali ma'lumot kelmagan",
+    "newToken": "Yangi token",
+    "newTokenConfirm": "{id} uchun yangi token yaratilsinmi? Eski token darhol ishlamay qoladi — uni ishlatayotgan kengaytma yoki dastur sozlamalariga yangisini kiritish kerak bo'ladi.",
+    "deactivate": "O'chirish",
+    "activate": "Yoqish",
+    "none": "Hali terminal qo'shilmagan",
+    "tokenTitle": "{id} — kengaytma uchun ma'lumotlar",
+    "tokenOnce": "Token faqat hozir ko'rsatiladi. Uni darhol kengaytma sozlamalariga kiriting yoki xavfsiz joyga saqlang.",
+    "token": "Qurilma tokeni",
+    "serverUrl": "Server API manzili",
+    "copy": "Nusxalash",
+    "copied": "Nusxalandi",
+    "tokenSaved": "Saqladim"
   }
 }

@@ -81,6 +81,11 @@ const router = createRouter({
           component: () => import('@/views/attendance/AttendanceView.vue'),
         },
         {
+          path: 'attendance/devices',
+          name: 'attendance-devices',
+          component: () => import('@/views/attendance/AttendanceDevicesView.vue'),
+        },
+        {
           path: 'tasks',
           name: 'tasks',
           component: () => import('@/views/tasks/TasksView.vue'),

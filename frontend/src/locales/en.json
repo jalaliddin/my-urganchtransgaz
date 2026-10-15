@@ -128,7 +128,8 @@
     "calendar": "Calendar",
     "absences": "Leave & absences",
     "taskCategories": "Task categories",
-    "issuesReport": "Issues map report"
+    "issuesReport": "Issues map report",
+    "attendanceDevices": "Dahua terminals"
   },
   "auth": {
     "login": "Login",
@@ -760,5 +761,37 @@
     "showChart": "Chart",
     "month": "Month",
     "bubbleLegend": "Circle size shows the number of issues"
+  },
+  "attendanceDevices": {
+    "title": "Dahua terminals",
+    "add": "Add terminal",
+    "extensionTitle": "Chrome extension",
+    "extensionIntro": "The extension moves the terminals’ entry and exit records into attendance automatically. Install it in Chrome on a computer on the same network as the terminals (10.100.90.x).",
+    "download": "Download the extension",
+    "step1": "Extract the downloaded archive; you get a “dahua-davomat” folder.",
+    "step2": "Open the address below in Chrome and turn on “Developer mode” at the top right:",
+    "step3": "Click “Load unpacked” and choose the “dahua-davomat” folder.",
+    "step4": "Pick a terminal in the list below and click “New token” to get its Device ID and token.",
+    "step5": "Extension icon → “Sozlamalar”: enter the terminal’s IP, login and password, the Device ID and the token. Server address:",
+    "keepOpen": "Keep Chrome open on that computer (minimized is fine). Records from while it was off are fetched from the terminal’s memory afterwards.",
+    "terminals": "Terminals",
+    "deviceId": "Device ID",
+    "deviceIdHint": "Latin letters, digits and - _ ., e.g. TURNSTILE-3",
+    "name": "Name",
+    "organization": "Organization",
+    "lastUsed": "Last data",
+    "neverUsed": "No data yet",
+    "newToken": "New token",
+    "newTokenConfirm": "Create a new token for {id}? The old one stops working at once; whatever uses it needs the new one.",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "none": "No terminals yet",
+    "tokenTitle": "{id}: settings for the extension",
+    "tokenOnce": "The token is shown only now. Enter it in the extension’s settings right away or keep it somewhere safe.",
+    "token": "Device token",
+    "serverUrl": "Server API address",
+    "copy": "Copy",
+    "copied": "Copied",
+    "tokenSaved": "Done"
   }
 }
