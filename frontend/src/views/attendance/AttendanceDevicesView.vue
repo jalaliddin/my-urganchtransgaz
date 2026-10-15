@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 
+import DevicePeoplePanel from '@/components/attendance/DevicePeoplePanel.vue'
 import { attendanceDeviceService, type IssuedDeviceToken } from '@/services/attendanceDeviceService'
 import { http } from '@/services/http'
 import { organizationService } from '@/services/organizationService'
@@ -9,6 +11,12 @@ import type { AttendanceDevice, Organization } from '@/types/models'
 import { formatDateTime } from '@/utils/date'
 
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
+
+// Kept in the URL so the comparison can be linked to directly.
+const tab = ref(route.query.tab === 'people' ? 'people' : 'setup')
+watch(tab, (value) => router.replace({ query: value === 'people' ? { tab: 'people' } : {} }))
 
 const EXTENSION_ZIP = '/downloads/dahua-davomat.zip'
 // What the extension posts to: this same server, as the app itself sees it.
@@ -110,10 +118,18 @@ async function copy(value: string, what: string) {
 <template>
   <AppPageHeader :title="$t('attendanceDevices.title')">
     <template #actions>
-      <v-btn color="primary" prepend-icon="mdi-plus" @click="openForm(null)">{{ $t('attendanceDevices.add') }}</v-btn>
+      <v-btn v-if="tab === 'setup'" color="primary" prepend-icon="mdi-plus" @click="openForm(null)">{{ $t('attendanceDevices.add') }}</v-btn>
     </template>
   </AppPageHeader>
 
+  <v-tabs v-model="tab" color="primary" class="mb-4">
+    <v-tab value="setup" prepend-icon="mdi-cog-outline">{{ $t('attendanceDevices.tabSetup') }}</v-tab>
+    <v-tab value="people" prepend-icon="mdi-account-switch-outline">{{ $t('attendanceDevices.tabPeople') }}</v-tab>
+  </v-tabs>
+
+  <DevicePeoplePanel v-if="tab === 'people'" />
+
+  <template v-else>
   <v-card class="mb-4">
     <v-card-title class="d-flex flex-wrap align-center ga-2">
       <v-icon icon="mdi-google-chrome" />
@@ -186,6 +202,7 @@ async function copy(value: string, what: string) {
       </template>
     </v-data-table>
   </v-card>
+  </template>
 
   <v-dialog v-model="dialogOpen" max-width="480">
     <v-card>

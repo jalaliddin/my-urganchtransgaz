@@ -792,6 +792,35 @@
     "serverUrl": "Адрес API сервера",
     "copy": "Копировать",
     "copied": "Скопировано",
-    "tokenSaved": "Сохранил"
+    "tokenSaved": "Сохранил",
+    "tabSetup": "Настройка",
+    "tabPeople": "Сверка людей",
+    "dahuaId": "Dahua ID",
+    "terminalName": "Имя на турникете",
+    "employee": "Сотрудник",
+    "summary": {
+      "on_terminals": "Зарегистрированы на турникете",
+      "linked": "Связаны",
+      "unlinked": "Нет в системе",
+      "missing_on_terminals": "Есть в системе, нет на турникете"
+    },
+    "noRosterYet": "Расширение ещё не прислало список людей с турникетов. Обновите расширение до версии 1.1.0 (скачайте заново во вкладке «Настройка», замените старую папку и нажмите «Обновить» на chrome://extensions), затем нажмите «Hozir sinxronlash» в расширении.",
+    "rosterInfo": "{count} чел. · {time}",
+    "rosterPartial": "список неполный",
+    "rosterNever": "список ещё не получен",
+    "showAll": "Все",
+    "searchPeople": "Поиск по имени или Dahua ID",
+    "refresh": "Обновить",
+    "noSuggestion": "Подходящий сотрудник не найден",
+    "unlink": "Отвязать",
+    "linkOther": "Другой сотрудник…",
+    "newEmployee": "Новый сотрудник",
+    "link": "Связать",
+    "linked": "Связано. Чтобы записать и прошлые проходы, нажмите в расширении «Shu sanadan qayta yuklash».",
+    "created": "Сотрудник создан и связан с Dahua ID. Для прошлых дней нажмите в расширении «Shu sanadan qayta yuklash».",
+    "nobodyHere": "В этом списке никого нет",
+    "missingHint": "У этих сотрудников указан Dahua ID, которого нет ни на одном турникете: ID введён с ошибкой или человек удалён с турникета.",
+    "linkTitle": "{id} ({name}): какой сотрудник?",
+    "newEmployeeTitle": "Новый сотрудник: Dahua ID {id}"
   }
 }

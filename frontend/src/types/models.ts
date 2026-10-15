@@ -797,3 +797,32 @@ export interface AttendanceDevice {
   last_used_at: string | null
   created_at: string
 }
+
+export interface DevicePersonEmployee {
+  id: number
+  full_name: string
+  employee_number: string
+  organization: string | null
+}
+
+export interface DevicePerson {
+  user_id: string
+  name: string | null
+  devices: string[]
+  employee: DevicePersonEmployee | null
+  suggestions: (DevicePersonEmployee & { strong: boolean })[]
+}
+
+export interface DevicePeopleComparison {
+  summary: { on_terminals: number; linked: number; unlinked: number; missing_on_terminals: number }
+  devices: {
+    id: number
+    device_id: string
+    name: string
+    people_count: number
+    roster_synced_at: string | null
+    roster_complete: boolean
+  }[]
+  people: DevicePerson[]
+  missing_on_terminals: (DevicePersonEmployee & { dahua_person_id: string })[]
+}

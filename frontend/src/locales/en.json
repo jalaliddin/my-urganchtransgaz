@@ -792,6 +792,35 @@
     "serverUrl": "Server API address",
     "copy": "Copy",
     "copied": "Copied",
-    "tokenSaved": "Done"
+    "tokenSaved": "Done",
+    "tabSetup": "Setup",
+    "tabPeople": "Compare people",
+    "dahuaId": "Dahua ID",
+    "terminalName": "Name on the turnstile",
+    "employee": "Employee",
+    "summary": {
+      "on_terminals": "Enrolled on turnstiles",
+      "linked": "Linked",
+      "unlinked": "Not in the app",
+      "missing_on_terminals": "In the app, not on a turnstile"
+    },
+    "noRosterYet": "The extension hasn’t sent the turnstiles’ list of people yet. Update the extension to 1.1.0 (download it again on the Setup tab, replace the old folder and click Reload on chrome://extensions), then click “Hozir sinxronlash” in the extension.",
+    "rosterInfo": "{count} people · {time}",
+    "rosterPartial": "list incomplete",
+    "rosterNever": "no list yet",
+    "showAll": "All",
+    "searchPeople": "Search by name or Dahua ID",
+    "refresh": "Refresh",
+    "noSuggestion": "No matching employee found",
+    "unlink": "Unlink",
+    "linkOther": "Other employee…",
+    "newEmployee": "New employee",
+    "link": "Link",
+    "linked": "Linked. To record their past passes too, click “Shu sanadan qayta yuklash” in the extension.",
+    "created": "Employee created with the Dahua ID. For past days, click “Shu sanadan qayta yuklash” in the extension.",
+    "nobodyHere": "Nobody in this list",
+    "missingHint": "These employees carry a Dahua ID no turnstile has: a mistyped ID, or the person was removed from the turnstile.",
+    "linkTitle": "{id} ({name}): which employee?",
+    "newEmployeeTitle": "New employee: Dahua ID {id}"
   }
 }

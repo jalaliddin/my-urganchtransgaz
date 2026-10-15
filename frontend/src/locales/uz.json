@@ -792,6 +792,35 @@
     "serverUrl": "Server API manzili",
     "copy": "Nusxalash",
     "copied": "Nusxalandi",
-    "tokenSaved": "Saqladim"
+    "tokenSaved": "Saqladim",
+    "tabSetup": "Sozlash",
+    "tabPeople": "Odamlarni solishtirish",
+    "dahuaId": "Dahua ID",
+    "terminalName": "Turniketdagi ism",
+    "employee": "Xodim",
+    "summary": {
+      "on_terminals": "Turniketda ro'yxatda",
+      "linked": "Bog'langan",
+      "unlinked": "Web appda yo'q",
+      "missing_on_terminals": "Web appda bor, turniketda yo'q"
+    },
+    "noRosterYet": "Kengaytma hali turniketlardagi odamlar ro'yxatini yubormadi. Kengaytmani 1.1.0 versiyaga yangilang («Sozlash» bo'limidan qayta yuklab, eski papka o'rniga qo'ying va chrome://extensions da «Reload» bosing), so'ng kengaytmada «Hozir sinxronlash»ni bosing.",
+    "rosterInfo": "{count} kishi · {time}",
+    "rosterPartial": "ro'yxat to'liq emas",
+    "rosterNever": "ro'yxat hali kelmagan",
+    "showAll": "Hammasi",
+    "searchPeople": "Ism yoki Dahua ID bo'yicha qidirish",
+    "refresh": "Yangilash",
+    "noSuggestion": "Mos xodim topilmadi",
+    "unlink": "Bekor qilish",
+    "linkOther": "Boshqa xodim…",
+    "newEmployee": "Yangi xodim",
+    "link": "Bog'lash",
+    "linked": "Bog'landi. O'tgan kunlardagi kirish-chiqishlarini ham yozish uchun kengaytmada «Shu sanadan qayta yuklash»ni bosing.",
+    "created": "Xodim yaratildi va Dahua ID biriktirildi. O'tgan kunlar uchun kengaytmada «Shu sanadan qayta yuklash»ni bosing.",
+    "nobodyHere": "Bu ro'yxatda hech kim yo'q",
+    "missingHint": "Bu xodimlarga Dahua ID biriktirilgan, lekin u hech bir turniket ro'yxatida yo'q — ID xato kiritilgan yoki odam turniketdan o'chirilgan.",
+    "linkTitle": "{id} ({name}) — qaysi xodim?",
+    "newEmployeeTitle": "Yangi xodim — Dahua ID {id}"
   }
 }
