@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dahua davomat — sozlamalar</title>
+    <link rel="stylesheet" href="ui.css" />
+    <style>
+      main { max-width: 760px; margin: 0 auto; padding: 16px; }
+      .device-head { margin-bottom: 10px; }
+      .buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+      @media (max-width: 560px) { .grid-2 { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <img src="../icons/icon48.png" alt="" />
+      <div>
+        <h1>Dahua davomat — sozlamalar</h1>
+        <div class="small muted">Terminal yozuvlarini my.urtg.uz davomatiga o'tkazadi</div>
+      </div>
+    </header>
+    <main>
+      <h2>Umumiy</h2>
+      <form id="general" class="card">
+        <div class="grid-2">
+          <div class="field">
+            <label for="serverUrl">Server API manzili</label>
+            <input id="serverUrl" name="serverUrl" type="url" required />
+          </div>
+          <div class="field">
+            <label for="intervalMinutes">Har necha daqiqada tekshirish</label>
+            <input id="intervalMinutes" name="intervalMinutes" type="number" min="1" max="60" required />
+          </div>
+        </div>
+        <p class="small muted" style="margin-top: 0">
+          Brauzer ochiq turgan vaqtda ishlaydi. Kompyuter yoki brauzer o'chiq bo'lgan payt o'tkazib yuborilmaydi —
+          keyingi ishga tushganda terminal xotirasidan qolgan yozuvlar yuklab olinadi.
+        </p>
+        <div class="buttons"><button class="primary" type="submit">Saqlash</button></div>
+        <div id="general-result"></div>
+      </form>
+
+      <div class="row spread">
+        <h2>Terminallar</h2>
+        <button id="add-device" type="button">+ Terminal qo'shish</button>
+      </div>
+      <div id="devices"></div>
+    </main>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>

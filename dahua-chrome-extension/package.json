@@ -1,0 +1,11 @@
+{
+  "name": "dahua-chrome-extension",
+  "version": "1.0.0",
+  "description": "Chrome extension: pulls Dahua access-control records over the local network and records them as my.urtg.uz attendance.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "zip": "rm -f dahua-davomat.zip && zip -r dahua-davomat.zip manifest.json src icons"
+  }
+}

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="utf-8" />
+    <title>Dahua davomat</title>
+    <link rel="stylesheet" href="ui.css" />
+    <style>
+      body { width: 380px; }
+      main { padding: 12px 14px 14px; max-height: 520px; overflow-y: auto; }
+      .actions { display: flex; gap: 8px; padding: 10px 14px; background: var(--card); border-top: 1px solid var(--border); }
+      .actions button { flex: 1; }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <img src="../icons/icon48.png" alt="" />
+      <div>
+        <h1>Dahua davomat</h1>
+        <div id="last-run" class="small muted"></div>
+      </div>
+    </header>
+    <main>
+      <div id="devices"></div>
+      <section id="unknown-section" hidden>
+        <h2>Xodimga biriktirilmagan ID lar</h2>
+        <div class="card">
+          <p class="small muted" style="margin-top: 0">
+            Bu odamlar terminaldan o'tgan, lekin hech bir xodimda shu Dahua ID yo'q, shuning uchun davomati
+            yozilmadi. My.urtg.uz → Xodimlar → tahrirlash → «Dahua terminal ID» maydonini to'ldiring.
+          </p>
+          <ul id="unknown" class="plain small"></ul>
+        </div>
+      </section>
+      <section>
+        <h2>So'nggi harakatlar</h2>
+        <div class="card"><ul id="log" class="plain small"></ul></div>
+      </section>
+    </main>
+    <div class="actions">
+      <button id="sync" class="primary" type="button">Hozir sinxronlash</button>
+      <button id="settings" type="button">Sozlamalar</button>
+    </div>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
