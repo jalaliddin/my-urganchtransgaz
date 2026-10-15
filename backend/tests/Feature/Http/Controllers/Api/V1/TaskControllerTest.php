@@ -258,6 +258,32 @@ it('uploads and downloads a task attachment', function () {
     $this->assertDatabaseHas('task_activities', ['task_id' => $task->id, 'action' => 'file_uploaded']);
 });
 
+it('accepts office files as task attachments, even when their content reads as a zip', function (string $name) {
+    Storage::fake('local');
+
+    $organization = Organization::factory()->create();
+    $employeeUser = userWithRole('employee', $organization);
+    $task = Task::factory()->create(['organization_id' => $organization->id]);
+    $task->assignees()->attach($employeeUser->employee->id);
+
+    $this->actingAs($employeeUser, 'sanctum')->postJson("/api/v1/tasks/{$task->id}/attachments", [
+        'file' => UploadedFile::fake()->create($name, 300, 'application/zip'),
+    ])->assertCreated()->assertJsonPath('data.original_name', $name);
+})->with(['hisobot.xlsx', 'xat.docx', 'eski.doc', 'jadval.xls']);
+
+it('refuses a task attachment of a type outside the list', function (string $name) {
+    Storage::fake('local');
+
+    $organization = Organization::factory()->create();
+    $employeeUser = userWithRole('employee', $organization);
+    $task = Task::factory()->create(['organization_id' => $organization->id]);
+    $task->assignees()->attach($employeeUser->employee->id);
+
+    $this->actingAs($employeeUser, 'sanctum')->postJson("/api/v1/tasks/{$task->id}/attachments", [
+        'file' => UploadedFile::fake()->create($name, 10),
+    ])->assertStatus(422)->assertJsonValidationErrors('file');
+})->with(['shell.php', 'setup.exe', 'page.html']);
+
 it('creates a task in an active category and returns that category', function () {
     $organization = Organization::factory()->create();
     $manager = userWithRole('manager', $organization);

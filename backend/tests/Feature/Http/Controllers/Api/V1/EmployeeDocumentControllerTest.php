@@ -47,6 +47,18 @@ it('rejects an upload with a disallowed file type', function () {
     ])->assertStatus(422)->assertJsonValidationErrors('file');
 });
 
+it('accepts a Word document', function () {
+    Storage::fake('local');
+    $user = userWithRole('employee', Organization::factory()->create());
+    $documentType = DocumentType::factory()->create();
+
+    $this->actingAs($user, 'sanctum')->postJson('/api/v1/documents', [
+        'document_type_id' => $documentType->id,
+        'title' => 'Malumotnoma',
+        'file' => UploadedFile::fake()->create('malumotnoma.docx', 120, 'application/zip'),
+    ])->assertCreated();
+});
+
 it('only shows an employee their own documents in the index', function () {
     $user = userWithRole('employee', Organization::factory()->create());
     EmployeeDocument::factory()->create(['employee_id' => $user->employee->id]);

@@ -50,7 +50,7 @@ class StoreEmployeeDocumentRequest extends FormRequest
             'issue_date' => ['nullable', 'date', 'before_or_equal:today'],
             'expiry_date' => ['nullable', 'date', 'after:issue_date'],
             'file' => [
-                'required', 'file', 'mimes:pdf,jpg,jpeg,png', 'extensions:pdf,jpg,jpeg,png',
+                'required', 'file', 'extensions:'.implode(',', config('uploads.document_extensions')),
                 'max:'.Setting::get('documents.max_upload_kb', 10240),
             ],
         ];

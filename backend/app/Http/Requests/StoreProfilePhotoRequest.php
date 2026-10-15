@@ -23,7 +23,9 @@ class StoreProfilePhotoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png', 'extensions:jpg,jpeg,png', 'max:2048'],
+            // A phone photo is easily 3–8 MB; it's cut down to 512 px on save
+            // (UpdateEmployeePhotoAction), so only the upload itself is capped.
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png', 'extensions:jpg,jpeg,png', 'max:10240'],
         ];
     }
 }

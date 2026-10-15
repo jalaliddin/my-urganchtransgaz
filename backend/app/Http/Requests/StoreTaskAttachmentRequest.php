@@ -26,7 +26,7 @@ class StoreTaskAttachmentRequest extends FormRequest
     {
         return [
             'file' => [
-                'required', 'file', 'mimes:pdf,jpg,jpeg,png', 'extensions:pdf,jpg,jpeg,png',
+                'required', 'file', 'extensions:'.implode(',', config('uploads.document_extensions')),
                 'max:'.Setting::get('documents.max_upload_kb', 10240),
             ],
         ];
