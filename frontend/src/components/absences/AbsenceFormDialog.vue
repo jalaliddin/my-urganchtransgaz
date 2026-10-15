@@ -6,6 +6,7 @@ import { absenceService } from '@/services/absenceService'
 import { employeeService } from '@/services/employeeService'
 import type { AbsenceType, Employee, EmployeeAbsence, LeaveBalance } from '@/types/models'
 import { ABSENCE_TYPES, inclusiveDays } from '@/utils/absences'
+import { DOCUMENT_ACCEPT, uploadErrorMessage } from '@/utils/uploads'
 
 const props = defineProps<{
   modelValue: boolean
@@ -152,7 +153,9 @@ async function save() {
     close()
   } catch (error: unknown) {
     const axiosError = error as { response?: { data?: { errors?: Record<string, string[]> } } }
-    errors.value = axiosError.response?.data?.errors ?? {}
+    errors.value =
+      axiosError.response?.data?.errors ??
+      (form.value.file ? { file: [uploadErrorMessage(error, t('common.uploadFailed'))] } : {})
   } finally {
     saving.value = false
   }
@@ -245,7 +248,7 @@ async function save() {
 
         <AppFileUpload
           v-model="form.file"
-          accept="application/pdf,image/jpeg,image/png"
+          :accept="DOCUMENT_ACCEPT"
           :label="$t('absences.file')"
           :error-messages="errors.file"
         />

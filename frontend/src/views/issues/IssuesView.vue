@@ -10,6 +10,7 @@ import { useAuthStore } from '@/stores/auth'
 import type { Issue, IssueCategory, IssueOptions } from '@/types/models'
 import { formatDate } from '@/utils/date'
 import { issueLegend, issuePinStyle, openDays } from '@/utils/issueMap'
+import { PHOTO_ACCEPT, uploadErrorMessage } from '@/utils/uploads'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -119,11 +120,19 @@ const form = ref({
   organization_id: null as number | null,
   issue_category_id: null as number | null,
   executor_ids: [] as number[],
+  photos: [] as File[],
 })
 const options = ref<IssueOptions | null>(null)
 const pickedLocation = ref<{ lat: number; lng: number } | null>(null)
 const formErrors = ref<Record<string, string[]>>({})
+const saveError = ref<string | null>(null)
 const saving = ref(false)
+// Laravel reports each photo separately (photos.0, photos.1, ...).
+const photoErrors = computed(() =>
+  Object.entries(formErrors.value)
+    .filter(([key]) => key === 'photos' || key.startsWith('photos.'))
+    .flatMap(([, messages]) => messages),
+)
 
 async function openCreate() {
   form.value = {
@@ -133,9 +142,11 @@ async function openCreate() {
     organization_id: null,
     issue_category_id: null,
     executor_ids: [],
+    photos: [],
   }
   pickedLocation.value = null
   formErrors.value = {}
+  saveError.value = null
   dialogOpen.value = true
 
   options.value = await issueService.options()
@@ -157,6 +168,7 @@ async function save() {
 
   saving.value = true
   formErrors.value = {}
+  saveError.value = null
   try {
     await issueService.create({
       title: form.value.title,
@@ -167,12 +179,14 @@ async function save() {
       ...(options.value?.can_assign_executors && form.value.executor_ids.length ? { executor_ids: form.value.executor_ids } : {}),
       latitude: pickedLocation.value.lat,
       longitude: pickedLocation.value.lng,
+      photos: form.value.photos,
     })
     dialogOpen.value = false
     await load()
   } catch (error: unknown) {
     const axiosError = error as { response?: { data?: { errors?: Record<string, string[]> } } }
     formErrors.value = axiosError.response?.data?.errors ?? {}
+    if (!axiosError.response?.data?.errors) saveError.value = uploadErrorMessage(error, t('common.uploadFailed'))
   } finally {
     saving.value = false
   }
@@ -312,6 +326,23 @@ async function save() {
         <div class="text-body-2 text-medium-emphasis mb-2">{{ $t('issues.mapPickHint') }}</div>
         <LeafletMap pickable :picked-location="pickedLocation" :height="260" @pick="(loc) => (pickedLocation = loc)" />
         <div v-if="formErrors.latitude" class="text-error text-caption mt-1">{{ formErrors.latitude[0] }}</div>
+        <v-file-input
+          v-model="form.photos"
+          class="mt-4"
+          :label="$t('issues.photos')"
+          :hint="$t('issues.photosHint')"
+          persistent-hint
+          :accept="PHOTO_ACCEPT"
+          multiple
+          chips
+          counter
+          show-size
+          prepend-icon=""
+          prepend-inner-icon="mdi-camera-outline"
+          :error-messages="photoErrors"
+          :rules="[(files: File[]) => (files?.length ?? 0) <= 5 || $t('issues.photosMax')]"
+        />
+        <v-alert v-if="saveError" type="error" variant="tonal" density="compact" class="mt-3">{{ saveError }}</v-alert>
       </v-card-text>
       <v-card-actions>
         <v-spacer />

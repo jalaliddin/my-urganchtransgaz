@@ -159,7 +159,9 @@
     "genericError": "Ma'lumotlarni yuklashda xatolik yuz berdi.",
     "forbiddenError": "Sizda ushbu amalni bajarish uchun ruxsat mavjud emas.",
     "total": "Jami",
-    "view": "Ko'rish"
+    "view": "Ko'rish",
+    "uploadFailed": "Fayl yuklanmadi. Internetni tekshirib, qayta urinib ko'ring.",
+    "allowedFileTypes": "PDF, rasm, Word, Excel, PowerPoint yoki matn fayli"
   },
   "status": {
     "active": "Faol",
@@ -515,7 +517,11 @@
     "showOnMap": "Xaritada ko'rsatish",
     "assignExecutors": "Ijrochilarni tayinlash",
     "unassignedOnly": "Faqat ijrochi tayinlanmaganlar",
-    "executorsAssignedLater": "Ijrochilarni Texnik siyosat xizmati tayinlaydi."
+    "executorsAssignedLater": "Ijrochilarni Texnik siyosat xizmati tayinlaydi.",
+    "photos": "Rasmlar",
+    "photosHint": "Ixtiyoriy · 5 tagacha, JPG yoki PNG",
+    "photosMax": "Ko'pi bilan 5 ta rasm",
+    "openPhoto": "Rasmni kattalashtirish"
   },
   "search": {
     "placeholder": "Qidirish...",

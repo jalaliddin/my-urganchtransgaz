@@ -10,6 +10,7 @@ import { taskService } from '@/services/taskService'
 import { useAuthStore } from '@/stores/auth'
 import type { Employee, Task, TaskCategory, TaskPriority } from '@/types/models'
 import { formatDate, formatDateTime } from '@/utils/date'
+import { DOCUMENT_ACCEPT, uploadErrorMessage } from '@/utils/uploads'
 
 const route = useRoute()
 const router = useRouter()
@@ -129,13 +130,17 @@ async function removeComment(commentId: number) {
 
 const uploadingFile = ref<File | null>(null)
 const uploading = ref(false)
+const uploadError = ref<string | null>(null)
 async function uploadFile() {
   if (!task.value || !uploadingFile.value) return
   uploading.value = true
+  uploadError.value = null
   try {
     await taskService.uploadAttachment(task.value.id, uploadingFile.value)
     uploadingFile.value = null
     await load()
+  } catch (error: unknown) {
+    uploadError.value = uploadErrorMessage(error, t('common.uploadFailed'))
   } finally {
     uploading.value = false
   }
@@ -348,7 +353,13 @@ async function saveEdit() {
             <AppEmptyState v-if="!task.attachments?.length" icon="mdi-paperclip" />
 
             <div class="d-flex align-center ga-2 mt-3">
-              <AppFileUpload v-model="uploadingFile" accept="application/pdf,image/jpeg,image/png" />
+              <AppFileUpload
+                v-model="uploadingFile"
+                :accept="DOCUMENT_ACCEPT"
+                :hint="$t('common.allowedFileTypes')"
+                :error-messages="uploadError ?? []"
+                @update:model-value="uploadError = null"
+              />
               <v-btn color="primary" variant="tonal" :disabled="!uploadingFile" :loading="uploading" @click="uploadFile">
                 {{ $t('common.save') }}
               </v-btn>

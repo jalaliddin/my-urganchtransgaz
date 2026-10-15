@@ -159,7 +159,9 @@
     "genericError": "An error occurred while loading data.",
     "forbiddenError": "You do not have permission to perform this action.",
     "total": "Total",
-    "view": "View"
+    "view": "View",
+    "uploadFailed": "The file did not upload. Check the connection and try again.",
+    "allowedFileTypes": "PDF, image, Word, Excel, PowerPoint or text file"
   },
   "status": {
     "active": "Active",
@@ -515,7 +517,11 @@
     "showOnMap": "Show on map",
     "assignExecutors": "Assign executors",
     "unassignedOnly": "Only without executors",
-    "executorsAssignedLater": "Technical Policy Service assigns the executors."
+    "executorsAssignedLater": "Technical Policy Service assigns the executors.",
+    "photos": "Photos",
+    "photosHint": "Optional · up to 5, JPG or PNG",
+    "photosMax": "At most 5 photos",
+    "openPhoto": "Open photo"
   },
   "search": {
     "placeholder": "Search...",

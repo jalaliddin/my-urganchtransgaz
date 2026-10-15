@@ -6,6 +6,7 @@ import { usePaginatedResource } from '@/composables/usePaginatedResource'
 import { documentService, documentTypeService } from '@/services/documentService'
 import { useAuthStore } from '@/stores/auth'
 import type { DocumentType, EmployeeDocument } from '@/types/models'
+import { DOCUMENT_ACCEPT, uploadErrorMessage } from '@/utils/uploads'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -71,7 +72,8 @@ async function upload() {
     await reload()
   } catch (error: unknown) {
     const axiosError = error as { response?: { data?: { errors?: Record<string, string[]> } } }
-    uploadErrors.value = axiosError.response?.data?.errors ?? {}
+    // Anything that isn't a field error (too large for the server, offline, ...) shows on the file field.
+    uploadErrors.value = axiosError.response?.data?.errors ?? { file: [uploadErrorMessage(error, t('common.uploadFailed'))] }
   } finally {
     uploading.value = false
   }
@@ -205,7 +207,8 @@ async function download(document: EmployeeDocument) {
         />
         <AppFileUpload
           v-model="uploadForm.file"
-          accept="application/pdf,image/jpeg,image/png"
+          :accept="DOCUMENT_ACCEPT"
+          :hint="$t('common.allowedFileTypes')"
           :label="$t('documents.file')"
           :error-messages="uploadErrors.file"
         />

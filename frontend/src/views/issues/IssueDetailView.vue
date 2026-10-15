@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import IssueExecutorPicker from '@/components/issues/IssueExecutorPicker.vue'
+import IssuePhotoGallery from '@/components/issues/IssuePhotoGallery.vue'
 import LeafletMap, { type MapMarker } from '@/components/issues/LeafletMap.vue'
 import { issueService } from '@/services/issueService'
 import { useAuthStore } from '@/stores/auth'
@@ -116,6 +117,7 @@ function goBack() {
               </v-chip>
             </div>
             <p class="text-body-1 mb-4">{{ issue.description || '—' }}</p>
+            <IssuePhotoGallery v-if="issue.photos?.length" :photos="issue.photos" class="mb-4" />
 
             <LeafletMap
               :markers="marker"

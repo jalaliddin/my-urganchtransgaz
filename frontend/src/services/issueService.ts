@@ -12,12 +12,29 @@ export interface IssuePayload {
   executor_ids?: number[]
   latitude: number
   longitude: number
+  photos?: File[]
 }
 
 const base = createResourceService<Issue, IssuePayload>('/issues')
 
 export const issueService = {
   ...base,
+
+  /** Photos go as multipart; without any, the plain JSON body as before. */
+  async create(payload: IssuePayload): Promise<Issue> {
+    const { photos = [], ...fields } = payload
+    if (photos.length === 0) return base.create(fields)
+
+    const form = new FormData()
+    Object.entries(fields).forEach(([key, value]) => {
+      if (value === null || value === undefined) return
+      if (Array.isArray(value)) value.forEach((item) => form.append(`${key}[]`, String(item)))
+      else form.append(key, String(value))
+    })
+    photos.forEach((photo) => form.append('photos[]', photo))
+    const { data } = await http.post<ApiSuccessResponse<Issue>>('/issues', form)
+    return data.data
+  },
 
   async options(): Promise<IssueOptions> {
     const { data } = await http.get<ApiSuccessResponse<IssueOptions>>('/issues/options')

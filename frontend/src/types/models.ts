@@ -684,10 +684,16 @@ export interface Issue {
   resolved_by: number | null
   resolved_by_name: string | null
   resolved_at: string | null
+  photos?: IssuePhoto[]
   comments?: IssueComment[]
   activities?: IssueActivity[]
   created_at: string
   updated_at: string
+}
+
+export interface IssuePhoto {
+  id: number
+  url: string
 }
 
 export interface AuditLog {

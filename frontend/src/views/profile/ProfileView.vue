@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import { changeRequestService } from '@/services/changeRequestService'
 import { profileService, type ProfileCompletion } from '@/services/profileService'
 import { useAuthStore } from '@/stores/auth'
 import type { Employee, EmployeeChangeRequest } from '@/types/models'
+import { uploadErrorMessage } from '@/utils/uploads'
 
 const auth = useAuthStore()
 
@@ -24,6 +26,8 @@ const saving = ref(false)
 const formErrors = ref<Record<string, string[]>>({})
 const successMessage = ref('')
 const photoUploading = ref(false)
+const photoError = ref<string | null>(null)
+const { t } = useI18n()
 
 async function load() {
   loading.value = true
@@ -96,9 +100,12 @@ async function save() {
 async function onPhotoSelected(file: File | null) {
   if (!file) return
   photoUploading.value = true
+  photoError.value = null
   try {
     employee.value = await profileService.uploadPhoto(file)
     if (auth.user) auth.user.employee = employee.value
+  } catch (error: unknown) {
+    photoError.value = uploadErrorMessage(error, t('common.uploadFailed'))
   } finally {
     photoUploading.value = false
   }
@@ -155,6 +162,7 @@ async function removeContact(contactId: number) {
               :model-value="null"
               accept="image/png,image/jpeg"
               :label="$t('profile.uploadPhoto')"
+              :error-messages="photoError ?? []"
               class="mb-2"
               @update:model-value="onPhotoSelected"
             />
