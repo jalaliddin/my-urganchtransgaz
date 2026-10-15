@@ -40,6 +40,35 @@ unreachable and go out when it's back.
 | 401 / 403, or a token for another `device_id` | Kept. That terminal stops sending until its settings are fixed. The popup shows the error and the icon a red "!". |
 | Offline / 5xx | Kept. Retried on the next run. |
 
+## Who is enrolled: comparing with employees
+
+Besides the scans, the extension sends each terminal's list of enrolled
+people to the server (`recordFinder.cgi?action=find&name=AccessControlCard`
+gives each person's `UserID` and the name on the terminal; one row per
+card, folded to one per person) — every 30 minutes and on "Hozir
+sinxronlash", via `PUT /api/v1/integrations/attendance/device-users`. A
+complete list replaces what the server had; a partial one (the terminal
+returned fewer rows than it reported holding) only adds.
+
+The web app's **Dahua terminallari → Odamlarni solishtirish** tab
+compares those people with employees (`employees.dahua_person_id`):
+
+- **Web appda yo'q** — enrolled on a turnstile, no employee carries the
+  ID. Suggested employees (same surname; the first name matching the
+  terminal's initial or name comes first) link with one click; **Boshqa
+  xodim…** links any employee; **Yangi xodim** creates one already
+  carrying the ID. After linking, "Shu sanadan qayta yuklash" in the
+  extension records the past days' passes too (already-recorded ones
+  aren't duplicated).
+- **Bog'langan** — linked; can be unlinked.
+- **Web appda bor, turniketda yo'q** — an employee carries an ID no
+  terminal has: a typo, or the person was removed from the turnstile.
+
+Verified against both real terminals: 268 people each, read in about two
+seconds, every one with a name. The names come as "Surname", "Surname N",
+"Surname N.O.", "Surname NO" and "Surname Nodir"; the matcher treats the
+dotted and short capital forms as initials.
+
 ## Install (one PC at the gate, or any PC on 10.100.90.x)
 
 Everything is in the web app: **Xodimlar → Dahua terminallari**
@@ -90,7 +119,7 @@ responsible for the gate use.
 - **Real terminal behavior it relies on**: records come back oldest first
   with increasing `RecNo`, and two days on the entry gate already exceed
   one 1,024-record page. That's why it pages.
-- **`npm test`** (21 tests, `node --test`, no dependencies): MD5 against
+- **`npm test`** (23 tests, `node --test`, no dependencies): MD5 against
   RFC vectors and `node:crypto`; a real Digest login against a local fake
   terminal (right and wrong password, terminal unreachable); parsing a
   real captured response; scan → event rules; and the sync engine end to

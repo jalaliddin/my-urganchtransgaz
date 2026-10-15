@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { tashkentMidnight } from '../src/lib/records.js';
-import { PAGE_SIZE, runSync } from '../src/lib/sync.js';
+import { PAGE_SIZE, ROSTER_INTERVAL_MS, runSync } from '../src/lib/sync.js';
 
 const DAY = '2026-10-14';
 const DAY_START = tashkentMidnight(DAY);
@@ -30,13 +30,22 @@ function scan(recNo, secondsIntoDay, userId, extra = {}) {
  * A terminal as recordFinder.cgi behaves on this site: records oldest
  * first, StartTime/EndTime inclusive, at most `count` per answer, no total.
  */
-function fakeTerminal(host, records) {
+function fakeTerminal(host, records, people = []) {
   const queries = [];
 
   return {
     host,
     queries,
     async handle(url) {
+      if (url.searchParams.get('name') === 'AccessControlCard') {
+        if (url.searchParams.get('action') === 'getQuerySize') return new Response(`count=${people.length}\r\n`);
+        const rows = people.slice(0, Number(url.searchParams.get('count')));
+        const lines = [`found=${rows.length}`];
+        rows.forEach((row, i) => Object.entries(row).forEach(([k, v]) => lines.push(`records[${i}].${k}=${v}`)));
+
+        return new Response(lines.join('\r\n'));
+      }
+
       const start = Number(url.searchParams.get('StartTime'));
       const end = Number(url.searchParams.get('EndTime'));
       const count = Number(url.searchParams.get('count'));
@@ -53,16 +62,22 @@ function fakeTerminal(host, records) {
 /** my.urtg.uz's webhook: knows some Dahua IDs, accepts some tokens. */
 function fakeServer({ knownPeople, tokens, down = false }) {
   const received = [];
+  const rosters = [];
 
   return {
     received,
+    rosters,
     down,
-    async handle(init) {
+    async handle(url, init) {
       if (this.down) throw new TypeError('fetch failed');
 
       const token = init.headers.Authorization.replace('Bearer ', '');
       const body = JSON.parse(init.body);
       if (!(token in tokens)) return Response.json({ message: 'Unauthenticated.' }, { status: 401 });
+      if (url.pathname.endsWith('/device-users')) {
+        rosters.push(body);
+        return Response.json({ success: true });
+      }
       if (tokens[token] !== body.device_id) {
         return Response.json({ message: 'device_id does not match the authenticated device.' }, { status: 422 });
       }
@@ -81,7 +96,7 @@ function world({ terminals, server }) {
 
   return async (input, init = {}) => {
     const url = new URL(input);
-    if (url.hostname === 'my.urtg.uz') return server.handle(init);
+    if (url.hostname === 'my.urtg.uz') return server.handle(url, init);
 
     const terminal = byHost.get(url.hostname);
     if (!terminal) throw new TypeError('fetch failed');
@@ -221,3 +236,51 @@ test('an unreachable terminal is reported and the other terminal carries on', as
   assert.match(store.data.state.entry.lastError, /ulanib bo'lmadi/);
   assert.equal(store.data.state.exit.lastError, null);
 });
+
+test('sends each terminal\'s enrolled people, one row per person, then waits half an hour unless asked', async () => {
+  const terminal = fakeTerminal('10.0.0.1', [], [
+    { RecNo: '1', UserID: '108', CardName: 'Kenjayev N', CardNo: '' },
+    { RecNo: '2', UserID: '108', CardName: 'Kenjayev N', CardNo: '555' }, // a second card
+    { RecNo: '3', UserID: '28', CardName: 'Matyoqubov O', CardNo: '12001' },
+    { RecNo: '4', UserID: '', CardName: 'No user' },
+  ]);
+  const server = fakeServer({ knownPeople: [], tokens: { 'token-gate': 'GATE' } });
+  const store = memoryStore(settingsWith(device('gate', '10.0.0.1')));
+  const fetchImpl = world({ terminals: [terminal], server });
+
+  await runSync({ store, fetchImpl, now: () => NOW_MS });
+
+  assert.deepEqual(server.rosters, [{
+    device_id: 'GATE',
+    complete: true,
+    users: [
+      { user_id: '108', name: 'Kenjayev N', card_no: null },
+      { user_id: '28', name: 'Matyoqubov O', card_no: '12001' },
+    ],
+  }]);
+  assert.equal(store.data.state.gate.rosterSize, 2);
+
+  await runSync({ store, fetchImpl, now: () => NOW_MS + 60_000 });
+  assert.equal(server.rosters.length, 1, 'not again within the interval');
+
+  await runSync({ store, fetchImpl, now: () => NOW_MS + 120_000, forceRoster: true });
+  assert.equal(server.rosters.length, 2, '"Hozir sinxronlash" sends it regardless');
+
+  await runSync({ store, fetchImpl, now: () => NOW_MS + 120_000 + ROSTER_INTERVAL_MS });
+  assert.equal(server.rosters.length, 3);
+});
+
+test('a roster the server refuses is noted without stopping the scans', async () => {
+  const terminal = fakeTerminal('10.0.0.1', [scan(1, 3600, '101')], [{ RecNo: '1', UserID: '101', CardName: 'A' }]);
+  const server = fakeServer({ knownPeople: ['101'], tokens: { 'token-gate': 'GATE' } });
+  const original = server.handle.bind(server);
+  server.handle = (url, init) => (url.pathname.endsWith('/device-users') ? Response.json({}, { status: 500 }) : original(url, init));
+  const store = memoryStore(settingsWith(device('gate', '10.0.0.1')));
+
+  const result = await runSync({ store, fetchImpl: world({ terminals: [terminal], server }), now: () => NOW_MS });
+
+  assert.equal(result.sent, 1);
+  assert.match(store.data.state.gate.rosterError, /500/);
+  assert.equal(store.data.state.gate.lastError, null);
+});
+

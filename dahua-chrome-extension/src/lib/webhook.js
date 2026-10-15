@@ -83,3 +83,25 @@ export async function checkDeviceToken(serverUrl, device, fetchImpl = fetch) {
     return { ok: false, reason: 'unreachable', error: error.message };
   }
 }
+
+/**
+ * Sends the terminal's list of enrolled people (`PUT
+ * /integrations/attendance/device-users`): the server can't reach the
+ * terminal itself, and compares this list with its employees.
+ */
+export async function sendRoster(serverUrl, device, roster, fetchImpl = fetch) {
+  try {
+    const response = await fetchImpl(`${serverUrl.replace(/\/+$/, '')}/integrations/attendance/device-users`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json', Authorization: `Bearer ${device.deviceToken}` },
+      body: JSON.stringify({ device_id: device.deviceId, complete: roster.complete, users: roster.users }),
+      credentials: 'omit',
+    });
+
+    if (response.ok) return { ok: true };
+
+    return { ok: false, status: response.status };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+}

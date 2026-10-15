@@ -154,3 +154,32 @@ export async function findAccessRecords(device, { startTime, endTime, count }, f
 
   return parseRecordFinderResponse(body);
 }
+
+// Plenty for a site's roster; asked for in one request (the terminal has
+// no paging for this list that's been verified).
+const MAX_ROSTER = 5000;
+
+/**
+ * The people enrolled on the terminal: its card list
+ * (`recordFinder.cgi?action=find&name=AccessControlCard`), which carries
+ * each person's `UserID` and the name shown on the terminal, one row per
+ * card — so a person with several cards is folded into one. `complete` is
+ * false when the terminal returned fewer rows than it said it holds.
+ */
+export async function fetchEnrolledPeople(device, fetchImpl = fetch) {
+  const sizeText = await digestGet(device, '/cgi-bin/recordFinder.cgi?action=getQuerySize&name=AccessControlCard', fetchImpl);
+  const size = Number(/(?:^|\n)\s*(?:count|size)\s*=\s*(\d+)/i.exec(sizeText)?.[1] ?? 0);
+  const count = Math.min(Math.max(size, 1), MAX_ROSTER);
+  const { records } = parseRecordFinderResponse(
+    await digestGet(device, `/cgi-bin/recordFinder.cgi?action=find&name=AccessControlCard&count=${count}`, fetchImpl),
+  );
+
+  const people = new Map();
+  for (const record of records) {
+    const userId = record.UserID?.trim();
+    if (!userId || people.has(userId)) continue;
+    people.set(userId, { user_id: userId, name: record.CardName?.trim() || null, card_no: record.CardNo?.trim() || null });
+  }
+
+  return { users: [...people.values()], complete: records.length >= size && size <= MAX_ROSTER, size };
+}

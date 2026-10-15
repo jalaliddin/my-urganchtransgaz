@@ -31,8 +31,8 @@ async function updateBadge() {
 }
 
 /** One run at a time: an alarm firing during a manual sync joins it. */
-function sync() {
-  running ??= runSync({ store })
+function sync({ forceRoster = false } = {}) {
+  running ??= runSync({ store, forceRoster })
     .then(async (result) => {
       await updateBadge();
 
@@ -59,7 +59,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === 'sync-now') {
-    sync().then(
+    sync({ forceRoster: true }).then(
       (result) => sendResponse({ ok: true, result }),
       (error) => sendResponse({ ok: false, error: error.message }),
     );

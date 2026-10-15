@@ -1,6 +1,6 @@
-import { DeviceError, findAccessRecords } from './dahua.js';
+import { DeviceError, fetchEnrolledPeople, findAccessRecords } from './dahua.js';
 import { tashkentMidnight, tashkentToday, toAttendanceEvent } from './records.js';
-import { sendAttendanceEvent } from './webhook.js';
+import { sendAttendanceEvent, sendRoster } from './webhook.js';
 
 /**
  * One sync run: pull every enabled terminal's new offline records into a
@@ -13,7 +13,8 @@ import { sendAttendanceEvent } from './webhook.js';
  *             username, password, deviceId, deviceToken, direction,
  *             enabled, syncFrom}]}
  *   state     {[device.id]: {cursor, lastSyncAt, lastError, blocked,
- *             today: {date, delivered, rejected}, unknown: {[personId]: …}}}
+ *             today: {date, delivered, rejected}, unknown: {[personId]: …},
+ *             rosterSyncedAt, rosterSize, rosterComplete, rosterError}}
  *   queue     [{key, deviceRef, personId, cardName, direction, eventTime}]
  *   log       newest-first activity lines for the popup
  */
@@ -23,6 +24,9 @@ export const PAGE_SIZE = 500;
 // cursor is saved after every page, so the next run carries on from there.
 export const MAX_PAGES_PER_RUN = 20;
 const MAX_QUEUE = 20000;
+// Who is enrolled changes rarely; send the list this often (and on
+// "Hozir sinxronlash").
+export const ROSTER_INTERVAL_MS = 30 * 60 * 1000;
 const MAX_LOG = 60;
 const SAVE_EVERY = 25;
 
@@ -140,6 +144,32 @@ export async function pullDevice(device, ctx) {
   return added;
 }
 
+/**
+ * Sends the terminal's enrolled people to the server for its terminals
+ * page. Separate from the scans: a failure here is noted on its own and
+ * never stops attendance from flowing.
+ */
+export async function syncRoster(device, settings, ctx, { force = false } = {}) {
+  const { state, now, fetchImpl } = ctx;
+  const ds = deviceState(state, device.id, now());
+
+  if (ds.blocked || (!force && ds.rosterSyncedAt && now() - ds.rosterSyncedAt < ROSTER_INTERVAL_MS)) return;
+
+  try {
+    const roster = await fetchEnrolledPeople(device, fetchImpl);
+    const result = await sendRoster(settings.serverUrl, device, roster, fetchImpl);
+
+    if (!result.ok) {
+      ds.rosterError = `Ro'yxat yuborilmadi (${result.status ?? result.error})`;
+      return;
+    }
+
+    Object.assign(ds, { rosterSyncedAt: now(), rosterSize: roster.users.length, rosterComplete: roster.complete, rosterError: null });
+  } catch (error) {
+    ds.rosterError = error.message;
+  }
+}
+
 /** Delivers the queue oldest-first; stops at the first sign the server is down. */
 export async function deliverQueue(settings, ctx) {
   const { state, log, persist, now, fetchImpl } = ctx;
@@ -203,7 +233,7 @@ export async function deliverQueue(settings, ctx) {
  * The whole run. `store` is chrome.storage.local (or an in-memory stand-in):
  * get(keys) → object, set(object).
  */
-export async function runSync({ store, fetchImpl = fetch, now = () => Date.now() }) {
+export async function runSync({ store, fetchImpl = fetch, now = () => Date.now(), forceRoster = false }) {
   const { settings, state, queue, log } = await loadAll(store);
   const ctx = {
     state,
@@ -223,7 +253,10 @@ export async function runSync({ store, fetchImpl = fetch, now = () => Date.now()
       ds.lastError = error instanceof DeviceError ? error.message : `Xatolik: ${error.message}`;
       ds.lastErrorAt = now();
       addLog(log, now(), 'error', `${device.name}: ${ds.lastError}`);
+      continue;
     }
+
+    await syncRoster(device, settings, ctx, { force: forceRoster });
   }
 
   const delivery = await deliverQueue(settings, ctx);

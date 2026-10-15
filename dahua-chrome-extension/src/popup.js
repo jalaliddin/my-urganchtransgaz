@@ -30,6 +30,10 @@ function deviceCard(device, ds, queued) {
       h('div', { class: 'stat' }, h('b', {}, String(ds?.today?.rejected ?? 0)), h('span', { class: 'small muted' }, 'Rad etildi')),
     ),
     h('div', { class: 'small muted', style: 'margin-top: 6px' }, `Oxirgi sinxronlash: ${formatTime(ds?.lastSyncAt)}`),
+    ds?.rosterSyncedAt
+      ? h('div', { class: 'small muted' }, `Turniketdagi odamlar: ${ds.rosterSize}${ds.rosterComplete === false ? ' (to\'liq emas)' : ''} · ${formatTime(ds.rosterSyncedAt)}`)
+      : null,
+    ds?.rosterError ? h('div', { class: 'small status-warn' }, `Odamlar ro'yxati: ${ds.rosterError}`) : null,
     ds?.lastError ? h('div', { class: 'notice error' }, ds.lastError) : null,
   );
 }
