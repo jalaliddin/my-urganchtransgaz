@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -7,6 +9,7 @@ import 'core/network/api_client.dart';
 import 'core/network/api_providers.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/app_update/app_update_controller.dart';
 import 'features/auth/presentation/auth_controller.dart';
 import 'features/notifications/background/background_worker.dart';
 import 'features/notifications/background/notification_service.dart';
@@ -15,6 +18,12 @@ import 'l10n/app_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Content draws under transparent status and navigation bars; the theme's
+  // app bars set dark or light system icons to match the page.
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks(['Inter'], await rootBundle.loadString('assets/fonts/OFL.txt'));
+  });
 
   final apiClient = ApiClient();
   final preferences = await SharedPreferences.getInstance();
@@ -57,6 +66,8 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
   void initState() {
     super.initState();
     widget.apiClient.onUnauthorized = () => ref.read(authControllerProvider.notifier).forceLogout();
+    widget.apiClient.onUpdateRequired = (body) => ref.read(appUpdateControllerProvider.notifier).requireUpdate(body);
+    ref.read(appUpdateControllerProvider.notifier).check();
   }
 
   @override
@@ -78,6 +89,12 @@ class UrtgApp extends ConsumerWidget {
       onGenerateTitle: (context) => AppLocalizations.of(context).appName,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
+      // Screens without an app bar (the dashboard, login) still need
+      // readable system icons over the light or dark page.
+      builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+        value: Theme.of(context).appBarTheme.systemOverlayStyle!,
+        child: child!,
+      ),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,

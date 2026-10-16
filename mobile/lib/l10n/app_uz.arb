@@ -19,6 +19,18 @@
   "commonSubmit": "Yuborish",
   "commonRequired": "Bu maydon to'ldirilishi shart.",
   "commonSend": "Yuborish",
+  "dateToday": "Bugun",
+  "dateTomorrow": "Ertaga",
+  "dateYesterday": "Kecha",
+  "dateEarlier": "Avvalroq",
+  "dateInDays": "{count} kundan so'ng",
+  "@dateInDays": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "dateDaysOverdue": "{count} kun kechikdi",
+  "@dateDaysOverdue": {
+    "placeholders": {"count": {"type": "int"}}
+  },
 
   "authLogin": "Kirish",
   "authLoginField": "Login (email, foydalanuvchi nomi yoki tabel raqami)",
@@ -345,5 +357,14 @@
   "issuesTakePhoto": "Rasm olish",
   "issuesRemovePhoto": "Rasmni olib tashlash",
   "issuesOpenPhoto": "Rasmni kattalashtirish",
-  "issuesCameraError": "Kamerani ochib bo'lmadi"
+  "issuesCameraError": "Kamerani ochib bo'lmadi",
+
+  "appUpdateTitle": "Yangi versiya chiqdi",
+  "appUpdateBody": "Ishni davom ettirish uchun ilovani yangilang. Bu versiya endi ishlamaydi.",
+  "appUpdateButton": "Yangilash",
+  "appUpdateCurrentVersion": "Sizdagi versiya: {version}",
+  "@appUpdateCurrentVersion": {
+    "placeholders": {"version": {"type": "String"}}
+  },
+  "appUpdateOpenFailed": "Play Market'ni ochib bo'lmadi. Ilovani Play Market orqali qo'lda yangilang."
 }

@@ -103,6 +103,19 @@ void main() {
     expect(tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex, 2);
   });
 
+  testWidgets('beside the rail, the page leaves the rail\'s edge of the screen to the rail', (tester) async {
+    // A phone in landscape: camera cutout on the left, navigation bar on the right.
+    tester.view.padding = const FakeViewPadding(left: 32, right: 48);
+    tester.view.viewPadding = const FakeViewPadding(left: 32, right: 48);
+    await _pump(tester, size: const Size(844, 390));
+
+    final pagePadding = MediaQuery.paddingOf(tester.element(find.text('page-home')));
+
+    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(pagePadding.left, 0, reason: 'the rail already stays clear of the cutout');
+    expect(pagePadding.right, 48, reason: 'nothing else keeps the page off the navigation bar');
+  });
+
   testWidgets('the selection survives a resize between bar and rail', (tester) async {
     await _pump(tester, size: const Size(390, 844));
     await tester.tap(find.text('Topshiriqlar'));

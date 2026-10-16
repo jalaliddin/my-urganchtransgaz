@@ -6,13 +6,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../../core/formatting/dates.dart';
+import '../../../core/theme/status_colors.dart';
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/detail_rows.dart';
 import '../../../core/widgets/responsive_body.dart';
+import '../../../core/widgets/section.dart';
+import '../../../core/widgets/status_pill.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/uploads.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/task.dart';
 import 'task_category_chip.dart';
+import 'task_labels.dart';
 import 'tasks_controller.dart';
 
 class TaskDetailScreen extends ConsumerStatefulWidget {
@@ -54,128 +60,173 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
   Widget _buildBody(BuildContext context, Task task, AppLocalizations l10n) {
     final controller = ref.read(taskDetailProvider(widget.id).notifier);
     final progress = _pendingProgress ?? task.progress.toDouble();
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    final status = StatusColors.of(context);
+    final due = AppDates.parse(task.dueDate);
+    final priorityTone = taskPriorityTone(task.priority);
+    const gap = SizedBox(height: 16);
 
     return RefreshIndicator(
       onRefresh: () => controller.refresh(),
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
-          Text(task.title, style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 4),
+          Text(task.title, style: text.headlineSmall),
+          const SizedBox(height: 12),
           Wrap(
             spacing: 8,
-            runSpacing: 4,
+            runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Chip(label: Text(_statusLabel(l10n, task.status))),
-              Chip(label: Text(_priorityLabel(l10n, task.priority))),
-              if (task.dueDate != null) Chip(avatar: const Icon(Icons.event, size: 16), label: Text(task.dueDate!)),
+              StatusPill(label: taskStatusLabel(l10n, task.status), tone: taskStatusTone(task.status)),
+              StatusPill(
+                label: taskPriorityLabel(l10n, task.priority),
+                tone: priorityTone ?? StatusTone.neutral,
+                icon: Icons.flag_outlined,
+              ),
               if (task.category != null) TaskCategoryChip(category: task.category!),
             ],
           ),
-          if (task.description != null) ...[
-            const SizedBox(height: 16),
-            Text(task.description!),
-          ],
-          if (task.creatorName != null) ...[
-            const SizedBox(height: 12),
-            Text('${l10n.tasksCreator}: ${task.creatorName}', style: Theme.of(context).textTheme.bodySmall),
-          ],
-          if (task.assignees.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              '${l10n.tasksAssignees}: ${task.assignees.map((e) => e.fullName).join(', ')}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-          const Divider(height: 32),
-          Text(l10n.tasksProgress, style: Theme.of(context).textTheme.titleMedium),
-          Row(
+          gap,
+          GroupCard(
+            dividerIndent: 54,
             children: [
-              Expanded(
-                child: Slider(
-                  value: progress,
-                  min: 0,
-                  max: 100,
-                  divisions: 20,
-                  label: '${progress.round()}%',
-                  onChanged: task.isActionable ? (value) => setState(() => _pendingProgress = value) : null,
+              if (due != null)
+                InfoRow(
+                  icon: Icons.event_outlined,
+                  label: l10n.tasksDueDate,
+                  value: AppDates.long(context, due),
+                  trailing: task.isActionable
+                      ? StatusPill(
+                          label: AppDates.due(context, due),
+                          tone: AppDates.daysFromToday(due) < 0
+                              ? StatusTone.danger
+                              : AppDates.daysFromToday(due) <= 1
+                                  ? StatusTone.warning
+                                  : StatusTone.neutral,
+                        )
+                      : null,
                 ),
-              ),
-              SizedBox(width: 48, child: Text('${progress.round()}%', textAlign: TextAlign.end)),
+              if (task.creatorName != null)
+                InfoRow(icon: Icons.person_outline, label: l10n.tasksCreator, value: task.creatorName!),
+              if (task.assignees.isNotEmpty)
+                InfoRow(
+                  icon: Icons.groups_outlined,
+                  label: l10n.tasksAssignees,
+                  value: task.assignees.map((e) => e.fullName).join(', '),
+                ),
             ],
           ),
-          if (task.isActionable)
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: _pendingProgress == null
-                        ? null
-                        : () async {
+          if (task.description != null) ...[
+            gap,
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(task.description!, style: text.bodyLarge),
+              ),
+            ),
+          ],
+          SectionHeader(title: l10n.tasksProgress),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        '${progress.round()}%',
+                        style: text.headlineMedium!.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                      ),
+                      const Spacer(),
+                      if (_pendingProgress != null)
+                        FilledButton.tonal(
+                          style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
+                          onPressed: () async {
                             await controller.updateProgress(_pendingProgress!.round());
                             setState(() => _pendingProgress = null);
                           },
-                    child: Text(l10n.tasksUpdateProgress),
+                          child: Text(l10n.tasksUpdateProgress),
+                        ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () => _confirmComplete(context, controller, l10n),
-                    child: Text(l10n.tasksMarkComplete),
+                  Slider(
+                    value: progress,
+                    min: 0,
+                    max: 100,
+                    divisions: 20,
+                    label: '${progress.round()}%',
+                    onChanged: task.isActionable ? (value) => setState(() => _pendingProgress = value) : null,
                   ),
+                  if (task.isActionable) ...[
+                    const SizedBox(height: 4),
+                    FilledButton.icon(
+                      onPressed: () => _confirmComplete(context, controller, l10n),
+                      icon: const Icon(Icons.check_circle_outline),
+                      label: Text(l10n.tasksMarkComplete),
+                    ),
+                  ],
+                  if (task.result != null) ...[
+                    const SizedBox(height: 16),
+                    Text(l10n.tasksResult, style: text.labelLarge!.copyWith(color: scheme.onSurfaceVariant)),
+                    const SizedBox(height: 4),
+                    Text(task.result!, style: text.bodyLarge),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          SectionHeader(title: l10n.tasksAttachments),
+          Card(
+            child: Column(
+              children: [
+                for (final attachment in task.attachments) ...[
+                  ListTile(
+                    leading: IconBadge(
+                      icon: Icons.description_outlined,
+                      color: status.fg(StatusTone.info),
+                      background: status.bg(StatusTone.info),
+                    ),
+                    title: Text(attachment.originalName, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    trailing: Icon(Icons.download_outlined, color: scheme.onSurfaceVariant),
+                    onTap: () => _openAttachment(attachment.downloadUrl, attachment.originalName),
+                  ),
+                  const Divider(indent: 72),
+                ],
+                ListTile(
+                  leading: IconBadge(icon: Icons.attach_file, color: scheme.primary, background: scheme.primaryContainer),
+                  title: Text(l10n.documentsChooseFile, style: text.bodyLarge!.copyWith(color: scheme.primary, fontWeight: FontWeight.w600)),
+                  onTap: () => _uploadAttachment(context, task.id),
                 ),
               ],
             ),
-          if (task.result != null) ...[
-            const SizedBox(height: 12),
-            Text(l10n.tasksResult, style: Theme.of(context).textTheme.titleSmall),
-            Text(task.result!),
-          ],
-          const Divider(height: 32),
-          Text(l10n.tasksAttachments, style: Theme.of(context).textTheme.titleMedium),
-          ...task.attachments.map(
-            (attachment) => ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.attach_file),
-              title: Text(attachment.originalName),
-              onTap: () => _openAttachment(attachment.downloadUrl, attachment.originalName),
-            ),
           ),
-          OutlinedButton.icon(
-            icon: const Icon(Icons.upload_file),
-            label: Text(l10n.documentsChooseFile),
-            onPressed: () => _uploadAttachment(context, task.id),
-          ),
-          const Divider(height: 32),
-          Text(l10n.tasksComments, style: Theme.of(context).textTheme.titleMedium),
-          ...task.comments.map(
-            (comment) => ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.person_outline),
-              title: Text(comment.userName ?? ''),
-              subtitle: Text(comment.body),
-            ),
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
+          SectionHeader(title: l10n.tasksComments),
+          Card(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 6),
+                for (final comment in task.comments)
+                  CommentTile(
+                    author: comment.userName ?? '',
+                    body: comment.body,
+                    createdAt: AppDates.parse(comment.createdAt),
+                  ),
+                CommentComposer(
                   controller: _commentController,
-                  decoration: InputDecoration(hintText: l10n.tasksAddComment),
+                  hint: l10n.tasksAddComment,
+                  onSend: () async {
+                    final text = _commentController.text.trim();
+                    if (text.isEmpty) return;
+                    _commentController.clear();
+                    await controller.addComment(text);
+                  },
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.send),
-                onPressed: () async {
-                  final text = _commentController.text.trim();
-                  if (text.isEmpty) return;
-                  _commentController.clear();
-                  await controller.addComment(text);
-                },
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -239,26 +290,5 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.commonFileOpenError)));
     }
-  }
-
-  String _statusLabel(AppLocalizations l10n, String status) {
-    return switch (status) {
-      'new' => l10n.statusNew,
-      'in_progress' => l10n.statusInProgress,
-      'waiting' => l10n.statusWaiting,
-      'completed' => l10n.statusCompleted,
-      'cancelled' => l10n.statusCancelled,
-      'overdue' => l10n.statusOverdue,
-      _ => status,
-    };
-  }
-
-  String _priorityLabel(AppLocalizations l10n, String priority) {
-    return switch (priority) {
-      'low' => l10n.statusLow,
-      'high' => l10n.statusHigh,
-      'urgent' => l10n.statusUrgent,
-      _ => l10n.statusNormal,
-    };
   }
 }

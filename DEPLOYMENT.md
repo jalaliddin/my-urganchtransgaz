@@ -395,6 +395,18 @@ Eski, endi ishlatilmayotgan imijlarni vaqti-vaqti bilan tozalash:
 docker image prune -f
 ```
 
+### Mobil ilovaning yangi versiyasini majburiy qilish
+
+Eski mobil ilovalarni ishlatishni to'xtatish uchun "Sozlamalar" sahifasidagi **Mobil ilova** bo'limiga eng kichik ruxsat etilgan build raqamini yozing. Bu `mobile/pubspec.yaml` dagi `version` qatoridagi `+` belgisidan keyingi son, masalan `1.3.0+13` uchun `13`. Undan eski ilovalar keyingi so'rovdayoq "ilovani yangilang" ekranini ko'rsatadi va boshqa hech narsa qilmaydi. Build 12 va undan oldingilarda bu ekran yo'q, lekin ular ham bloklanadi va xato matni sifatida "yangilang" degan xabarni ko'rsatadi.
+
+Tartib:
+
+1. Yangi versiyani `pubspec.yaml` da oshiring va Play Console'ga yuklang.
+2. Google tekshiruvdan o'tkazib, versiya **hamma foydalanuvchiga ochilishini** kuting.
+3. Shundan keyingina Sozlamalar → Mobil ilova → "Eng kichik ruxsat etilgan versiya" ga yangi build raqamini yozib saqlang.
+
+> 3-qadamni versiya Play Market'da chiqmasidan oldin qilmang: foydalanuvchilar bloklanadi, lekin yangilanish topa olmaydi. Tekshiruvni o'chirish uchun qiymatni `0` ga qaytaring. Sozlamalar sahifasiga kira olmasangiz, xuddi shu qiymatni `.env` dagi `MOBILE_MIN_BUILD` orqali ham berish mumkin (u faqat sahifada hech qachon saqlanmagan bo'lsa ishlaydi).
+
 ---
 
 ## 12. Monitoring va loglar

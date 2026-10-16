@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/status_colors.dart';
 import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
@@ -68,10 +69,10 @@ class _PeriodSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(period, style: Theme.of(context).textTheme.titleMedium),
-            const Divider(),
+            const SizedBox(height: 4),
             ...items.map(
               (item) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Row(
                   children: [
                     Expanded(
@@ -82,11 +83,26 @@ class _PeriodSection extends StatelessWidget {
                           Text(
                             '${l10n.kpiTarget}: ${item.targetValue.toStringAsFixed(0)}'
                             '${item.actualValue != null ? ' · ${l10n.kpiActual}: ${item.actualValue!.toStringAsFixed(0)}' : ''}',
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
                           ),
+                          if (item.score != null) ...[
+                            const SizedBox(height: 8),
+                            LinearProgressIndicator(
+                              value: (item.score! / 100).clamp(0, 1),
+                              minHeight: 5,
+                              color: item.score! >= 90
+                                  ? StatusColors.of(context).fg(StatusTone.success)
+                                  : item.score! >= 70
+                                      ? Theme.of(context).colorScheme.primary
+                                      : StatusColors.of(context).fg(StatusTone.warning),
+                            ),
+                          ],
                         ],
                       ),
                     ),
+                    if (item.score != null) const SizedBox(width: 16),
                     if (item.score != null)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,

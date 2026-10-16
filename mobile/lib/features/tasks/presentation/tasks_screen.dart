@@ -4,30 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/formatting/dates.dart';
+import '../../../core/theme/status_colors.dart';
 import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/responsive_body.dart';
+import '../../../core/widgets/status_pill.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../domain/task.dart';
 import '../domain/task_filters.dart';
 import 'task_category_chip.dart';
+import 'task_labels.dart';
 import 'tasks_controller.dart';
 
 /// Tab order: everything, then what still needs the user (overdue first
 /// among those after the work in hand), then what's settled.
 const _statusTabs = <String?>[null, 'new', 'in_progress', 'overdue', 'waiting', 'completed', 'cancelled'];
-
-String taskStatusLabel(AppLocalizations l10n, String status) {
-  return switch (status) {
-    'new' => l10n.statusNew,
-    'in_progress' => l10n.statusInProgress,
-    'waiting' => l10n.statusWaiting,
-    'completed' => l10n.statusCompleted,
-    'cancelled' => l10n.statusCancelled,
-    'overdue' => l10n.statusOverdue,
-    _ => status,
-  };
-}
 
 class TasksScreen extends ConsumerWidget {
   const TasksScreen({super.key});
@@ -73,9 +65,9 @@ class TasksScreen extends ConsumerWidget {
                     }
 
                     return ListView.separated(
-                      padding: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                       itemCount: state.items.length + (state.hasMore ? 1 : 0),
-                      separatorBuilder: (context, index) => const Divider(height: 1),
+                      separatorBuilder: (context, index) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         if (index == state.items.length) {
                           return _LoadMoreFooter(failed: state.loadMoreFailed);
@@ -136,6 +128,19 @@ class _SearchFieldState extends ConsumerState<_SearchField> {
           hintText: l10n.tasksSearch,
           prefixIcon: const Icon(Icons.search),
           isDense: true,
+          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(28),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(28),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(28),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1.6),
+          ),
           suffixIcon: _controller.text.isEmpty
               ? null
               : IconButton(
@@ -162,10 +167,10 @@ class _StatusTabs extends ConsumerWidget {
     final summary = ref.watch(taskSummaryProvider).value;
 
     return SizedBox(
-      height: 48,
+      height: 52,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         itemCount: _statusTabs.length,
         separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
@@ -174,7 +179,16 @@ class _StatusTabs extends ConsumerWidget {
           final count = summary?.countFor(status);
 
           return ChoiceChip(
-            label: Text(count == null ? label : '$label  $count'),
+            label: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(label),
+                if (count != null) ...[
+                  const SizedBox(width: 6),
+                  _CountBadge(count: count, selected: selected == status),
+                ],
+              ],
+            ),
             selected: selected == status,
             showCheckmark: false,
             onSelected: (_) => ref.read(taskFiltersProvider.notifier).setStatus(status),
@@ -303,6 +317,30 @@ class _LoadMoreFooterState extends ConsumerState<_LoadMoreFooter> {
   }
 }
 
+class _CountBadge extends StatelessWidget {
+  const _CountBadge({required this.count, required this.selected});
+
+  final int count;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+      decoration: BoxDecoration(
+        color: selected ? scheme.primary : scheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: Text(
+        '$count',
+        style: Theme.of(context).textTheme.labelSmall!.copyWith(color: selected ? scheme.onPrimary : scheme.onSurfaceVariant),
+      ),
+    );
+  }
+}
+
 class _TaskTile extends StatelessWidget {
   const _TaskTile({required this.task});
 
@@ -311,43 +349,94 @@ class _TaskTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final textTheme = Theme.of(context).textTheme;
-    final isOverdue = task.status == 'overdue';
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    final status = StatusColors.of(context);
+    final due = AppDates.parse(task.dueDate);
+    final settled = task.status == 'completed' || task.status == 'cancelled';
+    final dueTone = settled
+        ? StatusTone.neutral
+        : due == null
+            ? null
+            : AppDates.daysFromToday(due) < 0
+                ? StatusTone.danger
+                : AppDates.daysFromToday(due) <= 1
+                    ? StatusTone.warning
+                    : StatusTone.neutral;
+    final priorityTone = settled ? null : taskPriorityTone(task.priority);
 
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: _priorityColor(task.priority),
-        child: Text('${task.progress}%', style: const TextStyle(color: Colors.white, fontSize: 11)),
-      ),
-      title: Text(task.title),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 4,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text(taskStatusLabel(l10n, task.status)),
-            if (task.category != null) TaskCategoryChip(category: task.category!),
-          ],
+    return Card(
+      child: InkWell(
+        onTap: () => context.push('/tasks/${task.id}'),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      task.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: text.titleSmall!.copyWith(
+                        color: settled ? scheme.onSurfaceVariant : null,
+                        decoration: task.status == 'cancelled' ? TextDecoration.lineThrough : null,
+                      ),
+                    ),
+                  ),
+                  if (priorityTone != null) ...[
+                    const SizedBox(width: 8),
+                    Tooltip(
+                      message: taskPriorityLabel(l10n, task.priority),
+                      child: Icon(Icons.flag, size: 18, color: status.fg(priorityTone)),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  StatusPill(label: taskStatusLabel(l10n, task.status), tone: taskStatusTone(task.status)),
+                  if (task.category != null) TaskCategoryChip(category: task.category!),
+                ],
+              ),
+              if (!settled || due != null) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    if (due != null && dueTone != null) ...[
+                      Icon(Icons.schedule, size: 16, color: status.fg(dueTone)),
+                      const SizedBox(width: 4),
+                      Text(
+                        settled ? AppDates.short(context, due) : AppDates.due(context, due),
+                        style: text.labelMedium!.copyWith(color: status.fg(dueTone)),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    if (!settled) ...[
+                      Expanded(
+                        child: LinearProgressIndicator(
+                          value: task.progress / 100,
+                          minHeight: 5,
+                          color: task.status == 'overdue' ? status.fg(StatusTone.danger) : scheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text('${task.progress}%', style: text.labelMedium!.copyWith(color: scheme.onSurfaceVariant)),
+                    ],
+                  ],
+                ),
+              ],
+            ],
+          ),
         ),
       ),
-      trailing: task.dueDate != null
-          ? Text(
-              task.dueDate!,
-              style: textTheme.bodySmall?.copyWith(color: isOverdue ? Theme.of(context).colorScheme.error : null),
-            )
-          : null,
-      onTap: () => context.push('/tasks/${task.id}'),
     );
-  }
-
-  Color _priorityColor(String priority) {
-    return switch (priority) {
-      'urgent' => Colors.red,
-      'high' => Colors.orange,
-      'low' => Colors.blueGrey,
-      _ => Colors.blue,
-    };
   }
 }

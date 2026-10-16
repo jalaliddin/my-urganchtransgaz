@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../storage/secure_storage.dart';
 import 'api_config.dart';
@@ -29,11 +31,22 @@ class ApiClient {
             options.headers['Authorization'] = 'Bearer $token';
           }
 
+          // Lets the server turn away outdated builds (HTTP 426) once a
+          // newer version is required — see EnsureSupportedMobileApp.
+          options.headers['X-App-Build'] = '${await appBuildNumber()}';
+          options.headers['X-App-Platform'] = defaultTargetPlatform.name;
+
           handler.next(options);
         },
         onError: (error, handler) {
-          if (error.response?.statusCode == 401) {
+          final response = error.response;
+
+          if (response?.statusCode == 401) {
             onUnauthorized?.call();
+          }
+
+          if (response?.statusCode == 426 && response?.data is Map<String, dynamic>) {
+            onUpdateRequired?.call(response!.data as Map<String, dynamic>);
           }
 
           handler.next(error);
@@ -48,6 +61,22 @@ class ApiClient {
   /// clear the session and bounce to the login screen regardless of which
   /// screen triggered the request.
   void Function()? onUnauthorized;
+
+  /// Set at startup; fired when the server answers 426 because this build is
+  /// older than the minimum it accepts. Receives the response body
+  /// (`min_build`, `store_url`).
+  void Function(Map<String, dynamic> body)? onUpdateRequired;
+
+  static Future<int>? _appBuildNumber;
+
+  /// This install's build number (the part after "+" in pubspec's version).
+  /// Read once per isolate — the background notification worker builds its
+  /// own client and must send it too. 0 if it can't be read.
+  static Future<int> appBuildNumber() {
+    return _appBuildNumber ??= PackageInfo.fromPlatform()
+        .then((info) => int.tryParse(info.buildNumber) ?? 0)
+        .catchError((Object _) => 0);
+  }
 
   Future<void> setBaseUrl(String baseUrl) async {
     dio.options.baseUrl = baseUrl;

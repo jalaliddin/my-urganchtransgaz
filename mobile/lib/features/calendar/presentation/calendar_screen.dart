@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/formatting/dates.dart';
 import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
@@ -185,7 +186,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     ),
                   const SizedBox(height: 16),
                   Text(
-                    DateFormat('yyyy-MM-dd').format(_selectedDate),
+                    AppDates.dayHeading(context, _selectedDate),
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(height: 8),

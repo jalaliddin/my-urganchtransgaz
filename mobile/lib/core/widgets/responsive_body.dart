@@ -11,6 +11,12 @@ import 'package:flutter/material.dart';
 /// Wrap a screen's `body:` with this — not the whole `Scaffold` — so the
 /// `AppBar`/bottom nav chrome still spans the full window width and only
 /// the scrollable content column is constrained.
+///
+/// It also keeps the content clear of the system navigation bar and any
+/// display cutout: from Android 15 the app is drawn edge-to-edge, under
+/// them. The `AppBar` already looks after the status bar, and on a screen
+/// with the bottom navigation bar that bar has taken the bottom inset, so
+/// there this only matters at the sides.
 class ResponsiveBody extends StatelessWidget {
   const ResponsiveBody({super.key, required this.child, this.maxWidth = 640});
 
@@ -19,19 +25,22 @@ class ResponsiveBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth <= maxWidth) {
-          return child;
-        }
+    return SafeArea(
+      top: false,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth <= maxWidth) {
+            return child;
+          }
 
-        return Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: maxWidth),
-            child: child,
-          ),
-        );
-      },
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: child,
+            ),
+          );
+        },
+      ),
     );
   }
 }

@@ -19,6 +19,18 @@
   "commonSubmit": "Отправить",
   "commonRequired": "Это поле обязательно.",
   "commonSend": "Отправить",
+  "dateToday": "Сегодня",
+  "dateTomorrow": "Завтра",
+  "dateYesterday": "Вчера",
+  "dateEarlier": "Ранее",
+  "dateInDays": "через {count} дн.",
+  "@dateInDays": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "dateDaysOverdue": "просрочено на {count} дн.",
+  "@dateDaysOverdue": {
+    "placeholders": {"count": {"type": "int"}}
+  },
 
   "authLogin": "Вход",
   "authLoginField": "Логин (email, имя пользователя или табельный номер)",
@@ -345,5 +357,11 @@
   "issuesTakePhoto": "Сделать фото",
   "issuesRemovePhoto": "Убрать фото",
   "issuesOpenPhoto": "Открыть фото",
-  "issuesCameraError": "Не удалось открыть камеру"
+  "issuesCameraError": "Не удалось открыть камеру",
+
+  "appUpdateTitle": "Вышла новая версия",
+  "appUpdateBody": "Чтобы продолжить работу, обновите приложение. Эта версия больше не работает.",
+  "appUpdateButton": "Обновить",
+  "appUpdateCurrentVersion": "Ваша версия: {version}",
+  "appUpdateOpenFailed": "Не удалось открыть Play Market. Обновите приложение в Play Market вручную."
 }

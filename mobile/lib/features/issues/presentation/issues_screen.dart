@@ -3,8 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../core/formatting/dates.dart';
+import '../../../core/theme/status_colors.dart';
 import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/responsive_body.dart';
+import '../../../core/widgets/section.dart';
+import '../../../core/widgets/status_pill.dart';
 import '../../../features/auth/presentation/auth_controller.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/issue.dart';
@@ -38,23 +42,28 @@ class IssuesScreen extends ConsumerWidget {
             ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
+          preferredSize: const Size.fromHeight(56),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SegmentedButton<bool>(
-              segments: [
-                ButtonSegment(value: false, label: Text(l10n.issuesFilterOpen)),
-                ButtonSegment(value: true, label: Text(l10n.issuesFilterAll)),
-              ],
-              selected: {controller.showAll},
-              onSelectionChanged: (selection) => controller.setShowAll(selection.first),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+            child: SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<bool>(
+                showSelectedIcon: false,
+                segments: [
+                  ButtonSegment(value: false, label: Text(l10n.issuesFilterOpen)),
+                  ButtonSegment(value: true, label: Text(l10n.issuesFilterAll)),
+                ],
+                selected: {controller.showAll},
+                onSelectionChanged: (selection) => controller.setShowAll(selection.first),
+              ),
             ),
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/issues/new'),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add_location_alt_outlined),
+        label: Text(l10n.issuesReportIssue),
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -113,7 +122,7 @@ class IssuesScreen extends ConsumerWidget {
                               height: paneHeight,
                               child: ListView.separated(
                                 itemCount: items.length,
-                                separatorBuilder: (context, index) => const SizedBox(height: 8),
+                                separatorBuilder: (context, index) => const SizedBox(height: 10),
                                 itemBuilder: (context, index) => _IssueTile(issue: items[index]),
                               ),
                             ),
@@ -124,7 +133,8 @@ class IssuesScreen extends ConsumerWidget {
                   }
 
                   return ListView(
-                    padding: const EdgeInsets.all(16),
+                    // Bottom room so the last card clears the extended FAB.
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
                     children: [
                       IssueMap(
                         markers: markers,
@@ -132,7 +142,7 @@ class IssuesScreen extends ConsumerWidget {
                         height: 220,
                       ),
                       const SizedBox(height: 16),
-                      ...items.map((issue) => _IssueTile(issue: issue)),
+                      for (final issue in items) ...[_IssueTile(issue: issue), const SizedBox(height: 10)],
                     ],
                   );
                 },
@@ -153,22 +163,63 @@ class _IssueTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    final status = StatusColors.of(context);
+    final tone = issue.isOpen ? StatusTone.danger : StatusTone.success;
+    final reported = AppDates.parse(issue.createdAt);
+    final place = [issue.category?.name, issue.organization?.name].whereType<String>().join(', ');
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Icon(Icons.location_on, color: issue.isOpen ? Colors.red.shade700 : Colors.green.shade700),
-        title: Text(issue.title),
-        subtitle: Text([
-          issue.category?.name,
-          issue.organization?.name,
-          if (issue.isOpen && issue.executors.isEmpty) l10n.issuesNoExecutors,
-        ].whereType<String>().join(' · ')),
-        trailing: Chip(
-          label: Text(issue.isOpen ? l10n.statusOpen : l10n.statusResolved),
-          backgroundColor: issue.isOpen ? Colors.red.shade50 : Colors.green.shade50,
-        ),
+      child: InkWell(
         onTap: () => context.push('/issues/${issue.id}'),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IconBadge(
+                icon: issue.isOpen ? Icons.location_on_outlined : Icons.task_alt,
+                color: status.fg(tone),
+                background: status.bg(tone),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(issue.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: text.titleSmall),
+                    if (place.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        place,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.bodySmall!.copyWith(color: scheme.onSurfaceVariant),
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        StatusPill(label: issue.isOpen ? l10n.statusOpen : l10n.statusResolved, tone: tone),
+                        if (issue.isOpen && issue.executors.isEmpty)
+                          StatusPill(label: l10n.issuesNoExecutors, tone: StatusTone.warning, icon: Icons.person_off_outlined),
+                        if (reported != null)
+                          Text(
+                            AppDates.moment(context, reported),
+                            style: text.labelMedium!.copyWith(color: scheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

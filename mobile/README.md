@@ -363,6 +363,20 @@ public, no login required) — once deployed, submit
 `https://my.urtg.uz/privacy-policy` as the listing's privacy policy
 URL.
 
+**Forcing an update.** Every request sends `X-App-Build` (the number
+after `+` in `version`) and `X-App-Platform`. Once an admin sets a
+minimum build on the web app's Settings page (Mobile app section, key
+`mobile.min_build`), the server answers older builds with 426, and the
+app replaces every screen, login included, with an update screen whose
+button opens the Play Store (`lib/features/app_update/`). The app also
+asks `GET /app/version` at launch, so the block shows before anyone
+logs in. A 426 keeps the stored session, so the updated app opens
+already logged in. Builds 12 and earlier predate this: the server
+recognises them by Dart's default User-Agent and blocks them too, and
+they show its "update the app" message as an error. Set the minimum
+only after the new build is live on Play, or people are blocked with no
+update to install.
+
 **Build the release bundle** (what you upload to Play Console):
 
 ```bash

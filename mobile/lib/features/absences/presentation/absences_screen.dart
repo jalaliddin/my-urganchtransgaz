@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/formatting/dates.dart';
+import '../../../core/theme/status_colors.dart';
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/status_pill.dart';
 import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/employee_absence.dart';
@@ -99,38 +102,68 @@ class _AbsenceTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final cancelled = absence.state == 'cancelled';
-    final details = [
-      '${_formatDate(absence.startDate)} — ${_formatDate(absence.endDate)}, ${l10n.absencesDays(absence.days)}',
+    final color = cancelled ? scheme.outline : categoryColor(context, absence.category);
+    final extras = [
       ?absence.destination,
       ?absence.documentNumber,
       if (absence.cancellationReason != null) l10n.absencesCancelledReason(absence.cancellationReason!),
     ];
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          radius: 16,
-          backgroundColor: cancelled ? theme.disabledColor : categoryColor(context, absence.category),
-          child: Text(
-            categoryCode(absence.category),
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
-          ),
-        ),
-        title: Text(
-          absenceTypeLabel(l10n, absence.type),
-          style: cancelled ? const TextStyle(decoration: TextDecoration.lineThrough) : null,
-        ),
-        subtitle: Text(details.join('\n')),
-        isThreeLine: details.length > 1,
-        trailing: Chip(
-          label: Text(_stateLabel(l10n, absence.state), style: theme.textTheme.labelSmall),
-          visualDensity: VisualDensity.compact,
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(12)),
+              child: Text(
+                categoryCode(absence.category),
+                style: theme.textTheme.titleMedium!.copyWith(color: color, fontWeight: FontWeight.w700),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    absenceTypeLabel(l10n, absence.type),
+                    style: theme.textTheme.titleSmall!.copyWith(
+                      decoration: cancelled ? TextDecoration.lineThrough : null,
+                      color: cancelled ? scheme.onSurfaceVariant : null,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${AppDates.short(context, absence.startDate)} — ${AppDates.short(context, absence.endDate)}, ${l10n.absencesDays(absence.days)}',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  for (final line in extras)
+                    Text(line, style: theme.textTheme.bodySmall!.copyWith(color: scheme.onSurfaceVariant)),
+                  const SizedBox(height: 10),
+                  StatusPill(label: _stateLabel(l10n, absence.state), tone: _stateTone(absence.state)),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
+
+  StatusTone _stateTone(String state) => switch (state) {
+        'current' => StatusTone.info,
+        'upcoming' => StatusTone.warning,
+        'cancelled' => StatusTone.danger,
+        _ => StatusTone.neutral,
+      };
 
   String _stateLabel(AppLocalizations l10n, String state) => switch (state) {
         'upcoming' => l10n.absenceStateUpcoming,
@@ -140,8 +173,6 @@ class _AbsenceTile extends StatelessWidget {
       };
 }
 
-String _formatDate(DateTime date) =>
-    '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
 
 /// The tabel letter a category is printed as — T/X/B/S, same as the web.
 String categoryCode(AbsenceCategory category) => switch (category) {

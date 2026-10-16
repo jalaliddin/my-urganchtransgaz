@@ -4,8 +4,13 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/models/employee.dart';
 import '../../../core/network/api_providers.dart';
+import '../../../core/formatting/dates.dart';
+import '../../../core/theme/status_colors.dart';
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/detail_rows.dart';
 import '../../../core/widgets/responsive_body.dart';
+import '../../../core/widgets/section.dart';
+import '../../../core/widgets/status_pill.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/change_request.dart';
@@ -152,67 +157,84 @@ class _ProfileInfoTabState extends ConsumerState<_ProfileInfoTab> {
         data: (context, employee) {
           _syncControllers(employee);
 
+          final scheme = Theme.of(context).colorScheme;
+          final text = Theme.of(context).textTheme;
+          final status = StatusColors.of(context);
+          final hireDate = AppDates.parse(employee.hireDate);
+          final hasPhoto = employee.photoUrl != null && authHeaders != null;
+
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
             children: [
               Center(
                 child: Stack(
+                  clipBehavior: Clip.none,
                   children: [
                     CircleAvatar(
                       radius: 48,
-                      backgroundImage: (employee.photoUrl != null && authHeaders != null)
-                          ? NetworkImage(employee.photoUrl!, headers: authHeaders)
-                          : null,
-                      child: (employee.photoUrl == null || authHeaders == null) ? const Icon(Icons.person, size: 48) : null,
+                      backgroundColor: scheme.primaryContainer,
+                      backgroundImage: hasPhoto ? NetworkImage(employee.photoUrl!, headers: authHeaders) : null,
+                      child: hasPhoto ? null : Icon(Icons.person, size: 48, color: scheme.onPrimaryContainer),
                     ),
                     Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: CircleAvatar(
-                        radius: 18,
-                        child: IconButton(icon: const Icon(Icons.camera_alt, size: 18), onPressed: _pickPhoto),
+                      right: -4,
+                      bottom: -4,
+                      child: IconButton.filled(
+                        tooltip: l10n.profileUploadPhoto,
+                        onPressed: _pickPhoto,
+                        icon: const Icon(Icons.photo_camera_outlined, size: 20),
+                        style: IconButton.styleFrom(
+                          minimumSize: const Size(40, 40),
+                          side: BorderSide(color: scheme.surface, width: 3),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              Center(child: Text(employee.fullName, style: Theme.of(context).textTheme.titleLarge)),
-              Center(child: Text(employee.position?.title ?? employee.employeeNumber, style: Theme.of(context).textTheme.bodyMedium)),
-              const SizedBox(height: 24),
-              Card(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.info_outline, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(l10n.profileSensitiveNotice, style: Theme.of(context).textTheme.bodySmall)),
-                    ],
-                  ),
+              const SizedBox(height: 14),
+              Text(employee.fullName, textAlign: TextAlign.center, style: text.titleLarge),
+              const SizedBox(height: 2),
+              Text(
+                employee.position?.title ?? employee.employeeNumber,
+                textAlign: TextAlign.center,
+                style: text.bodyMedium!.copyWith(color: scheme.onSurfaceVariant),
+              ),
+              SectionHeader(title: l10n.profileContactInfo),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: status.bg(StatusTone.info), borderRadius: BorderRadius.circular(14)),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 20, color: status.fg(StatusTone.info)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(l10n.profileSensitiveNotice, style: text.bodySmall!.copyWith(color: status.fg(StatusTone.info))),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Form(
                 key: _formKey,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     TextFormField(
                       controller: _phoneController,
-                      decoration: InputDecoration(labelText: l10n.profilePhone),
+                      decoration: InputDecoration(labelText: l10n.profilePhone, prefixIcon: const Icon(Icons.phone_outlined)),
                       keyboardType: TextInputType.phone,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _emailController,
-                      decoration: InputDecoration(labelText: l10n.profileEmail),
+                      decoration: InputDecoration(labelText: l10n.profileEmail, prefixIcon: const Icon(Icons.mail_outline)),
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _addressController,
-                      decoration: InputDecoration(labelText: l10n.profileAddress),
+                      decoration: InputDecoration(labelText: l10n.profileAddress, prefixIcon: const Icon(Icons.home_outlined)),
                       maxLines: 2,
                     ),
                     const SizedBox(height: 16),
@@ -225,41 +247,23 @@ class _ProfileInfoTabState extends ConsumerState<_ProfileInfoTab> {
                   ],
                 ),
               ),
-              const Divider(height: 40),
-              _InfoRow(label: l10n.profileEmployeeNumber, value: employee.employeeNumber),
-              _InfoRow(label: l10n.profileOrganization, value: employee.organization?.name ?? '—'),
-              _InfoRow(label: l10n.profileDepartment, value: employee.department?.name ?? '—'),
-              _InfoRow(label: l10n.profileHireDate, value: employee.hireDate ?? '—'),
+              SectionHeader(title: l10n.profilePersonalInfo),
+              GroupCard(
+                dividerIndent: 54,
+                children: [
+                  InfoRow(icon: Icons.badge_outlined, label: l10n.profileEmployeeNumber, value: employee.employeeNumber),
+                  InfoRow(icon: Icons.apartment_outlined, label: l10n.profileOrganization, value: employee.organization?.name ?? '—'),
+                  InfoRow(icon: Icons.account_tree_outlined, label: l10n.profileDepartment, value: employee.department?.name ?? '—'),
+                  InfoRow(
+                    icon: Icons.event_available_outlined,
+                    label: l10n.profileHireDate,
+                    value: hireDate == null ? '—' : AppDates.long(context, hireDate),
+                  ),
+                ],
+              ),
             ],
           );
         },
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    // Stacked, not a side-by-side row: some values here (organization
-    // names in particular) run long enough that a `Row` with
-    // spaceBetween leaves no room for a gap once the value wraps, and
-    // the two run together illegibly — see the real seeded org name
-    // "Urganch shahar gaz ta'minoti boshqarmasi" caught during
-    // browser verification.
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
-          Text(value, style: Theme.of(context).textTheme.bodyLarge),
-        ],
       ),
     );
   }
@@ -284,13 +288,14 @@ class _ProfileRequestsTab extends ConsumerWidget {
           }
 
           return ListView.separated(
+            padding: const EdgeInsets.all(16),
             itemCount: items.length,
-            separatorBuilder: (context, index) => const Divider(height: 1),
+            separatorBuilder: (context, index) => const SizedBox(height: 10),
             itemBuilder: (context, index) => _ChangeRequestTile(request: items[index]),
           );
         },
         error: (error, stackTrace) => Center(child: Text(l10n.commonErrorGeneric)),
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const SkeletonList(),
       ),
     );
   }
@@ -305,10 +310,19 @@ class _ChangeRequestTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    return ListTile(
-      title: Text(request.changes.keys.join(', ')),
-      subtitle: request.reviewComment != null ? Text(request.reviewComment!) : null,
-      trailing: Chip(label: Text(_statusLabel(l10n, request.status))),
+    return Card(
+      child: ListTile(
+        title: Text(request.changes.keys.join(', ')),
+        subtitle: request.reviewComment != null ? Text(request.reviewComment!) : null,
+        trailing: StatusPill(
+          label: _statusLabel(l10n, request.status),
+          tone: switch (request.status) {
+            'approved' => StatusTone.success,
+            'rejected' => StatusTone.danger,
+            _ => StatusTone.warning,
+          },
+        ),
+      ),
     );
   }
 

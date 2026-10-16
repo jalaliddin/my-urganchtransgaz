@@ -96,17 +96,22 @@ class AppShell extends ConsumerWidget {
     if (windowSize == WindowSize.compact) {
       return Scaffold(
         body: child,
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: currentIndex,
-          onDestinationSelected: select,
-          destinations: [
-            for (final destination in destinations)
-              NavigationDestination(
-                icon: Icon(destination.icon),
-                selectedIcon: Icon(destination.selectedIcon),
-                label: destination.label,
-              ),
-          ],
+        bottomNavigationBar: DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
+          ),
+          child: NavigationBar(
+            selectedIndex: currentIndex,
+            onDestinationSelected: select,
+            destinations: [
+              for (final destination in destinations)
+                NavigationDestination(
+                  icon: Icon(destination.icon),
+                  selectedIcon: Icon(destination.selectedIcon),
+                  label: destination.label,
+                ),
+            ],
+          ),
         ),
       );
     }
@@ -130,8 +135,18 @@ class AppShell extends ConsumerWidget {
                 ),
             ],
           ),
-          const VerticalDivider(width: 1),
-          Expanded(child: child),
+          VerticalDivider(width: 1, color: Theme.of(context).colorScheme.outlineVariant),
+          Expanded(
+            // The rail already keeps clear of the cutout or navigation bar
+            // on its side of the screen; the page beside it must not pad
+            // for that edge a second time.
+            child: MediaQuery.removePadding(
+              context: context,
+              removeLeft: Directionality.of(context) == TextDirection.ltr,
+              removeRight: Directionality.of(context) == TextDirection.rtl,
+              child: child,
+            ),
+          ),
         ],
       ),
     );

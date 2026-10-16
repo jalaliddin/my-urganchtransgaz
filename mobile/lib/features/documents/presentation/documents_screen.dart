@@ -6,8 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../../core/formatting/dates.dart';
+import '../../../core/theme/status_colors.dart';
 import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/responsive_body.dart';
+import '../../../core/widgets/section.dart';
+import '../../../core/widgets/status_pill.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/uploads.dart';
 import '../../../l10n/app_localizations.dart';
@@ -24,9 +28,10 @@ class DocumentsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.documentsTitle)),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showUploadSheet(context, ref),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.upload_file),
+        label: Text(l10n.documentsUpload),
       ),
       body: ResponsiveBody(
         child: RefreshIndicator(
@@ -44,8 +49,10 @@ class DocumentsScreen extends ConsumerWidget {
             }
 
             return ListView.separated(
+              // Bottom room so the last card clears the extended FAB.
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
               itemCount: items.length,
-              separatorBuilder: (context, index) => const Divider(height: 1),
+              separatorBuilder: (context, index) => const SizedBox(height: 10),
               itemBuilder: (context, index) => _DocumentTile(document: items[index]),
             );
           },
@@ -72,16 +79,69 @@ class _DocumentTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    final status = StatusColors.of(context);
+    final tone = _statusTone(document.status);
+    final expiry = AppDates.parse(document.expiryDate);
+    final expiryBadge = _expiryBadge(l10n, expiry);
 
-    final expiryBadge = _expiryBadge(context, l10n, document.expiryDate);
-
-    return ListTile(
-      leading: Icon(_statusIcon(document.status), color: _statusColor(context, document.status)),
-      title: Text(document.title),
-      subtitle: Text(document.documentTypeName ?? ''),
-      trailing: expiryBadge ??
-          Text(document.expiryDate ?? l10n.documentsNoExpiry, style: Theme.of(context).textTheme.bodySmall),
-      onTap: () => _download(context, ref, document),
+    return Card(
+      child: InkWell(
+        onTap: () => _download(context, ref, document),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IconBadge(icon: Icons.description_outlined, color: status.fg(tone), background: status.bg(tone)),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(document.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: text.titleSmall),
+                    if (document.documentTypeName != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        document.documentTypeName!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.bodySmall!.copyWith(color: scheme.onSurfaceVariant),
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        StatusPill(label: _statusLabel(l10n, document.status), tone: tone),
+                        if (expiryBadge != null)
+                          expiryBadge
+                        else
+                          Text(
+                            expiry == null ? l10n.documentsNoExpiry : AppDates.short(context, expiry),
+                            style: text.labelMedium!.copyWith(color: scheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+                          ),
+                      ],
+                    ),
+                    if (document.status == 'rejected' && document.rejectionReason != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        document.rejectionReason!,
+                        style: text.bodySmall!.copyWith(color: status.fg(StatusTone.danger)),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.download_outlined, color: scheme.onSurfaceVariant),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -89,59 +149,38 @@ class _DocumentTile extends ConsumerWidget {
   /// job already notifies the owner about (30/7/1 days, expired), and the
   /// same day-count badge the web app shows on its documents list — so a
   /// document that's about to expire is just as visible here.
-  Widget? _expiryBadge(BuildContext context, AppLocalizations l10n, String? expiryDate) {
-    if (expiryDate == null) return null;
-
-    final expiry = DateTime.tryParse(expiryDate);
+  Widget? _expiryBadge(AppLocalizations l10n, DateTime? expiry) {
     if (expiry == null) return null;
 
-    final today = DateTime.now();
-    final daysLeft = DateTime(expiry.year, expiry.month, expiry.day)
-        .difference(DateTime(today.year, today.month, today.day))
-        .inDays;
-
+    final daysLeft = AppDates.daysFromToday(expiry);
     if (daysLeft > 30) return null;
 
-    final String label;
-    final Color color;
+    final label = daysLeft < 0
+        ? l10n.documentsExpired
+        : daysLeft == 0
+            ? l10n.documentsExpiresToday
+            : l10n.documentsExpiresInDays(daysLeft);
 
-    if (daysLeft < 0) {
-      label = l10n.documentsExpired;
-      color = Colors.red;
-    } else if (daysLeft == 0) {
-      label = l10n.documentsExpiresToday;
-      color = Colors.red;
-    } else if (daysLeft <= 7) {
-      label = l10n.documentsExpiresInDays(daysLeft);
-      color = Colors.red;
-    } else {
-      label = l10n.documentsExpiresInDays(daysLeft);
-      color = Colors.orange;
-    }
-
-    return Chip(
-      label: Text(label, style: const TextStyle(fontSize: 11)),
-      backgroundColor: color.withValues(alpha: 0.12),
-      labelStyle: TextStyle(color: color),
-      visualDensity: VisualDensity.compact,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+    return StatusPill(
+      label: label,
+      tone: daysLeft <= 7 ? StatusTone.danger : StatusTone.warning,
+      icon: Icons.schedule,
     );
   }
 
-  IconData _statusIcon(String status) {
+  StatusTone _statusTone(String status) {
     return switch (status) {
-      'approved' => Icons.check_circle,
-      'rejected' => Icons.cancel,
-      _ => Icons.hourglass_empty,
+      'approved' => StatusTone.success,
+      'rejected' => StatusTone.danger,
+      _ => StatusTone.warning,
     };
   }
 
-  Color _statusColor(BuildContext context, String status) {
+  String _statusLabel(AppLocalizations l10n, String status) {
     return switch (status) {
-      'approved' => Colors.green,
-      'rejected' => Colors.red,
-      _ => Colors.orange,
+      'approved' => l10n.statusApproved,
+      'rejected' => l10n.statusRejected,
+      _ => l10n.statusPending,
     };
   }
 
@@ -235,7 +274,8 @@ class _UploadDocumentSheetState extends ConsumerState<_UploadDocumentSheet> {
         left: 16,
         right: 16,
         top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        // Above the keyboard when it's open, else above the navigation bar.
+        bottom: MediaQuery.viewInsetsOf(context).bottom + MediaQuery.paddingOf(context).bottom + 16,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

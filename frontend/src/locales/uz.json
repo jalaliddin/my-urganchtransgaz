@@ -577,7 +577,12 @@
     "timezone": "Vaqt mintaqasi",
     "absences": "Ta'tillar",
     "annualLeaveDays": "Yillik ta'til (kalendar kun)",
-    "annualLeaveDaysHint": "Mehnat kodeksi bo'yicha kamida 21 kalendar kun"
+    "annualLeaveDaysHint": "Mehnat kodeksi bo'yicha kamida 21 kalendar kun",
+    "mobileApp": "Mobil ilova",
+    "mobileMinBuild": "Eng kichik ruxsat etilgan versiya (build raqami)",
+    "mobileMinBuildHint": "Shu raqamdan eski ilovalar ishlamaydi va yangilashni so'raydi. 0 — tekshiruv o'chirilgan.",
+    "mobileMinBuildWarning": "Raqamni yangi versiya Play Market'da hamma uchun chiqqandan keyingina o'zgartiring. Aks holda foydalanuvchilar yangilanish topa olmay, ilovani ishlata olmay qoladi.",
+    "mobileStoreUrl": "Ilovani yangilash havolasi (Play Market)"
   },
   "reports": {
     "employeeDistribution": "Xodimlar taqsimoti",

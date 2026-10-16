@@ -34,6 +34,8 @@ class SettingsController extends Controller
         'documents.max_upload_kb' => ['documents', 10240],
         'exams.reminder_thresholds' => ['exams', [3, 1]],
         'absences.annual_leave_days' => ['absences', CalculateLeaveBalance::DEFAULT_ANNUAL_LEAVE_DAYS],
+        'mobile.min_build' => ['mobile', null],
+        'mobile.store_url' => ['mobile', null],
     ];
 
     public function __construct(private AuditLogService $auditLog)
@@ -70,14 +72,29 @@ class SettingsController extends Controller
     {
         Gate::authorize('manage', Setting::class);
 
-        $data = $request->validate([
+        // A wrong minimum build locks every mobile user out, so it gets a
+        // real check; the dots in these keys are literal, hence the escapes.
+        $minBuildMessage = 'Versiya raqami 0 yoki undan katta butun son bo\'lishi kerak.';
+        $storeUrlMessage = 'Havola https:// bilan boshlanadigan to\'g\'ri manzil bo\'lishi kerak.';
+
+        $request->validate([
             'values' => ['required', 'array'],
+            'values.mobile\.min_build' => ['sometimes', 'integer', 'min:0', 'max:2100000000'],
+            'values.mobile\.store_url' => ['sometimes', 'nullable', 'url:https', 'max:500'],
+        ], [
+            'values.mobile.min_build.integer' => $minBuildMessage,
+            'values.mobile.min_build.min' => $minBuildMessage,
+            'values.mobile.min_build.max' => $minBuildMessage,
+            'values.mobile.store_url.url' => $storeUrlMessage,
+            'values.mobile.store_url.max' => $storeUrlMessage,
         ]);
 
         $oldValues = [];
         $newValues = [];
 
-        foreach ($data['values'] as $key => $value) {
+        // Read from the input, not validate()'s return: with the escaped-dot
+        // rules above it no longer returns `values`. Only KEYS are written.
+        foreach ($request->input('values') as $key => $value) {
             if (! array_key_exists($key, self::KEYS)) {
                 continue;
             }

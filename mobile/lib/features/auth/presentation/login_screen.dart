@@ -69,10 +69,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        actions: const [Padding(padding: EdgeInsets.only(right: 16), child: LanguageSwitcher())],
+      ),
       body: SafeArea(
+        top: false,
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Form(
@@ -81,10 +86,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Align(alignment: Alignment.centerRight, child: LanguageSwitcher()),
-                    const SizedBox(height: 16),
-                    SvgPicture.asset('assets/images/logo.svg', height: 84),
-                    const SizedBox(height: 16),
+                    SvgPicture.asset('assets/images/logo.svg', height: 76),
+                    const SizedBox(height: 24),
                     Text(
                       l10n.appName,
                       textAlign: TextAlign.center,
@@ -99,16 +102,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      l10n.authWelcomeBack,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
                     const SizedBox(height: 32),
+                    Text(l10n.authWelcomeBack, style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 12),
                     TextFormField(
                       controller: _loginController,
                       textInputAction: TextInputAction.next,
-                      decoration: InputDecoration(labelText: l10n.authLoginField),
+                      decoration: InputDecoration(
+                        labelText: l10n.authLoginField,
+                        prefixIcon: const Icon(Icons.person_outline),
+                      ),
                       validator: (value) => (value == null || value.trim().isEmpty) ? l10n.commonRequired : null,
                     ),
                     const SizedBox(height: 16),
@@ -119,6 +122,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       onFieldSubmitted: (_) => _submit(),
                       decoration: InputDecoration(
                         labelText: l10n.authPassword,
+                        prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                           onPressed: () => setState(() => _obscurePassword = !_obscurePassword),

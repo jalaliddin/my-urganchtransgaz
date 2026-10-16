@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/absences/presentation/absences_screen.dart';
 import '../../features/announcements/presentation/announcement_detail_screen.dart';
+import '../../features/app_update/app_update_controller.dart';
+import '../../features/app_update/update_required_screen.dart';
 import '../../features/announcements/presentation/announcements_screen.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/change_password_screen.dart';
@@ -34,8 +36,15 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/',
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
-      final authState = ref.read(authControllerProvider);
       final location = state.matchedLocation;
+
+      // An outdated build can't be used at all — it only ever shows the
+      // update screen, logged in or not.
+      if (ref.read(appUpdateControllerProvider) != null) {
+        return location == '/update-required' ? null : '/update-required';
+      }
+
+      final authState = ref.read(authControllerProvider);
       const publicRoutes = ['/login', '/forgot-password'];
 
       if (authState.isLoading) {
@@ -56,6 +65,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
+      GoRoute(path: '/update-required', builder: (context, state) => const UpdateRequiredScreen()),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(path: '/forgot-password', builder: (context, state) => const ForgotPasswordScreen()),
       ShellRoute(

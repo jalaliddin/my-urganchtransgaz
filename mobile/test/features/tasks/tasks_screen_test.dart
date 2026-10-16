@@ -89,10 +89,16 @@ User _user({List<String> permissions = const []}) => User.fromJson({
       'permissions': permissions,
     });
 
+/// A status tab's chip, found by its label.
+Finder _chip(String label) => find.widgetWithText(ChoiceChip, label);
+
+/// The count badge inside a status tab.
+Finder _chipCount(String label, int count) => find.descendant(of: _chip(label), matching: find.text('$count'));
+
 /// The status tabs scroll sideways, and only the chips near the viewport
 /// are built — bring one into view before looking for it.
 Future<Finder> _statusTab(WidgetTester tester, String label) async {
-  final finder = find.text(label);
+  final finder = _chip(label);
   await tester.scrollUntilVisible(
     finder,
     150,
@@ -134,15 +140,16 @@ void main() {
     expect(find.text('Topshiriq 1'), findsOneWidget);
     expect(find.text('Topshiriq 11'), findsNothing, reason: 'only the first page of 10 is loaded');
     expect(find.text("Ta'mirlash"), findsWidgets);
-    expect(find.text('Barchasi  25'), findsOneWidget);
-    expect(await _statusTab(tester, "Muddati o'tgan  5"), findsOneWidget);
+    expect(_chipCount('Barchasi', 25), findsOneWidget);
+    expect(await _statusTab(tester, "Muddati o'tgan"), findsOneWidget);
+    expect(_chipCount("Muddati o'tgan", 5), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
   testWidgets('a status tab narrows the list to that status', (tester) async {
     await _pump(tester);
 
-    await tester.tap(await _statusTab(tester, "Muddati o'tgan  5"));
+    await tester.tap(await _statusTab(tester, "Muddati o'tgan"));
     await tester.pumpAndSettle();
 
     expect(find.text('Topshiriq 5'), findsOneWidget);
@@ -166,7 +173,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // "Topshiriq 2" and "Topshiriq 20".."Topshiriq 25".
-    expect(find.text('Barchasi  7'), findsOneWidget);
+    expect(_chipCount('Barchasi', 7), findsOneWidget);
     expect(find.text('Topshiriq 1'), findsNothing);
   });
 

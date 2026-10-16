@@ -724,6 +724,8 @@ export interface SettingsValues {
   'documents.max_upload_kb': number
   'exams.reminder_thresholds': number[]
   'absences.annual_leave_days': number
+  'mobile.min_build': number
+  'mobile.store_url': string | null
 }
 
 export interface SettingsResponse {

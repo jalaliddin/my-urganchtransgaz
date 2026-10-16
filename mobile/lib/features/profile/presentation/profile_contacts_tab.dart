@@ -168,7 +168,13 @@ class _AddContactSheetState extends ConsumerState<_AddContactSheet> {
     String? required(String? value) => (value == null || value.trim().isEmpty) ? l10n.commonRequired : null;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.viewInsetsOf(context).bottom + 16),
+      // Above the keyboard when it's open, else above the navigation bar.
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        MediaQuery.viewInsetsOf(context).bottom + MediaQuery.paddingOf(context).bottom + 16,
+      ),
       child: Form(
         key: _formKey,
         child: SingleChildScrollView(

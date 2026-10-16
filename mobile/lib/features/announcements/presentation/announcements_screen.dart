@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/formatting/dates.dart';
+import '../../../core/theme/status_colors.dart';
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/section.dart';
 import '../../../core/widgets/responsive_body.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/announcement.dart';
@@ -34,9 +37,9 @@ class AnnouncementsScreen extends ConsumerWidget {
             }
 
             return ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.all(16),
               itemCount: items.length,
-              separatorBuilder: (context, index) => const Divider(height: 1),
+              separatorBuilder: (context, index) => const SizedBox(height: 10),
               itemBuilder: (context, index) => _AnnouncementTile(announcement: items[index]),
             );
           },
@@ -55,28 +58,73 @@ class _AnnouncementTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUnread = announcement.isRead == false;
-
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: _priorityColor(context, announcement.priority),
-        child: const Icon(Icons.campaign, color: Colors.white, size: 20),
-      ),
-      title: Text(announcement.title, style: TextStyle(fontWeight: isUnread ? FontWeight.bold : FontWeight.normal)),
-      subtitle: Text(
-        announcement.content,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: isUnread ? Container(width: 8, height: 8, decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle)) : null,
-      onTap: () => context.push('/announcements/${announcement.id}'),
-    );
-  }
-
-  Color _priorityColor(BuildContext context, String priority) {
-    return switch (priority) {
-      'urgent' => Colors.red,
-      'high' => Colors.orange,
-      _ => Theme.of(context).colorScheme.primary,
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    final status = StatusColors.of(context);
+    final tone = switch (announcement.priority) {
+      'urgent' => StatusTone.danger,
+      'high' => StatusTone.warning,
+      _ => StatusTone.info,
     };
+    final published = AppDates.parse(announcement.publishAt ?? announcement.createdAt);
+
+    return Card(
+      child: InkWell(
+        onTap: () => context.push('/announcements/${announcement.id}'),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IconBadge(icon: Icons.campaign_outlined, color: status.fg(tone), background: status.bg(tone)),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            announcement.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: text.titleSmall!.copyWith(fontWeight: isUnread ? FontWeight.w700 : FontWeight.w600),
+                          ),
+                        ),
+                        if (isUnread) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(color: scheme.primary, shape: BoxShape.circle),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      announcement.content,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: text.bodyMedium!.copyWith(color: scheme.onSurfaceVariant),
+                    ),
+                    if (published != null || announcement.authorName != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        [announcement.authorName, if (published != null) AppDates.moment(context, published)]
+                            .whereType<String>()
+                            .join(', '),
+                        style: text.labelMedium!.copyWith(color: scheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

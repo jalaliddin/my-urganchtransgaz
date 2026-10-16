@@ -67,6 +67,28 @@ class AppLocalizationsUz extends AppLocalizations {
   String get commonSend => 'Yuborish';
 
   @override
+  String get dateToday => 'Bugun';
+
+  @override
+  String get dateTomorrow => 'Ertaga';
+
+  @override
+  String get dateYesterday => 'Kecha';
+
+  @override
+  String get dateEarlier => 'Avvalroq';
+
+  @override
+  String dateInDays(int count) {
+    return '$count kundan so\'ng';
+  }
+
+  @override
+  String dateDaysOverdue(int count) {
+    return '$count kun kechikdi';
+  }
+
+  @override
   String get authLogin => 'Kirish';
 
   @override
@@ -950,4 +972,23 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get issuesCameraError => 'Kamerani ochib bo\'lmadi';
+
+  @override
+  String get appUpdateTitle => 'Yangi versiya chiqdi';
+
+  @override
+  String get appUpdateBody =>
+      'Ishni davom ettirish uchun ilovani yangilang. Bu versiya endi ishlamaydi.';
+
+  @override
+  String get appUpdateButton => 'Yangilash';
+
+  @override
+  String appUpdateCurrentVersion(String version) {
+    return 'Sizdagi versiya: $version';
+  }
+
+  @override
+  String get appUpdateOpenFailed =>
+      'Play Market\'ni ochib bo\'lmadi. Ilovani Play Market orqali qo\'lda yangilang.';
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateAttendanceDevice;
+use App\Http\Middleware\EnsureSupportedMobileApp;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'attendance.device' => AuthenticateAttendanceDevice::class,
+            'mobile.version' => EnsureSupportedMobileApp::class,
         ]);
         //
     })

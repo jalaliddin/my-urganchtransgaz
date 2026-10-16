@@ -23,7 +23,10 @@ const form = reactive<SettingsValues>({
   'documents.max_upload_kb': 10240,
   'exams.reminder_thresholds': [],
   'absences.annual_leave_days': 21,
+  'mobile.min_build': 0,
+  'mobile.store_url': '',
 })
+const mobileErrors = ref<{ minBuild?: string; storeUrl?: string }>({})
 
 async function load() {
   loading.value = true
@@ -46,12 +49,20 @@ const { objectUrl: logoUrl } = useAuthenticatedImage(toRef(logoSource, 'value'))
 
 async function save() {
   saving.value = true
+  mobileErrors.value = {}
   try {
     await settingsService.update({
       ...form,
       'attendance.working_days': form['attendance.working_days'],
       'exams.reminder_thresholds': form['exams.reminder_thresholds'],
     })
+  } catch (error: unknown) {
+    // The minimum build locks out every older app, so a rejected value has
+    // to be visible rather than fail silently.
+    const errors = (error as { response?: { data?: { errors?: Record<string, string[]> } } }).response?.data?.errors ?? {}
+    const first = (suffix: string) => Object.entries(errors).find(([key]) => key.endsWith(suffix))?.[1]?.[0]
+    mobileErrors.value = { minBuild: first('min_build'), storeUrl: first('store_url') }
+    if (!mobileErrors.value.minBuild && !mobileErrors.value.storeUrl) throw error
   } finally {
     saving.value = false
   }
@@ -182,6 +193,28 @@ function syncThresholdsFromText() {
             :label="$t('settings.annualLeaveDays')"
             :hint="$t('settings.annualLeaveDaysHint')"
             persistent-hint
+          />
+        </v-card-text>
+      </v-card>
+
+      <v-card class="mt-4">
+        <v-card-title>{{ $t('settings.mobileApp') }}</v-card-title>
+        <v-card-text>
+          <v-alert type="warning" variant="tonal" density="compact" class="mb-4">{{ $t('settings.mobileMinBuildWarning') }}</v-alert>
+          <v-text-field
+            v-model.number="form['mobile.min_build']"
+            type="number"
+            min="0"
+            :label="$t('settings.mobileMinBuild')"
+            :hint="$t('settings.mobileMinBuildHint')"
+            persistent-hint
+            :error-messages="mobileErrors.minBuild"
+          />
+          <v-text-field
+            v-model="form['mobile.store_url']"
+            :label="$t('settings.mobileStoreUrl')"
+            :error-messages="mobileErrors.storeUrl"
+            class="mt-2"
           />
         </v-card-text>
       </v-card>

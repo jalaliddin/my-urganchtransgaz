@@ -6,14 +6,16 @@ import 'package:urtg_mobile/features/absences/presentation/absences_controller.d
 import 'package:urtg_mobile/features/absences/presentation/absences_screen.dart';
 import 'package:urtg_mobile/l10n/app_localizations.dart';
 
+final _year = DateTime.now().year;
+
 class _FakeAbsencesController extends AbsencesController {
   @override
   Future<List<EmployeeAbsence>> build() async => [
         EmployeeAbsence.fromJson({
           'id': 1,
           'type': 'annual_leave',
-          'start_date': '2026-10-05',
-          'end_date': '2026-10-18',
+          'start_date': '$_year-10-05',
+          'end_date': '$_year-10-18',
           'days': 14,
           'state': 'upcoming',
           'document_number': '145-K',
@@ -54,7 +56,8 @@ void main() {
     expect(find.text("2026-yil yillik ta'tili"), findsOneWidget);
     expect(find.text('7'), findsOneWidget);
     expect(find.text("Yillik mehnat ta'tili"), findsOneWidget);
-    expect(find.textContaining('05.10.2026 — 18.10.2026, 14 kun'), findsOneWidget);
+    // Dates in the current year drop the year: "5 okt", not "05.10.2026".
+    expect(find.textContaining('5 okt — 18 okt, 14 kun'), findsOneWidget);
     expect(find.text('T'), findsOneWidget);
     expect(find.text('X'), findsOneWidget);
   });

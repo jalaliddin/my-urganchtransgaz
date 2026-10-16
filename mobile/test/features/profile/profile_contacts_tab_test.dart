@@ -93,6 +93,21 @@ void main() {
     expect(find.text('Aliyev Anvar'), findsOneWidget, reason: 'the list reloads with the new contact');
   });
 
+  testWidgets('the add-contact sheet keeps Save above the system navigation bar', (tester) async {
+    final insets = FakeViewPadding(bottom: 48 * tester.view.devicePixelRatio);
+    tester.view.padding = insets;
+    tester.view.viewPadding = insets;
+    addTearDown(tester.view.reset);
+    await _pump(tester);
+
+    await tester.tap(find.text("Aloqa qo'shish"));
+    await tester.pumpAndSettle();
+
+    final screenHeight = tester.view.physicalSize.height / tester.view.devicePixelRatio;
+
+    expect(tester.getRect(find.widgetWithText(FilledButton, 'Saqlash')).bottom, lessThanOrEqualTo(screenHeight - 48));
+  });
+
   testWidgets('a bank record needs the bank and account number', (tester) async {
     final repository = await _pump(tester);
 

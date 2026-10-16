@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/app_update/app_update_controller.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 
 /// Bridges Riverpod's [authControllerProvider] to go_router's
@@ -20,6 +21,9 @@ class RouterRefreshNotifier extends ChangeNotifier {
     // the app stuck on the splash screen forever. Caught via real-browser
     // verification, not the test suite.
     ref.listen(authControllerProvider, (previous, next) {
+      notifyListeners();
+    });
+    ref.listen(appUpdateControllerProvider, (previous, next) {
       notifyListeners();
     });
   }

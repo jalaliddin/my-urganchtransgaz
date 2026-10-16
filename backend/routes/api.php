@@ -1,13 +1,19 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AppVersionController;
 use App\Http\Controllers\Api\V1\Integrations\AttendanceDeviceUserController;
 use App\Http\Controllers\Api\V1\Integrations\AttendanceEventController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
-    require base_path('routes/api/auth.php');
+    // Outside the version check so an outdated app can still learn it has to update.
+    Route::get('app/version', AppVersionController::class)->name('app.version');
 
-    Route::middleware('auth:sanctum')->group(function () {
+    // Everything people use, web or mobile, goes through the mobile version
+    // check (a no-op for the web); device webhooks below never do.
+    Route::middleware('mobile.version')->group(fn () => require base_path('routes/api/auth.php'));
+
+    Route::middleware(['mobile.version', 'auth:sanctum'])->group(function () {
         require base_path('routes/api/organizations.php');
         require base_path('routes/api/departments.php');
         require base_path('routes/api/positions.php');

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/models/user.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/network/api_providers.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../data/auth_repository.dart';
@@ -26,6 +27,13 @@ class AuthController extends AsyncNotifier<User?> {
 
     try {
       return await ref.read(authRepositoryProvider).me();
+    } on ApiException catch (e) {
+      // 426: this build is outdated. The session itself is fine — keep the
+      // token so the updated app opens already logged in.
+      if (e.statusCode != 426) {
+        await SecureStorage.deleteToken();
+      }
+      return null;
     } catch (_) {
       await SecureStorage.deleteToken();
       return null;

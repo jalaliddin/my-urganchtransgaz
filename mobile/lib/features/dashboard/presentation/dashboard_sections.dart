@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
+import '../../../core/formatting/dates.dart';
+import '../../../core/theme/status_colors.dart';
+import '../../../core/widgets/section.dart';
+import '../../../core/widgets/status_pill.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../announcements/presentation/announcements_controller.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -11,88 +15,122 @@ import '../../tasks/domain/task.dart';
 import '../../tasks/presentation/tasks_controller.dart';
 import 'dashboard_providers.dart';
 
-class SectionHeader extends StatelessWidget {
-  const SectionHeader({super.key, required this.title, this.actionLabel, this.onAction});
-
-  final String title;
-  final String? actionLabel;
-  final VoidCallback? onAction;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium)),
-          if (actionLabel != null) TextButton(onPressed: onAction, child: Text(actionLabel!)),
-        ],
-      ),
-    );
-  }
-}
-
-/// Three numbers that answer "what needs me right now?" — each one opens
-/// the place where it can be dealt with.
+/// "What needs me right now?" on one brand card: active tasks as the big
+/// number, open issues / exams / KPI beside it. Each figure opens the place
+/// where it can be dealt with.
 class DashboardStats extends ConsumerWidget {
   const DashboardStats({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
     final user = ref.watch(authControllerProvider).value;
     final showIssues = user != null && (user.can('issues.view') || user.can('issues.create'));
+    const onCard = Colors.white;
 
-    // Equal-height tiles: `stretch` needs a bounded height, which a
-    // scrolling parent doesn't give, so the row sizes to its tallest tile.
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+    String show<T>(AsyncValue<T> value, String Function(T) format) =>
+        // A failed value shows a dash rather than a wrong number.
+        value.when(data: format, loading: () => '…', error: (_, _) => '–');
+
+    final navy = scheme.brightness == Brightness.dark ? const Color(0xFF22416B) : scheme.primary;
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [navy, Color.lerp(navy, const Color(0xFF2F7FB5), 0.55)!],
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
         children: [
-          Expanded(
-            child: _StatTile<int>(
-              icon: Icons.checklist,
-              color: colorScheme.primary,
-              label: l10n.dashboardStatTasks,
-              value: ref.watch(activeTasksCountProvider),
-              format: (count) => '$count',
-              onTap: () => context.go('/tasks'),
-            ),
-          ),
-          if (showIssues) ...[
-            const SizedBox(width: 12),
-            Expanded(
-              child: _StatTile<int>(
-                icon: Icons.report_problem_outlined,
-                color: const Color(0xFFD97706),
-                label: l10n.dashboardStatIssues,
-                value: ref.watch(openIssuesCountProvider),
-                format: (count) => '$count',
-                onTap: () => context.go('/issues'),
+          Positioned(
+            right: -40,
+            top: -24,
+            child: Opacity(
+              opacity: 0.06,
+              // Crops the "UZTRANSGAZ" caption off the bottom of the logo so
+              // the watermark is just the emblem, not text that reads through.
+              child: ClipRect(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  heightFactor: 0.86,
+                  child: SvgPicture.asset(
+                    'assets/images/logo.svg',
+                    height: 170,
+                    colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                  ),
+                ),
               ),
             ),
-          ],
-          const SizedBox(width: 12),
-          Expanded(
-            child: _StatTile<int>(
-              icon: Icons.school_outlined,
-              color: const Color(0xFF3F8F2F),
-              label: l10n.dashboardStatExams,
-              value: ref.watch(availableExamsCountProvider),
-              format: (count) => '$count',
-              onTap: () => context.push('/exams'),
-            ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _StatTile<double?>(
-              icon: Icons.insights_outlined,
-              color: const Color(0xFF6D5DD3),
-              label: l10n.dashboardStatKpi,
-              value: ref.watch(kpiOverallScoreProvider),
-              format: (score) => score == null ? '—' : '${score.round()}%',
-              onTap: () => context.push('/kpi'),
+          Material(
+            type: MaterialType.transparency,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                InkWell(
+                  onTap: () => context.go('/tasks'),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 18, 16, 14),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.dashboardStatTasks,
+                                style: text.labelLarge!.copyWith(color: onCard.withValues(alpha: 0.8)),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                show(ref.watch(activeTasksCountProvider), (count) => '$count'),
+                                style: text.displaySmall!.copyWith(
+                                  color: onCard,
+                                  fontFeatures: const [FontFeature.tabularFigures()],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(Icons.arrow_forward, color: onCard.withValues(alpha: 0.8)),
+                      ],
+                    ),
+                  ),
+                ),
+                Divider(color: onCard.withValues(alpha: 0.14), height: 1),
+                IntrinsicHeight(
+                  child: Row(
+                    children: [
+                      if (showIssues)
+                        _MiniStat(
+                          icon: Icons.report_problem_outlined,
+                          value: show(ref.watch(openIssuesCountProvider), (count) => '$count'),
+                          label: l10n.dashboardStatIssues,
+                          onTap: () => context.go('/issues'),
+                        ),
+                      _MiniStat(
+                        icon: Icons.school_outlined,
+                        value: show(ref.watch(availableExamsCountProvider), (count) => '$count'),
+                        label: l10n.dashboardStatExams,
+                        onTap: () => context.push('/exams'),
+                      ),
+                      _MiniStat(
+                        icon: Icons.insights_outlined,
+                        value: show(ref.watch(kpiOverallScoreProvider), (score) => score == null ? '—' : '${score.round()}%'),
+                        label: l10n.dashboardStatKpi,
+                        onTap: () => context.push('/kpi'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -101,56 +139,41 @@ class DashboardStats extends ConsumerWidget {
   }
 }
 
-class _StatTile<T> extends StatelessWidget {
-  const _StatTile({
-    required this.icon,
-    required this.color,
-    required this.label,
-    required this.value,
-    required this.format,
-    required this.onTap,
-  });
+class _MiniStat extends StatelessWidget {
+  const _MiniStat({required this.icon, required this.value, required this.label, required this.onTap});
 
   final IconData icon;
-  final Color color;
+  final String value;
   final String label;
-  final AsyncValue<T> value;
-  final String Function(T) format;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final text = Theme.of(context).textTheme;
+    const onCard = Colors.white;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
+    return Expanded(
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.fromLTRB(16, 12, 8, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, size: 20, color: color),
-              ),
-              const SizedBox(height: 12),
-              // A failed value shows a dash rather than a wrong number.
+              Icon(icon, size: 18, color: onCard.withValues(alpha: 0.75)),
+              const SizedBox(height: 6),
               Text(
-                value.when(data: format, loading: () => '…', error: (_, _) => '–'),
-                style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+                value,
+                style: text.titleLarge!.copyWith(
+                  color: onCard,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
               ),
-              const SizedBox(height: 2),
               Text(
                 label,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: text.bodySmall!.copyWith(color: onCard.withValues(alpha: 0.75), height: 1.25),
               ),
             ],
           ),
@@ -161,45 +184,41 @@ class _StatTile<T> extends StatelessWidget {
 }
 
 /// "Report a problem" is the one thing worth a big button; the rest are
-/// small shortcuts to the screens that otherwise live under "More".
+/// shortcuts to the screens that otherwise live under "More".
 class QuickActions extends ConsumerWidget {
   const QuickActions({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
+    final scheme = Theme.of(context).colorScheme;
+    final status = StatusColors.of(context);
     final user = ref.watch(authControllerProvider).value;
     final canReport = user != null && user.can('issues.create');
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeader(title: l10n.dashboardQuickActions),
         if (canReport) ...[
-          Material(
-            color: colorScheme.tertiaryContainer,
-            borderRadius: BorderRadius.circular(16),
-            clipBehavior: Clip.antiAlias,
+          Card(
             child: InkWell(
               onTap: () => context.push('/issues/new'),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: colorScheme.tertiary, borderRadius: BorderRadius.circular(12)),
-                      child: const Icon(Icons.add_location_alt_outlined, color: Colors.white),
+                    IconBadge(
+                      icon: Icons.add_location_alt_outlined,
+                      size: 48,
+                      color: Colors.white,
+                      background: scheme.tertiary,
                     ),
                     const SizedBox(width: 14),
                     Expanded(
-                      child: Text(
-                        l10n.dashboardReportIssue,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: const Color(0xFF26350F)),
-                      ),
+                      child: Text(l10n.dashboardReportIssue, style: Theme.of(context).textTheme.titleMedium),
                     ),
-                    const Icon(Icons.arrow_forward, color: Color(0xFF26350F)),
+                    Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
                   ],
                 ),
               ),
@@ -207,17 +226,38 @@ class QuickActions extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
         ],
-        Row(
-          children: [
-            _ShortcutButton(icon: Icons.school_outlined, label: l10n.examsTitle, onTap: () => context.push('/exams')),
-            _ShortcutButton(icon: Icons.folder_outlined, label: l10n.documentsTitle, onTap: () => context.push('/documents')),
-            _ShortcutButton(icon: Icons.insights_outlined, label: l10n.kpiTitle, onTap: () => context.push('/kpi')),
-            _ShortcutButton(
-              icon: Icons.campaign_outlined,
-              label: l10n.announcementsTitle,
-              onTap: () => context.push('/announcements'),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+            child: Row(
+              children: [
+                _ShortcutButton(
+                  icon: Icons.school_outlined,
+                  tone: status.fg(StatusTone.success),
+                  label: l10n.examsTitle,
+                  onTap: () => context.push('/exams'),
+                ),
+                _ShortcutButton(
+                  icon: Icons.folder_outlined,
+                  tone: status.fg(StatusTone.info),
+                  label: l10n.documentsTitle,
+                  onTap: () => context.push('/documents'),
+                ),
+                _ShortcutButton(
+                  icon: Icons.insights_outlined,
+                  tone: const Color(0xFF6D5DD3),
+                  label: l10n.kpiTitle,
+                  onTap: () => context.push('/kpi'),
+                ),
+                _ShortcutButton(
+                  icon: Icons.campaign_outlined,
+                  tone: status.fg(StatusTone.warning),
+                  label: l10n.announcementsTitle,
+                  onTap: () => context.push('/announcements'),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ],
     );
@@ -225,16 +265,15 @@ class QuickActions extends ConsumerWidget {
 }
 
 class _ShortcutButton extends StatelessWidget {
-  const _ShortcutButton({required this.icon, required this.label, required this.onTap});
+  const _ShortcutButton({required this.icon, required this.tone, required this.label, required this.onTap});
 
   final IconData icon;
+  final Color tone;
   final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -243,19 +282,14 @@ class _ShortcutButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
           child: Column(
             children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(color: colorScheme.primaryContainer, borderRadius: BorderRadius.circular(16)),
-                child: Icon(icon, color: colorScheme.onPrimaryContainer),
-              ),
-              const SizedBox(height: 6),
+              IconBadge(icon: icon, size: 48, color: tone, background: tone.withValues(alpha: 0.12)),
+              const SizedBox(height: 8),
               Text(
                 label,
                 maxLines: 2,
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelSmall,
+                style: Theme.of(context).textTheme.labelMedium,
               ),
             ],
           ),
@@ -274,7 +308,7 @@ class DueSoonSection extends ConsumerWidget {
     final tasks = ref.watch(dueSoonTasksProvider);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeader(title: l10n.dashboardDueSoon, actionLabel: l10n.dashboardSeeAll, onAction: () => context.go('/tasks')),
         tasks.when(
@@ -282,7 +316,7 @@ class DueSoonSection extends ConsumerWidget {
               ? _EmptyCard(icon: Icons.task_alt, message: l10n.dashboardAllCaughtUp)
               : Column(
                   children: [
-                    for (final task in items) ...[_TaskCard(task: task), const SizedBox(height: 8)],
+                    for (final task in items) ...[_TaskCard(task: task), const SizedBox(height: 10)],
                   ],
                 ),
           loading: () => const _LoadingCard(),
@@ -300,27 +334,19 @@ class _TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-    final due = task.dueDate == null ? null : DateTime.tryParse(task.dueDate!);
-    final isOverdue = task.status == 'overdue' || (due != null && due.isBefore(DateTime.now()));
-    final accent = isOverdue ? colorScheme.error : colorScheme.primary;
-
-    String? dueLabel;
-    if (due != null) {
-      try {
-        dueLabel = DateFormat('d MMM', Localizations.localeOf(context).toString()).format(due);
-      } catch (_) {
-        dueLabel = DateFormat('yyyy-MM-dd').format(due);
-      }
-    }
+    final scheme = Theme.of(context).colorScheme;
+    final status = StatusColors.of(context);
+    final due = AppDates.parse(task.dueDate);
+    final isOverdue = task.status == 'overdue' || (due != null && AppDates.daysFromToday(due) < 0);
+    final tone = isOverdue
+        ? StatusTone.danger
+        : (due != null && AppDates.daysFromToday(due) <= 1 ? StatusTone.warning : StatusTone.info);
 
     return Card(
-      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => context.push('/tasks/${task.id}'),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -330,31 +356,20 @@ class _TaskCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
-              if (dueLabel != null) ...[
-                const SizedBox(height: 8),
-                // Its own line and shrinkable: a long "overdue · date" label
-                // must never push the title or the row off a narrow screen.
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    isOverdue ? '${l10n.dashboardOverdue} · $dueLabel' : dueLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Row(
                 children: [
+                  if (due != null) ...[
+                    // Shrinkable: a long label must never push the row off a narrow screen.
+                    Flexible(
+                      child: StatusPill(label: AppDates.due(context, due), tone: tone, icon: Icons.schedule),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
                   Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(value: task.progress / 100, minHeight: 6, color: accent),
+                    child: LinearProgressIndicator(
+                      value: task.progress / 100,
+                      color: isOverdue ? status.fg(StatusTone.danger) : scheme.primary,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -375,10 +390,11 @@ class AnnouncementsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final status = StatusColors.of(context);
     final announcements = ref.watch(latestAnnouncementsProvider);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeader(
           title: l10n.dashboardLatestAnnouncements,
@@ -388,19 +404,21 @@ class AnnouncementsSection extends ConsumerWidget {
         announcements.when(
           data: (items) => items.isEmpty
               ? _EmptyCard(icon: Icons.campaign_outlined, message: l10n.dashboardNoAnnouncements)
-              : Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    children: [
-                      for (final announcement in items)
-                        ListTile(
-                          leading: Icon(Icons.campaign_outlined, color: Theme.of(context).colorScheme.primary),
-                          title: Text(announcement.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                          subtitle: Text(announcement.content, maxLines: 1, overflow: TextOverflow.ellipsis),
-                          onTap: () => context.push('/announcements/${announcement.id}'),
+              : GroupCard(
+                  dividerIndent: 72,
+                  children: [
+                    for (final announcement in items)
+                      ListTile(
+                        leading: IconBadge(
+                          icon: Icons.campaign_outlined,
+                          color: status.fg(StatusTone.warning),
+                          background: status.bg(StatusTone.warning),
                         ),
-                    ],
-                  ),
+                        title: Text(announcement.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(announcement.content, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        onTap: () => context.push('/announcements/${announcement.id}'),
+                      ),
+                  ],
                 ),
           loading: () => const _LoadingCard(),
           error: (_, _) => _ErrorCard(
@@ -421,16 +439,21 @@ class _EmptyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final status = StatusColors.of(context);
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(icon, color: colorScheme.tertiary, size: 28),
+            IconBadge(icon: icon, color: status.fg(StatusTone.success), background: status.bg(StatusTone.success)),
             const SizedBox(width: 14),
-            Expanded(child: Text(message, style: TextStyle(color: colorScheme.onSurfaceVariant))),
+            Expanded(
+              child: Text(
+                message,
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
+            ),
           ],
         ),
       ),
@@ -444,7 +467,10 @@ class _LoadingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Card(
-      child: Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator())),
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5))),
+      ),
     );
   }
 }
@@ -461,10 +487,10 @@ class _ErrorCard extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
         child: Row(
           children: [
-            Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
+            Icon(Icons.cloud_off_outlined, color: Theme.of(context).colorScheme.error),
             const SizedBox(width: 12),
             Expanded(child: Text(message)),
             TextButton(onPressed: onRetry, child: Text(l10n.commonRetry)),
@@ -485,6 +511,7 @@ class ProfileCompletionCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
     final completion = ref.watch(profileCompletionProvider);
 
     return completion.when(
@@ -492,27 +519,41 @@ class ProfileCompletionCard extends ConsumerWidget {
         if (value.percentage >= 100) return const SizedBox.shrink();
 
         return Card(
-          clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: () => context.push('/profile'),
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(child: Text(l10n.dashboardProfileCompletion, style: Theme.of(context).textTheme.titleSmall)),
-                      Text('${value.percentage}%', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
-                    ],
+                  SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        CircularProgressIndicator(
+                          value: value.percentage / 100,
+                          strokeWidth: 4,
+                          backgroundColor: scheme.surfaceContainerHigh,
+                        ),
+                        Text('${value.percentage}%', style: Theme.of(context).textTheme.labelSmall),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: LinearProgressIndicator(value: value.percentage / 100, minHeight: 8),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l10n.dashboardProfileCompletion, style: Theme.of(context).textTheme.titleSmall),
+                        Text(
+                          l10n.dashboardMyProfile,
+                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: scheme.onSurfaceVariant),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(l10n.dashboardMyProfile, style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                  Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
                 ],
               ),
             ),

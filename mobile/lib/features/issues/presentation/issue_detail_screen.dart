@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../core/formatting/dates.dart';
 import '../../../core/models/user.dart';
+import '../../../core/theme/status_colors.dart';
 import '../../../core/widgets/async_value_view.dart';
+import '../../../core/widgets/detail_rows.dart';
 import '../../../core/widgets/responsive_body.dart';
+import '../../../core/widgets/section.dart';
+import '../../../core/widgets/status_pill.dart';
 import '../../../features/auth/presentation/auth_controller.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/issue.dart';
@@ -129,33 +134,38 @@ class _IssueDetailScreenState extends ConsumerState<IssueDetailScreen> {
   Widget _buildBody(BuildContext context, Issue issue, IssueDetailController controller, User? user, AppLocalizations l10n) {
     final canResolve = (user?.can('issues.resolve') ?? false) && issue.isOpen;
     final canAssign = (user?.can('issues.assign') ?? false) && issue.isOpen;
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    final status = StatusColors.of(context);
+    final tone = issue.isOpen ? StatusTone.danger : StatusTone.success;
+    final resolvedAt = AppDates.parse(issue.resolvedAt);
+    const gap = SizedBox(height: 16);
 
     return RefreshIndicator(
       onRefresh: controller.refresh,
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
-          Text(issue.title, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
+          Text(issue.title, style: text.headlineSmall),
+          const SizedBox(height: 12),
           Wrap(
             spacing: 8,
+            runSpacing: 8,
             children: [
-              Chip(
-                label: Text(issue.isOpen ? l10n.statusOpen : l10n.statusResolved),
-                backgroundColor: issue.isOpen ? Colors.red.shade50 : Colors.green.shade50,
-              ),
-              if (issue.category != null) Chip(avatar: const Icon(Icons.sell_outlined, size: 16), label: Text(issue.category!.name)),
+              StatusPill(label: issue.isOpen ? l10n.statusOpen : l10n.statusResolved, tone: tone),
+              if (issue.category != null)
+                StatusPill(label: issue.category!.name, tone: StatusTone.neutral, icon: Icons.sell_outlined),
             ],
           ),
           if (issue.description != null) ...[
-            const SizedBox(height: 12),
-            Text(issue.description!),
+            gap,
+            Text(issue.description!, style: text.bodyLarge),
           ],
           if (issue.photos.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            gap,
             IssuePhotos(photos: issue.photos),
           ],
-          const SizedBox(height: 16),
+          gap,
           IssueMap(
             markers: [
               IssueMapMarker(
@@ -168,87 +178,118 @@ class _IssueDetailScreenState extends ConsumerState<IssueDetailScreen> {
             ],
             center: LatLng(issue.latitude, issue.longitude),
             zoom: 15,
-            height: 240,
+            height: 220,
           ),
           if (!issue.isOpen) ...[
-            const SizedBox(height: 16),
-            Text(l10n.issuesResolutionNote, style: Theme.of(context).textTheme.titleSmall),
-            Text(issue.resolutionNote ?? ''),
-            Text(
-              '${l10n.issuesResolvedBy}: ${issue.resolvedByName ?? ''} · ${issue.resolvedAt ?? ''}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-          if (canAssign) ...[
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
-              icon: _assigning
-                  ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.group_add_outlined),
-              label: Text(l10n.issuesAssignExecutors),
-              onPressed: _assigning ? null : () => _assignExecutors(issue, controller),
-            ),
-          ],
-          if (canResolve) ...[
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              icon: const Icon(Icons.check_circle_outline),
-              label: Text(l10n.issuesResolve),
-              onPressed: () => _confirmResolve(context, controller),
-            ),
-          ],
-          const Divider(height: 32),
-          _InfoRow(icon: Icons.person_outline, label: l10n.issuesReporter, value: issue.reporter?.fullName ?? '—'),
-          for (final executor in issue.executors)
-            _InfoRow(icon: Icons.assignment_ind_outlined, label: l10n.issuesExecutors, value: executor.fullName),
-          if (issue.executors.isEmpty)
-            _InfoRow(icon: Icons.person_search_outlined, label: l10n.issuesExecutors, value: l10n.issuesNoExecutors),
-          if (issue.organization != null)
-            _InfoRow(icon: Icons.apartment_outlined, label: issue.organization!.name, value: ''),
-          if (issue.department != null)
-            _InfoRow(icon: Icons.account_tree_outlined, label: l10n.issuesDepartment, value: issue.department!.name),
-          if (issue.objectName != null)
-            _InfoRow(icon: Icons.place_outlined, label: l10n.issuesObjectName, value: issue.objectName!),
-          const Divider(height: 32),
-          Text(l10n.issuesTimeline, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          ...issue.activities.map(
-            (activity) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Column(
+            gap,
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: status.bg(StatusTone.success), borderRadius: BorderRadius.circular(18)),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(activity.description ?? ''),
-                  Text(activity.createdAt, style: Theme.of(context).textTheme.bodySmall),
+                  Icon(Icons.task_alt, color: status.fg(StatusTone.success)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l10n.issuesResolutionNote, style: text.labelLarge!.copyWith(color: status.fg(StatusTone.success))),
+                        const SizedBox(height: 4),
+                        Text(issue.resolutionNote ?? '', style: text.bodyLarge),
+                        const SizedBox(height: 6),
+                        Text(
+                          [
+                            if (issue.resolvedByName != null) '${l10n.issuesResolvedBy}: ${issue.resolvedByName}',
+                            if (resolvedAt != null) AppDates.moment(context, resolvedAt),
+                          ].join('\n'),
+                          style: text.bodySmall!.copyWith(color: scheme.onSurfaceVariant),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-          const Divider(height: 32),
-          Text(l10n.issuesComments, style: Theme.of(context).textTheme.titleMedium),
-          ...issue.comments.map(
-            (comment) => ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.person_outline),
-              title: Text(comment.userName ?? ''),
-              subtitle: Text(comment.body),
-            ),
-          ),
-          Row(
+          ],
+          if (canAssign || canResolve) ...[
+            gap,
+            if (canResolve)
+              FilledButton.icon(
+                icon: const Icon(Icons.check_circle_outline),
+                label: Text(l10n.issuesResolve),
+                onPressed: () => _confirmResolve(context, controller),
+              ),
+            if (canAssign && canResolve) const SizedBox(height: 10),
+            if (canAssign)
+              OutlinedButton.icon(
+                icon: _assigning
+                    ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.group_add_outlined),
+                label: Text(l10n.issuesAssignExecutors),
+                onPressed: _assigning ? null : () => _assignExecutors(issue, controller),
+              ),
+          ],
+          gap,
+          GroupCard(
+            dividerIndent: 54,
             children: [
-              Expanded(
-                child: TextField(
-                  controller: _commentController,
-                  decoration: InputDecoration(hintText: l10n.issuesAddComment),
+              InfoRow(icon: Icons.person_outline, label: l10n.issuesReporter, value: issue.reporter?.fullName ?? '—'),
+              InfoRow(
+                icon: Icons.engineering_outlined,
+                label: l10n.issuesExecutors,
+                value: issue.executors.isEmpty ? l10n.issuesNoExecutors : issue.executors.map((e) => e.fullName).join(', '),
+              ),
+              if (issue.organization != null)
+                InfoRow(icon: Icons.apartment_outlined, label: l10n.issuesOrganization, value: issue.organization!.name),
+              if (issue.department != null)
+                InfoRow(icon: Icons.account_tree_outlined, label: l10n.issuesDepartment, value: issue.department!.name),
+              if (issue.objectName != null)
+                InfoRow(icon: Icons.place_outlined, label: l10n.issuesObjectName, value: issue.objectName!),
+            ],
+          ),
+          if (issue.activities.isNotEmpty) ...[
+            SectionHeader(title: l10n.issuesTimeline),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                child: Column(
+                  children: [
+                    for (var i = 0; i < issue.activities.length; i++)
+                      _TimelineEntry(
+                        title: issue.activities[i].description ?? '',
+                        subtitle: [
+                          issue.activities[i].causerName,
+                          if (AppDates.parse(issue.activities[i].createdAt) case final at?) AppDates.moment(context, at),
+                        ].whereType<String>().join(', '),
+                        isLast: i == issue.activities.length - 1,
+                      ),
+                  ],
                 ),
               ),
-              IconButton(
-                icon: _postingComment
-                    ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.send),
-                onPressed: _postingComment ? null : () => _postComment(controller),
-              ),
-            ],
+            ),
+          ],
+          SectionHeader(title: l10n.issuesComments),
+          Card(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 6),
+                for (final comment in issue.comments)
+                  CommentTile(
+                    author: comment.userName ?? '',
+                    body: comment.body,
+                    createdAt: AppDates.parse(comment.createdAt),
+                  ),
+                CommentComposer(
+                  controller: _commentController,
+                  hint: l10n.issuesAddComment,
+                  onSend: () {
+                    if (!_postingComment) _postComment(controller);
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -256,28 +297,53 @@ class _IssueDetailScreenState extends ConsumerState<IssueDetailScreen> {
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.label, required this.value});
+/// One step of an issue's history: a dot on a vertical line, what happened,
+/// and who did it when.
+class _TimelineEntry extends StatelessWidget {
+  const _TimelineEntry({required this.title, required this.subtitle, required this.isLast});
 
-  final IconData icon;
-  final String label;
-  final String value;
+  final String title;
+  final String subtitle;
+  final bool isLast;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+
+    return IntrinsicHeight(
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(icon, size: 20, color: Theme.of(context).colorScheme.outline),
+          SizedBox(
+            width: 20,
+            child: Column(
+              children: [
+                const SizedBox(height: 4),
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(color: scheme.primary, shape: BoxShape.circle),
+                ),
+                if (!isLast)
+                  Expanded(child: Container(width: 2, margin: const EdgeInsets.symmetric(vertical: 4), color: scheme.outlineVariant)),
+              ],
+            ),
+          ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (value.isNotEmpty) Text(value),
-                Text(label, style: Theme.of(context).textTheme.bodySmall),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: text.bodyMedium!.copyWith(fontWeight: FontWeight.w500)),
+                  if (subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(subtitle, style: text.bodySmall!.copyWith(color: scheme.onSurfaceVariant)),
+                  ],
+                ],
+              ),
             ),
           ),
         ],

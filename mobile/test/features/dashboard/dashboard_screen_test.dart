@@ -221,6 +221,8 @@ void main() {
   testWidgets('a task card opens that task', (tester) async {
     await _pump(tester, size: const Size(390, 844));
 
+    await tester.ensureVisible(find.text('Hisobotni yuborish'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Hisobotni yuborish'));
     await tester.pumpAndSettle();
 
@@ -239,6 +241,19 @@ void main() {
     expect(find.text('Сообщить о проблеме'), findsOneWidget);
     expect(find.text('Muammo qayd etish'), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('beside the rail (no bottom bar), the end of the page scrolls clear of the system navigation bar', (tester) async {
+    tester.view.padding = const FakeViewPadding(top: 24, bottom: 48);
+    tester.view.viewPadding = const FakeViewPadding(top: 24, bottom: 48);
+    await _pump(tester, size: const Size(700, 600));
+
+    final page = find.byWidgetPredicate((widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down);
+    final position = tester.state<ScrollableState>(page.first).position;
+    position.jumpTo(position.maxScrollExtent);
+    await tester.pumpAndSettle();
+
+    expect(tester.getRect(find.byType(AnnouncementsSection)).bottom, lessThanOrEqualTo(600 - 48));
   });
 
   testWidgets('there is no attendance anywhere on the dashboard', (tester) async {

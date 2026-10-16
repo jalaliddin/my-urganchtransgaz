@@ -67,6 +67,28 @@ class AppLocalizationsRu extends AppLocalizations {
   String get commonSend => 'Отправить';
 
   @override
+  String get dateToday => 'Сегодня';
+
+  @override
+  String get dateTomorrow => 'Завтра';
+
+  @override
+  String get dateYesterday => 'Вчера';
+
+  @override
+  String get dateEarlier => 'Ранее';
+
+  @override
+  String dateInDays(int count) {
+    return 'через $count дн.';
+  }
+
+  @override
+  String dateDaysOverdue(int count) {
+    return 'просрочено на $count дн.';
+  }
+
+  @override
   String get authLogin => 'Вход';
 
   @override
@@ -949,4 +971,23 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get issuesCameraError => 'Не удалось открыть камеру';
+
+  @override
+  String get appUpdateTitle => 'Вышла новая версия';
+
+  @override
+  String get appUpdateBody =>
+      'Чтобы продолжить работу, обновите приложение. Эта версия больше не работает.';
+
+  @override
+  String get appUpdateButton => 'Обновить';
+
+  @override
+  String appUpdateCurrentVersion(String version) {
+    return 'Ваша версия: $version';
+  }
+
+  @override
+  String get appUpdateOpenFailed =>
+      'Не удалось открыть Play Market. Обновите приложение в Play Market вручную.';
 }

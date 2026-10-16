@@ -62,3 +62,41 @@ it('forbids an organization-admin from updating settings', function () {
         'values' => ['attendance.work_start' => '10:00'],
     ])->assertStatus(403);
 });
+
+it('saves the minimum mobile build and the store link', function () {
+    $centralAdmin = userWithRole('central-admin');
+
+    $this->actingAs($centralAdmin, 'sanctum')->putJson('/api/v1/settings', [
+        'values' => ['mobile.min_build' => 13, 'mobile.store_url' => 'https://play.google.com/store/apps/details?id=uz.urtg.urtg_mobile'],
+    ])->assertOk();
+
+    expect(Setting::get('mobile.min_build'))->toBe(13);
+    $values = $this->actingAs($centralAdmin, 'sanctum')->getJson('/api/v1/settings')->json('data.values');
+    expect($values['mobile.min_build'])->toBe(13);
+});
+
+it('rejects a minimum mobile build that is not a whole number with 422, keeping the old one', function () {
+    $centralAdmin = userWithRole('central-admin');
+    Setting::set('mobile.min_build', 12, 'mobile');
+
+    foreach (['abc', -1, 12.5] as $invalid) {
+        $response = $this->actingAs($centralAdmin, 'sanctum')->putJson('/api/v1/settings', [
+            'values' => ['mobile.min_build' => $invalid],
+        ]);
+
+        $response->assertUnprocessable();
+        expect($response->json('errors'))->toContain(['Versiya raqami 0 yoki undan katta butun son bo\'lishi kerak.']);
+    }
+
+    expect(Setting::get('mobile.min_build'))->toBe(12);
+});
+
+it('rejects a store link that is not an https address with 422', function () {
+    $centralAdmin = userWithRole('central-admin');
+
+    $this->actingAs($centralAdmin, 'sanctum')->putJson('/api/v1/settings', [
+        'values' => ['mobile.store_url' => 'javascript:alert(1)'],
+    ])->assertUnprocessable();
+
+    expect(Setting::get('mobile.store_url'))->toBeNull();
+});

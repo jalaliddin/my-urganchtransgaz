@@ -212,6 +212,42 @@ abstract class AppLocalizations {
   /// **'Yuborish'**
   String get commonSend;
 
+  /// No description provided for @dateToday.
+  ///
+  /// In uz, this message translates to:
+  /// **'Bugun'**
+  String get dateToday;
+
+  /// No description provided for @dateTomorrow.
+  ///
+  /// In uz, this message translates to:
+  /// **'Ertaga'**
+  String get dateTomorrow;
+
+  /// No description provided for @dateYesterday.
+  ///
+  /// In uz, this message translates to:
+  /// **'Kecha'**
+  String get dateYesterday;
+
+  /// No description provided for @dateEarlier.
+  ///
+  /// In uz, this message translates to:
+  /// **'Avvalroq'**
+  String get dateEarlier;
+
+  /// No description provided for @dateInDays.
+  ///
+  /// In uz, this message translates to:
+  /// **'{count} kundan so\'ng'**
+  String dateInDays(int count);
+
+  /// No description provided for @dateDaysOverdue.
+  ///
+  /// In uz, this message translates to:
+  /// **'{count} kun kechikdi'**
+  String dateDaysOverdue(int count);
+
   /// No description provided for @authLogin.
   ///
   /// In uz, this message translates to:
@@ -1909,6 +1945,36 @@ abstract class AppLocalizations {
   /// In uz, this message translates to:
   /// **'Kamerani ochib bo\'lmadi'**
   String get issuesCameraError;
+
+  /// No description provided for @appUpdateTitle.
+  ///
+  /// In uz, this message translates to:
+  /// **'Yangi versiya chiqdi'**
+  String get appUpdateTitle;
+
+  /// No description provided for @appUpdateBody.
+  ///
+  /// In uz, this message translates to:
+  /// **'Ishni davom ettirish uchun ilovani yangilang. Bu versiya endi ishlamaydi.'**
+  String get appUpdateBody;
+
+  /// No description provided for @appUpdateButton.
+  ///
+  /// In uz, this message translates to:
+  /// **'Yangilash'**
+  String get appUpdateButton;
+
+  /// No description provided for @appUpdateCurrentVersion.
+  ///
+  /// In uz, this message translates to:
+  /// **'Sizdagi versiya: {version}'**
+  String appUpdateCurrentVersion(String version);
+
+  /// No description provided for @appUpdateOpenFailed.
+  ///
+  /// In uz, this message translates to:
+  /// **'Play Market\'ni ochib bo\'lmadi. Ilovani Play Market orqali qo\'lda yangilang.'**
+  String get appUpdateOpenFailed;
 }
 
 class _AppLocalizationsDelegate

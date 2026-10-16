@@ -577,7 +577,12 @@
     "timezone": "Timezone",
     "absences": "Leave",
     "annualLeaveDays": "Annual leave (calendar days)",
-    "annualLeaveDaysHint": "The Labour Code sets at least 21 calendar days"
+    "annualLeaveDaysHint": "The Labour Code sets at least 21 calendar days",
+    "mobileApp": "Mobile app",
+    "mobileMinBuild": "Oldest allowed version (build number)",
+    "mobileMinBuildHint": "Apps older than this build stop working and ask to update. 0 turns the check off.",
+    "mobileMinBuildWarning": "Change this only after the new version is available to everyone on Play Market. Otherwise people can't find the update and can't use the app.",
+    "mobileStoreUrl": "Update link (Play Market)"
   },
   "reports": {
     "employeeDistribution": "Employee distribution",
